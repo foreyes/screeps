@@ -131,9 +131,12 @@ var stages = {
 		            room.createConstructionSite(pos.x, pos.y, STRUCTURE_EXTENSION);
 		        });
 		    }
+
+		    Memory.ctx.flagExtension2 = true;
 		},
 		loop: function(ctx) {
-			if(Game.time % 100 != 0) {
+			if(Game.time % 100 != 0 && !Memory.ctx.flagExtension2) {
+				Memory.ctx.flagExtension2 = false;
 				return false;
 			}
 			var constructing_extensions = ctx.room.find(FIND_CONSTRUCTION_SITES, {
@@ -143,7 +146,10 @@ var stages = {
 			});
 			return constructing_extensions.length == 0;
 		},
-		terminate: defaultTerminate
+		terminate: function(ctx, next) {
+			delete Memory.ctx.flagExtension2;
+			defaultTerminate(ctx, next);
+		}
 	},
 	upgrade3: {
 		wait: 1,
@@ -196,9 +202,12 @@ var stages = {
 			        room.createConstructionSite(pos.x, pos.y, STRUCTURE_EXTENSION);
 			    });
 			}
+
+			Memory.ctx.flagExtension3 = true;
 		},
 		loop: function(ctx) {
-			if(Game.time % 100 != 0) {
+			if(Game.time % 100 != 0 && !Memory.ctx.flagExtension3) {
+				Memory.ctx.flagExtension3 = false;
 				return false;
 			}
 			var constructing_extensions = ctx.room.find(FIND_CONSTRUCTION_SITES, {
@@ -208,7 +217,10 @@ var stages = {
 			});
 			return constructing_extensions.length == 0;
 		},
-		terminate: defaultTerminate
+		terminate: function(ctx, next) {
+			delete Memory.ctx.flagExtension3;
+			defaultTerminate(ctx, next);
+		}
 	},
 	container3: {
 		wait: 1,
@@ -240,9 +252,12 @@ var stages = {
 		    if(poss.length != 0) {
 		    	room.createConstructionSite(poss[0].x, poss[0].y, STRUCTURE_CONTAINER);
 		    }
+
+		    Memory.ctx.flagContainer3 = true;
 		},
 		loop: function(ctx) {
-			if(Game.time % 100 != 0) {
+			if(Game.time % 100 != 0 && !Memory.ctx.flagContainer3) {
+				Memory.ctx.flagContainer3 = false;
 				return false;
 			}
 			var constructing_containers = ctx.room.find(FIND_CONSTRUCTION_SITES, {
@@ -252,7 +267,10 @@ var stages = {
 			});
 			return constructing_containers.length == 0;
 		},
-		terminate: defaultTerminate
+		terminate: function(ctx, next) {
+			delete Memory.ctx.flagContainer3;
+			defaultTerminate(ctx, next);
+		}
 	},
 	devRoles: {
 		wait: 0,

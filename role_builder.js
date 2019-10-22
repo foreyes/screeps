@@ -19,25 +19,42 @@ function escapeFromSource(ctx, creep, src) {
     creep.moveByPath(PathFinder.search(creep.pos, {pos: src.pos, range: 1}, {flee: true}));
 }
 
-function try2Build(ctx, creep) {
+function checkTarget4Build(target) {
+    // check avaliable
+    if(!target) return false;
+    // check my construction site
+    if(!target.my || target.structureType == undefined || target.progress == undefined) return false;
+    return true;
+}
+
+function getTarget(ctx, creep) {
     var targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
         filter: (site) => {
             return site.my;
         }
     });
     if(targets.length == 0) {
-        return false;
+        return null;
     }
-    targets = targets.sort(utils.CmpByObjDist2GivenPos(creep.pos));
-    // TODO: resolve block
-    var source = ctx.sources[0];
-    var target = targets[0];
-    // build road first.
-    var roads = targets.filter((structure) => {
-        return structure.structureType == 'road';
-    });
-    if(roads.length > 0) {
-        target = roads[0];
+    var target = null;
+    var roads = targets.filter((site) => site.structureType == STRUCTURE_ROAD);
+    if(roads.length != 0) {
+        target = creep.pos.findClosestByPath(roads, {ignoreCreeps: true});
+    } else {
+        target = creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
+    }
+    creep.memory.targetId = target.id;
+    return target;
+}
+
+function try2Build(ctx, creep) {
+    var target = Game.getObjectById(creep.memory.targetId);
+    if(!checkTarget4Build(target)) {
+        target = getTarget(ctx, creep);
+    }
+    // no avaliable target.
+    if(!target) {
+        return false;
     }
     var err = creep.build(target);
     if(err == ERR_NOT_IN_RANGE) {

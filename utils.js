@@ -25,7 +25,7 @@ function GetDirectDistance(pos1, pos2) {
 function CmpByObjDist2GivenPos(pos) {
     return function(a, b) {
         return GetDirectDistance(pos, a.pos) >  GetDirectDistance(pos, b.pos);
-    }
+    };
 }
 
 function DefaultMoveTo(creep, target) {
