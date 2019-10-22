@@ -19,23 +19,48 @@ function escapeFromSource(ctx, creep, src) {
     creep.moveByPath(PathFinder.search(creep.pos, {pos: src.pos, range: 1}, {flee: true}));
 }
 
-function try2Repair(ctx, creep) {
-    var repairs = creep.room.find(FIND_STRUCTURES, {
-        filter: (structure) => {
-            var res = structure.hits < structure.hitsMax && structure.structureType != 'constructedWall';
+function checkTarget4Repair(target) {
+    // check avaliable
+    if(!target) return false;
+    // check structure
+    if(target.structureType == undefined || target.progress != undefined) return false;
+    // check my structure
+    if(target.my != undefined && !target.my) return false;
+    // check hits
+    return target.hits != undefined && target.hits < target.hitsMax
+}
+
+function getTarget(ctx, creep) {
+    var targets = creep.room.find(FIND_STRUCTURES, {
+        filter: (site) => {
+            var res = structure.hits != undefined;
+            res = res && structure.hits < structure.hitsMax && structure.structureType != 'constructedWall';
             if(structure.my != undefined) {
                 res = res && structure.my;
             }
             return res;
         }
-    });;
-    if(repairs.length == 0) {
+    });
+    if(targets.length == 0) {
+        return null;
+    }
+    var target = creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
+    creep.memory.targetId = target.id;
+    return target;
+}
+
+function try2Repair(ctx, creep) {
+    var target = Game.getObjectById(creep.memory.targetId);
+    if(!checkTarget4Repair(target)) {
+        target = getTarget(ctx, creep);
+    }
+    // no avaliable target.
+    if(!target) {
         return false;
     }
-    repairs = repairs.sort(utils.CmpByObjDist2GivenPos(creep.pos));
-    var err = creep.repair(repairs[0]);
+    var err = creep.repair(target);
     if(err == ERR_NOT_IN_RANGE) {
-        utils.DefaultMoveTo(creep, repairs[0]);
+        utils.DefaultMoveTo(creep, target);
     }
     return true;
 }

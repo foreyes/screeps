@@ -22,9 +22,10 @@ function escapeFromSource(ctx, creep, src) {
 function checkTarget4Build(target) {
     // check avaliable
     if(!target) return false;
+    // check construction site
+    if(target.structureType == undefined || target.progress == undefined) return false;
     // check my construction site
-    if(!target.my || target.structureType == undefined || target.progress == undefined) return false;
-    return true;
+    return target.my == true;
 }
 
 function getTarget(ctx, creep) {

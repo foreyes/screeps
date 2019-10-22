@@ -238,8 +238,8 @@ var stages = {
 		    var goals = sources.map((source) => {return source.pos;});
 		    goals.push(room.controller.pos);
 		    for(var i in goals) {
-		        var road_path = PathFinder.search(spawn.pos, {pos: goals[i], range: 1}).path;
-		        var pos = road_path[road_path.length - 1];
+		        var road_path = PathFinder.search(goals[i], {pos: spawn.pos, range: 2}).path;
+		        var pos = road_path[0];
 		        room.createConstructionSite(pos.x, pos.y, STRUCTURE_CONTAINER);
 		    }
 

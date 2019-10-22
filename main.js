@@ -1,13 +1,6 @@
 var utils = require('utils');
 var stages = require('stage_scheduler').stages;
 
-function fetchCtx() {
-    if(Memory.ctx == undefined) {
-        require('context').InitWhenRespawn();
-    }
-    return require('context').FetchCtx();
-}
-
 var roleMap = {
     spawn: require('role_spawn'),
     workerHarvester: require('role_harvester'),
@@ -15,6 +8,13 @@ var roleMap = {
     workerRepairer: require('role_repairer'),
     workerBuilder: require('role_builder')
 };
+
+function fetchCtx() {
+    if(Memory.ctx == undefined) {
+        require('context').InitWhenRespawn();
+    }
+    return require('context').FetchCtx();
+}
 
 // make sure spawn's adjusted 4 cells are not wall when respawn.
 // spawn should not near by sources.
@@ -29,8 +29,7 @@ module.exports.loop = function () {
         }
     }
 
-    var spawn = ctx.spawn, room = ctx.room;
-
+    // run scheduler logic
     var newWait = [], ready = [];
     for(var i in Memory.ctx.Wait) {
         var x = Memory.ctx.Wait[i];
@@ -61,6 +60,8 @@ module.exports.loop = function () {
 
 
     // run role logic.
+    var spawn = ctx.spawn, room = ctx.room;
+
     roleMap['spawn'].Run(ctx, spawn)
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
