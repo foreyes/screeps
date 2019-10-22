@@ -19,29 +19,23 @@ function escapeFromSource(ctx, creep, src) {
     creep.moveByPath(PathFinder.search(creep.pos, {pos: src.pos, range: 1}, {flee: true}));
 }
 
-function try2Build(ctx, creep) {
-    var targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
-        filter: (site) => {
-            return site.my;
+function try2Repair(ctx, creep) {
+    var repairs = creep.room.find(FIND_STRUCTURES, {
+        filter: (structure) => {
+            var res = structure.hits < structure.hitsMax && structure.structureType != 'constructedWall';
+            if(structure.my != undefined) {
+                res = res && structure.my;
+            }
+            return res;
         }
-    });
-    if(targets.length == 0) {
+    });;
+    if(repairs.length == 0) {
         return false;
     }
-    targets = targets.sort(utils.CmpByObjDist2GivenPos(creep.pos));
-    // TODO: resolve block
-    var source = ctx.sources[0];
-    var target = targets[0];
-    // build road first.
-    var roads = targets.filter((structure) => {
-        return structure.structureType == 'road';
-    });
-    if(roads.length > 0) {
-        target = roads[0];
-    }
-    var err = creep.build(target);
+    repairs = repairs.sort(utils.CmpByObjDist2GivenPos(creep.pos));
+    var err = creep.repair(repairs[0]);
     if(err == ERR_NOT_IN_RANGE) {
-        utils.DefaultMoveTo(creep, target);
+        utils.DefaultMoveTo(creep, repairs[0]);
     }
     return true;
 }
@@ -49,7 +43,7 @@ function try2Build(ctx, creep) {
 function Run(ctx, creep) {
     if(creep.memory.FindEnergy && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity(RESOURCE_ENERGY)) {
         creep.memory.FindEnergy = false;
-        creep.say('🚧 build');
+        creep.say('🚧 repair');
     }
     if(creep.store[RESOURCE_ENERGY] == 0 || creep.memory.FindEnergy) {
         findEnergy(ctx, creep);
@@ -63,8 +57,8 @@ function Run(ctx, creep) {
         }
     });
 
-    // build logic
-    if(try2Build(ctx, creep)) {
+    // repair logic
+    if(try2Repair(ctx, creep)) {
         return;
     }
     // no work to do

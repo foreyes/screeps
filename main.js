@@ -1,4 +1,5 @@
 var utils = require('utils');
+var stages = require('stage_scheduler').stages;
 
 function fetchCtx() {
     if(Memory.ctx == undefined) {
@@ -11,6 +12,7 @@ var roleMap = {
     spawn: require('role_spawn'),
     harvester: require('role_harvester'),
     upgrader: require('role_upgrader'),
+    repairer: require('role_repairer'),
     builder: require('role_builder')
 };
 
@@ -28,26 +30,35 @@ module.exports.loop = function () {
     }
 
     var spawn = ctx.spawn, room = ctx.room;
-    // TODO: extract level action list.
-    if(room.memory.has_get_roads_l1) {
-    	utils.get_roads_l1(ctx);
-    }
-    if(room.controller.level >= 2 && !room.memory.has_get_extensions_l2) {
-    	utils.get_extensions_l2(ctx);
-    }
-    if(room.controller.level >= 3 && !room.memory.has_get_extensions_l3) {
-        utils.get_extensions_l3(ctx);
-    }
-    if(room.controller.level >= 3 && room.memory.has_get_extensions_l3 && !room.memory.has_get_containers_l3) {
-        var myConstructionSites = room.find(FIND_CONSTRUCTION_SITES, {
-            filter: (site) => {
-                return site.my;
-            }
-        });
-        if(myConstructionSites.length == 0) {
-            utils.get_containers_l3(ctx);
+
+    var newWait = [], ready = [];
+    for(var i in Memory.ctx.Wait) {
+        var x = Memory.ctx.Wait[i];
+        if(x.wait == 0) {
+            ready = ready.concat(x.name);
+        } else {
+            newWait = newWait.concat(x);
         }
     }
+    Memory.ctx.Wait = newWait;
+    for(var i in ready) {
+        var name = ready[i];
+        var stage = stages[name];
+        stage.init(ctx, stage.next);
+        Memory.ctx.InProgress = Memory.ctx.InProgress.concat(name);
+    }
+    var newInProgress = [];
+    for(var i in Memory.ctx.InProgress) {
+        var name = Memory.ctx.InProgress[i];
+        var stage = stages[name];
+        if(stage.loop(ctx)) {
+            stage.terminate(ctx, stage.next);
+        } else {
+            newInProgress = newInProgress.concat(name);
+        }
+    }
+    Memory.ctx.InProgress = newInProgress;
+
 
     // run role logic.
     roleMap['spawn'].Run(ctx, spawn)
