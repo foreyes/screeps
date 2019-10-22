@@ -10,10 +10,10 @@ function fetchCtx() {
 
 var roleMap = {
     spawn: require('role_spawn'),
-    harvester: require('role_harvester'),
-    upgrader: require('role_upgrader'),
-    repairer: require('role_repairer'),
-    builder: require('role_builder')
+    workerHarvester: require('role_harvester'),
+    workerUpgrader: require('role_upgrader'),
+    workerRepairer: require('role_repairer'),
+    workerBuilder: require('role_builder')
 };
 
 // make sure spawn's adjusted 4 cells are not wall when respawn.
@@ -35,9 +35,9 @@ module.exports.loop = function () {
     for(var i in Memory.ctx.Wait) {
         var x = Memory.ctx.Wait[i];
         if(x.wait == 0) {
-            ready = ready.concat(x.name);
+            ready.push(x.name);
         } else {
-            newWait = newWait.concat(x);
+            newWait.push(x);
         }
     }
     Memory.ctx.Wait = newWait;
@@ -45,7 +45,7 @@ module.exports.loop = function () {
         var name = ready[i];
         var stage = stages[name];
         stage.init(ctx, stage.next);
-        Memory.ctx.InProgress = Memory.ctx.InProgress.concat(name);
+        Memory.ctx.InProgress.push(name);
     }
     var newInProgress = [];
     for(var i in Memory.ctx.InProgress) {
@@ -54,7 +54,7 @@ module.exports.loop = function () {
         if(stage.loop(ctx)) {
             stage.terminate(ctx, stage.next);
         } else {
-            newInProgress = newInProgress.concat(name);
+            newInProgress.push(name);
         }
     }
     Memory.ctx.InProgress = newInProgress;

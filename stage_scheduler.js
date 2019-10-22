@@ -11,7 +11,7 @@ function defaultInit(ctx, next) {
 			}
 		}
 		if(!exist) {
-			Memory.ctx.Wait = Memory.ctx.Wait.concat({name: next[i], wait: stages[next[i]].wait});
+			Memory.ctx.Wait.push({name: next[i], wait: stages[next[i]].wait});
 		}
 	}
 }
@@ -42,14 +42,15 @@ var stages = {
 
 			var room = ctx.room, spawn = ctx.spawn, sources = ctx.sources;
 
-			var goals = sources.map((source) => {return source.pos;}).concat(room.controller.pos);
+			var goals = sources.map((source) => {return source.pos;});
+			goals.push(room.controller.pos);
 			var res = [];
 			for(var i in goals) {
 				res = res.concat(PathFinder.search(goals[i], {pos: spawn.pos, range: 2}).path);
 			}
 
 			var roomTerrain = Game.map.getRoomTerrain(room.name);
-			var tmp = uitils.get_positions_by_dist(room, spawn.pos, 2).filter((pos) => {
+			var tmp = utils.get_positions_by_dist(room, spawn.pos, 2).filter((pos) => {
 				return roomTerrain.get(pos.x, pos.y) != TERRAIN_MASK_WALL;
 			});
 			res = res.concat(tmp);
@@ -57,8 +58,13 @@ var stages = {
 			for(var i in res) {
 				room.createConstructionSite(res[i].x, res[i].y, STRUCTURE_ROAD);
 			}
+			Memory.ctx.flagRoad1 = true;
 		},
 		loop: function(ctx) {
+			if(Memory.ctx.flagRoad1) {
+				Memory.ctx.flagRoad1 = false;
+				return false;
+			}
 			if(Game.time % 100 != 0) {
 				return false;
 			}
@@ -69,7 +75,10 @@ var stages = {
 			});
 			return constructing_roads.length == 0;
 		},
-		terminate: defaultTerminate
+		terminate: function(ctx, next) {
+			delete Memory.ctx.flagRoad1;
+			defaultTerminate(ctx, next);
+		}
 	},
 	upgrade2: {
 		wait: 1,
@@ -203,7 +212,8 @@ var stages = {
 
 			var room = ctx.room, spawn = ctx.spawn, sources = ctx.sources;
 
-		    var goals = sources.map((source) => {return source.pos;}).concat(room.controller.pos);
+		    var goals = sources.map((source) => {return source.pos;});
+		    goals.push(room.controller.pos);
 		    for(var i in goals) {
 		        var road_path = PathFinder.search(spawn.pos, {pos: goals[i], range: 1}).path;
 		        var pos = road_path[road_path.length - 1];
@@ -239,7 +249,7 @@ var stages = {
 		init: defaultInit,
 		loop: function(ctx) {
 			return true;
-		}
+		},
 		terminate: defaultTerminate
 	},
 	statRoad3: {},
@@ -250,4 +260,8 @@ var stages = {
 	extension4: {},
 	storage: {},
 	wallAndRam: {}
-}
+};
+
+module.exports = {
+    stages
+};

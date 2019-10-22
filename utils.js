@@ -52,5 +52,4 @@ module.exports = {
     CmpByObjDist2GivenPos,
     DefaultMoveTo,
     IsSamePosition,
-    reset
 }

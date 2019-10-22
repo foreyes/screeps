@@ -5,7 +5,7 @@ function Run(ctx, creep) {
         creep.memory.harvesting = false;
     }
     // TODO
-    var source = Game.getObjectById("5bbcaedb9099fc012e639a85");
+    var source = ctx.sources[0];
     if(creep.carry.energy == 0 || creep.memory.harvesting) {
         if(!creep.memory.harvesting) {
             creep.memory.harvesting = true;

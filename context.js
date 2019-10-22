@@ -2,7 +2,7 @@ function InitWhenRespawn(spawnName = 'Spawn1') {
 	if(Memory.ctx != undefined) {
 		delete Memory.ctx;
 	}
-	Memory.ctx = {Wait: [], InProgress: ['road1']};
+	Memory.ctx = {Wait: [{wait: 0, name: 'road1'}], InProgress: []};
 
 	var spawn = Game.spawns[spawnName];
 	var room = spawn.room;
