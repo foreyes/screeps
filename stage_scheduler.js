@@ -107,8 +107,13 @@ var stages = {
 			Memory.ctx.workerBuilderNum = 3;
 			Memory.ctx.workerUpgraderNum = 1;
 
-			// TODO:
-			var room = ctx.room, spawn = ctx.spawn, rem = 5;
+			var exts = ctx.room.find(FIND_STRUCTURES, {
+				filter: (structure) => {
+					return structure.my && structure.structureType == STRUCTURE_EXTENSION;
+				}
+			}).length;
+
+			var room = ctx.room, spawn = ctx.spawn, rem = 5 - exts;
 
 		    for(var dist = 3; rem > 0; dist++) {
 		        var positions = utils.get_positions_by_dist(room, spawn.pos, dist);
@@ -167,7 +172,13 @@ var stages = {
 			Memory.ctx.workerBuilderNum = 3;
 			Memory.ctx.workerUpgraderNum = 1;
 
-			var room = ctx.room, spawn = ctx.spawn, rem = 5;
+			var exts = ctx.room.find(FIND_STRUCTURES, {
+				filter: (structure) => {
+					return structure.my && structure.structureType == STRUCTURE_EXTENSION;
+				}
+			}).length;
+
+			var room = ctx.room, spawn = ctx.spawn, rem = 10 - exts;
 
 			for(var dist = 3; rem > 0; dist++) {
 			    var positions = utils.get_positions_by_dist(room, spawn.pos, dist);
