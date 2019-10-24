@@ -444,9 +444,33 @@ var stages = {
 	tower3: {
 		wait: 1,
 		next: ['upgrade4'],
-		init: defaultInit,
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+
+			Memory.ctx.workerBuilderNum = 2;
+			Memory.ctx.workerUpgraderNum = 1;
+
+			var room = ctx.room, spawn = ctx.spawn, rem = 1 - ctx.towers.length;
+
+			for(var dist = 3; rem > 0; dist++) {
+			    var positions = utils.get_positions_by_dist(room, spawn.pos, dist);
+			    positions = positions.filter((pos) => {
+			        return room.lookAt(pos).filter((val) => {
+			            return val.type == 'structure' ||
+			                   (val.type == 'terrain' && val.terrain == 'wall');
+			        }).length == 0;
+			    });
+			    if(positions.length > rem) {
+			        positions = positions.slice(0, rem);
+			    }
+			    rem = rem - positions.length;
+			    positions.forEach(function(pos) {
+			        room.createConstructionSite(pos, STRUCTURE_TOWER);
+			    });
+			}
+		},
 		loop: function(ctx) {
-			return true;
+			return ctx.towers.length >= 1;
 		},
 		terminate: defaultTerminate
 	},

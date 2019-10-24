@@ -19,11 +19,22 @@ function FetchCtx() {
 	var sources = Memory.ctx.sourcesId.map(Game.getObjectById);
 	var spawners = utils.GetMyCreepsByRole(room, 'spawner');
 	var carriers = utils.GetMyCreepsByRole(room, 'carrier');
+	var towers = room.find(FIND_STRUCTURE, {
+		filter: (structure) => {
+			return structure.structureType == STRUCTURE_TOWER && structure.my;
+		}
+	});
 	if(spawners.length == 0 && carriers.length != 0) {
 		carriers[0].memory.role = 'spawner';
 		spawners = [carriers[0]];
 		carriers = utils.GetMyCreepsByRole(room, 'carrier');
 	}
+
+	var enemies = ctx.room.find(FIND_CREEPS, {
+        filter: (creep) => {
+            return !creep.my;
+        }
+    });
 
 	var restPos = Game.flags['restPos'];
 	if(restPos == undefined || restPos == null) {
@@ -36,6 +47,8 @@ function FetchCtx() {
 		spawn: spawn,
 		room: room,
 		sources: sources,
+		towers: towers,
+		enemies: enemies,
 		// creep informations
 		workerHarvesters: utils.GetMyCreepsByRole(room, 'workerHarvester'),
 		workerUpgraders: utils.GetMyCreepsByRole(room, 'workerUpgrader'),

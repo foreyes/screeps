@@ -10,6 +10,7 @@ var roleMap = {
     spawner: require('role_spawner'),
     carrier: require('role_carrier'),
     miner: require('role_miner'),
+    tower: require('role_tower'),
 };
 
 function fetchCtx() {
@@ -31,17 +32,6 @@ module.exports.loop = function () {
             delete Memory.creeps[name];
             console.log('Clearing non-existing creep memory:', name);
         }
-    }
-
-    var tower = Game.getObjectById('5dad1fabb3358f54b9fb903c');
-    var enemy = ctx.room.find(FIND_CREEPS, {
-        filter: (creep) => {
-            return !creep.my;
-        }
-    });
-    if(enemy.length != 0) {
-        var target = tower.pos.findClosestByRange(enemy);
-        tower.attack(target);
     }
 
     // run scheduler logic
@@ -73,6 +63,10 @@ module.exports.loop = function () {
     }
     Memory.ctx.InProgress = newInProgress;
 
+    // run tower logic.
+    for(var i in ctx.towers) {
+        roleMap['tower'].Run(ctx, ctx.towers[i]);
+    }
 
     // run role logic.
     var spawn = ctx.spawn, room = ctx.room;
