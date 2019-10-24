@@ -29,6 +29,17 @@ module.exports.loop = function () {
         }
     }
 
+    var tower = Game.getObjectById('5dad1fabb3358f54b9fb903c');
+    var enemy = ctx.room.find(FIND_CREEPS, {
+        filter: (creep) => {
+            return !creep.my;
+        }
+    });
+    if(enemy.length != 0) {
+        var target = tower.pos.findClosestByRange(enemy);
+        tower.attack(target);
+    }
+
     // run scheduler logic
     var newWait = [], ready = [];
     for(var i in Memory.ctx.Wait) {
