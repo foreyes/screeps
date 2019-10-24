@@ -42,14 +42,55 @@ function IsSamePosition(pos1, pos2) {
     return pos1.room = pos2.room && pos1.x == pos2.x && pos1.y == pos2.y;
 }
 
+function GetMyCreepsByRole(room, roleName) {
+    return room.find(FIND_CREEPS, {
+        filter: (creep) => {
+            return creep.my && creep.memory.role == roleName;
+        }
+    });
+}
+
+function findNewStore(ctx, creep) {
+    var targets = ctx.sourceContainers.filter((container) => {
+        return container.store[RESOURCE_ENERGY] > 0;
+    });
+    if(targets.length == 0) return;
+    return creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
+}
+
+function GetEnergyFromStore(ctx, creep) {
+    var target = Game.getObjectById(creep.memory.targetId);
+    if(!target || !target.structureType || !target.store || target.store[RESOURCE_ENERGY] == 0) {
+        target = findNewStore(ctx, creep);
+        creep.memory.targetId = target.id;
+    }
+
+    var err = creep.withdraw(target, RESOURCE_ENERGY);
+    if(err == ERR_NOT_IN_RANGE) {
+        DefaultMoveTo(creep, target);
+    }
+}
+
+function GetEnergyFromControllerStore(ctx, creep) {
+    var target = Game.getObjectById(creep.memory.targetId);
+    if(!target || !target.structureType || !target.store || target.store[RESOURCE_ENERGY] == 0) {
+        target = ctx.controllerContainer;
+        creep.memory.targetId = target.id;
+    }
+
+    var err = creep.withdraw(target, RESOURCE_ENERGY);
+    if(err == ERR_NOT_IN_RANGE) {
+        DefaultMoveTo(creep, target);
+    }
+}
+
 module.exports = {
-    // get_source_alter,
-    // get_source_rate,
-    // count_role,
-    // get_energy
     get_positions_by_dist,
     GetDirectDistance,
     CmpByObjDist2GivenPos,
     DefaultMoveTo,
     IsSamePosition,
+    GetMyCreepsByRole,
+    GetEnergyFromStore,
+    GetEnergyFromControllerStore,
 }

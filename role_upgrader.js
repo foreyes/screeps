@@ -1,27 +1,41 @@
 var utils = require('utils');
 
-function Run(ctx, creep) {
-    if(creep.carry.energy == creep.carryCapacity){
-        creep.memory.harvesting = false;
+function findEnergy(ctx, creep) {
+    if(!creep.memory.FindEnergy) {
+        creep.memory.FindEnergy = true;
+        creep.say('🔄 find energy');
     }
-    // TODO
+    if(ctx.flagDevRole) {
+        utils.GetEnergyFromControllerStore(ctx, creep)
+        return;
+    }
     var source = ctx.sources[0];
-    if(creep.carry.energy == 0 || creep.memory.harvesting) {
-        if(!creep.memory.harvesting) {
-            creep.memory.harvesting = true;
-        }
-        if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
-            utils.DefaultMoveTo(creep, source);
-        }
-    } else {
-        creep.memory.harvesting = false;
+    var err = creep.harvest(source);
+    if(err == ERR_NOT_IN_RANGE) {
+        utils.DefaultMoveTo(creep, source);
+    }
+}
+
+function Run(ctx, creep) {
+    if(creep.memory.sleep) {
+        creep.memory.sleep -= 1;
+    }
+    if(creep.memory.FindEnergy && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity(RESOURCE_ENERGY)) {
+        creep.memory.FindEnergy = false;
+        creep.say('upgrade');
+    }
+    if(creep.store[RESOURCE_ENERGY] == 0 || creep.memory.FindEnergy) {
+        findEnergy(ctx, creep);
+        return;
+    }
+
+    var err = creep.upgradeController(ctx.room.controller);
+    if(err == ERR_NOT_IN_RANGE) {
+        utils.DefaultMoveTo(creep, ctx.room.controller);
+    }
+    if(err == 0) {
         // TODO
-        if(Math.abs(creep.pos.x - source.pos.x) + Math.abs(creep.pos.y - source.pos.y) == 1) {
-            utils.DefaultMoveTo(creep, creep.room.controller);
-        }
-        if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-            utils.DefaultMoveTo(creep, creep.room.controller);
-        }
+        creep.memory.sleep = 10;
     }
 }
 

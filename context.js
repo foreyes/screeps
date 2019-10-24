@@ -1,3 +1,5 @@
+var utils = require('utils');
+
 function InitWhenRespawn(spawnName = 'Spawn1') {
 	if(Memory.ctx != undefined) {
 		delete Memory.ctx;
@@ -19,8 +21,23 @@ function FetchCtx() {
 	var ctx = {
 		spawn: spawn,
 		room: room,
-		sources: sources
+		sources: sources,
+		// creep informations
+		workerHarvesters: utils.GetMyCreepsByRole('workerHarvester'),
+		workerUpgraders: utils.GetMyCreepsByRole('workerUpgrader'),
+		workerBuilders: utils.GetMyCreepsByRole('workerBuilder'),
+		workerRepairers: utils.GetMyCreepsByRole('workerRepairer'),
+		carriers: utils.GetMyCreepsByRole('carrier'),
+		spawners: utils.GetMyCreepsByRole('spawner'),
+		miners: utils.GetMyCreepsByRole('miner'),
 	};
+
+	if(Memory.ctx.flagSetContainerInfo) {
+		ctx.flagDevRole = true;
+		var sourceContainerIds = [sources[0].memory.containerId, sources[1].memory.containerId, spawn.memory.containerId];
+		ctx.sourceContainers = sourceContainerIds.map((id) => Game.getObjectById(id));
+		ctx.controllerContainer = Game.getObjectById(room.controller.memory.containerId);
+	}
 	return ctx;
 }
 

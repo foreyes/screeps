@@ -5,8 +5,10 @@ function findEnergy(ctx, creep) {
         creep.memory.FindEnergy = true;
         creep.say('🔄 find energy');
     }
-    // TODO: get from container.
-    // TODO: plan it
+    if(ctx.flagDevRole) {
+        utils.GetEnergyFromStore(ctx, creep)
+        return;
+    }
     var source = ctx.sources[0];
     var err = creep.harvest(source);
     if(err == ERR_NOT_IN_RANGE) {

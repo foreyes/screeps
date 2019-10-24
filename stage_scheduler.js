@@ -27,6 +27,10 @@ function defaultTerminate(ctx, next) {
 	}
 }
 
+function startStage(stageName) {
+	Memory.ctx.Wait.push({wait: 0, name: stageName});
+}
+
 // loop returning true means need terminate.
 var stages = {
 	road1: {
@@ -229,7 +233,7 @@ var stages = {
 			defaultInit(ctx, next);
 
 			Memory.ctx.workerHarvesterNum = 2;
-			Memory.ctx.workerRepairerNum = 1;
+			Memory.ctx.workerRepairerNum = 2;
 			Memory.ctx.workerBuilderNum = 3;
 			Memory.ctx.workerUpgraderNum = 1;
 
@@ -241,6 +245,11 @@ var stages = {
 		        var road_path = PathFinder.search(goals[i], {pos: spawn.pos, range: 2}).path;
 		        var pos = road_path[0];
 		        room.createConstructionSite(pos.x, pos.y, STRUCTURE_CONTAINER);
+		        if(i < 2) {
+		        	ctx.sources[i].memory.containerPos = pos;
+		        } else {
+		        	ctx.room.controller.memory.containerPos = pos;
+		        }
 		    }
 
 		    var poss = utils.get_positions_by_dist(room, spawn.pos, 1).filter((pos) => {
@@ -251,6 +260,7 @@ var stages = {
 		    });
 		    if(poss.length != 0) {
 		    	room.createConstructionSite(poss[0].x, poss[0].y, STRUCTURE_CONTAINER);
+		    	ctx.spawn.memory.containerPos = poss[0];
 		    }
 
 		    Memory.ctx.flagContainer3 = true;
@@ -273,13 +283,90 @@ var stages = {
 		}
 	},
 	devRoles: {
-		wait: 0,
+		wait: 1,
 		next: [],
-		init: defaultInit,
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+			Memory.ctx.flagDevRoles = true;
+		},
 		loop: function(ctx) {
+			if(Game.time % 20 != 0 && !Memory.ctx.flagDevRoles) {
+				Memory.ctx.flagDevRoles = false;
+				return false;
+			}
+
+			// set up container info
+			if(!Memory.ctx.flagSetContainerInfo){
+				Memory.ctx.flagSetContainerInfo = true;
+				var container = ctx.room.lookAt(ctx.spawn.memory.containerPos).filter((item) => {
+					return item.structureType == STRUCTURE_CONTAINER
+				});
+				ctx.spawn.memory.containerId = container[0].id;
+
+				container = ctx.room.lookAt(ctx.room.controller.memory.containerPos).filter((item) => {
+					return item.structureType == STRUCTURE_CONTAINER
+				});
+				ctx.room.controller.memory.containerId = container[0].id;
+
+				for(var i in ctx.sources) {
+					container = ctx.room.lookAt(ctx.sources[i].memory.containerPos).filter((item) => {
+						return item.structureType == STRUCTURE_CONTAINER
+					});
+					ctx.sources[i].memory.containerId = container[0].id;
+				}
+			}
+
+			// spawn carriers and spawner
+			if(!Memory.ctx.flagSpawnCarriers) {
+				Memory.ctx.carrierNum = 2;
+				Memory.ctx.spawnerNum = 1;
+				Memory.ctx.workerHarvesterNum = 2;
+				Memory.ctx.workerRepairerNum = 1;
+				Memory.ctx.workerUpgraderNum = 1;
+				Memory.ctx.workerBuilderNum = 0;
+
+				Memory.ctx.flagSpawnCarriers = true;
+				Memory.ctx.flagSpawningCarriers = true;
+			}
+			// check if finished
+			if(Memory.ctx.flagSpawningCarriers) {
+				if(ctx.carriers.length >= Memory.ctx.carrierNum && ctx.spawners.length >= Memory.ctx.spawnerNum) {
+					Memory.ctx.flagSpawningCarriers = false;
+				} else {
+					return false;
+				}
+			}
+
+			// spawn miners
+			if(!Memory.ctx.flagSpawnMiners) {
+				Memory.ctx.minerNum = 2;
+				Memory.ctx.workerHarvesterNum = 1;
+
+				Memory.ctx.flagSpawnMiners = true;
+				Memory.ctx.flagSpawningMiners = true;
+			}
+			// check if finished
+			if(Memory.ctx.flagSpawningMiners) {
+				if(ctx.miners.length >= Memory.ctx.minerNum) {
+					Memory.ctx.workerHarvesterNum = 0;
+
+					Memory.ctx.DoNotHarvest = true;
+					Memory.ctx.flagSpawningMiners = false;
+				} else {
+					return false;
+				}
+			}
+
 			return true;
 		},
-		terminate: defaultTerminate
+		terminate: function(ctx, next) {
+			delete Memory.ctx.flagDevRoles;
+			delete Memory.ctx.flagSpawnCarriers;
+			delete Memory.ctx.flagSpawningCarriers;
+			delete Memory.ctx.flagSpawnMiners;
+			delete Memory.ctx.flagSpawningMiners;
+			defaultTerminate(ctx, next);
+		}
 	},
 	statRoad3: {},
 	road3: {},

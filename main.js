@@ -73,7 +73,6 @@ module.exports.loop = function () {
     // run role logic.
     var spawn = ctx.spawn, room = ctx.room;
 
-    roleMap['spawn'].Run(ctx, spawn)
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
         creep.memory.needMove = false;
@@ -89,4 +88,5 @@ module.exports.loop = function () {
         }
         creep.memory.lastPos = creep.pos;
     }
+    roleMap['spawn'].Run(ctx, spawn)
 };
