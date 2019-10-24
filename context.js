@@ -49,6 +49,7 @@ function FetchCtx() {
 		sources: sources,
 		towers: towers,
 		enemies: enemies,
+		storage: room.storage,
 		// creep informations
 		workerHarvesters: utils.GetMyCreepsByRole(room, 'workerHarvester'),
 		workerUpgraders: utils.GetMyCreepsByRole(room, 'workerUpgrader'),

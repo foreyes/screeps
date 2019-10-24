@@ -58,8 +58,11 @@ function findNewStore(ctx, creep) {
     var targets = ctx.sourceContainers.filter((container) => {
         return container.store[RESOURCE_ENERGY] > 0;
     });
-    if(targets.length == 0) return null;
-    return creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
+    if(targets.length != 0) {
+        return creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
+    }
+    if(ctx.storage == undefined) return null;
+    return ctx.storage;
 }
 
 function GetEnergyFromStore(ctx, creep) {
@@ -76,10 +79,14 @@ function GetEnergyFromStore(ctx, creep) {
 }
 
 function GetEnergyFromControllerStore(ctx, creep) {
-    var target = Game.getObjectById(creep.memory.targetId);
-    if(!target || !target.structureType || !target.store || target.store[RESOURCE_ENERGY] == 0) {
-        target = ctx.controllerContainer;
-        creep.memory.targetId = target.id;
+    var target = ctx.controllerContainer;
+    if(target.store[RESOURCE_ENERGY] == 0) {
+        if(ctx.storage != undefined && ctx.storage.store[RESOURCE_ENERGY] > 0) {
+            target = ctx.storage;
+        }
+    }
+    if(target.store[RESOURCE_ENERGY] == 0) {
+        return;
     }
 
     var err = creep.withdraw(target, RESOURCE_ENERGY);
