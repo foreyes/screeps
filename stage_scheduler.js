@@ -27,6 +27,18 @@ function defaultTerminate(ctx, next) {
 	}
 }
 
+function checkBuildFlag(flagName = 'flagflag', timeSlot = 50) {
+	if(Memory.ctx[flagName] == 0) {
+		Memory.ctx[flagName] = 1;
+		return false;
+	}
+	if(Game.time % timeSlot != 0 && Memory.ctx[flagName] != 1) {
+		return false;
+	}
+	Memory.ctx[flagName] = 2;
+	return true;
+}
+
 function startStage(stageName) {
 	Memory.ctx.Wait.push({wait: 0, name: stageName});
 }
@@ -62,13 +74,13 @@ var stages = {
 			for(var i in res) {
 				room.createConstructionSite(res[i].x, res[i].y, STRUCTURE_ROAD);
 			}
-			Memory.ctx.flagRoad1 = true;
+			Memory.ctx.flagRoad1 = 0;
 		},
 		loop: function(ctx) {
-			if(Game.time % 100 != 0 && !Memory.ctx.flagRoad1) {
-				Memory.ctx.flagRoad1 = false;
+			if(!checkBuildFlag('flagRoad1')) {
 				return false;
 			}
+
 			var constructing_roads = ctx.room.find(FIND_CONSTRUCTION_SITES, {
 				filter: (site) => {
 					return site.my && site.structureType == STRUCTURE_ROAD;
@@ -133,13 +145,13 @@ var stages = {
 		        });
 		    }
 
-		    Memory.ctx.flagExtension2 = true;
+		    Memory.ctx.flagExtension2 = 0;
 		},
 		loop: function(ctx) {
-			if(Game.time % 100 != 0 && !Memory.ctx.flagExtension2) {
-				Memory.ctx.flagExtension2 = false;
+			if(!checkBuildFlag('flagExtension2')) {
 				return false;
 			}
+
 			var constructing_extensions = ctx.room.find(FIND_CONSTRUCTION_SITES, {
 				filter: (site) => {
 					return site.my && site.structureType == STRUCTURE_EXTENSION;
@@ -204,13 +216,13 @@ var stages = {
 			    });
 			}
 
-			Memory.ctx.flagExtension3 = true;
+			Memory.ctx.flagExtension3 = 0;
 		},
 		loop: function(ctx) {
-			if(Game.time % 100 != 0 && !Memory.ctx.flagExtension3) {
-				Memory.ctx.flagExtension3 = false;
+			if(!checkBuildFlag('flagExtension3')) {
 				return false;
 			}
+
 			var constructing_extensions = ctx.room.find(FIND_CONSTRUCTION_SITES, {
 				filter: (site) => {
 					return site.my && site.structureType == STRUCTURE_EXTENSION;
@@ -262,13 +274,13 @@ var stages = {
 		    	Memory.ctx.spawnContainerPos = poss[0];
 		    }
 
-		    Memory.ctx.flagContainer3 = true;
+		    Memory.ctx.flagContainer3 = 0;
 		},
 		loop: function(ctx) {
-			if(Game.time % 100 != 0 && !Memory.ctx.flagContainer3) {
-				Memory.ctx.flagContainer3 = false;
+			if(!checkBuildFlag('flagContainer3')) {
 				return false;
 			}
+
 			var constructing_containers = ctx.room.find(FIND_CONSTRUCTION_SITES, {
 				filter: (site) => {
 					return site.my && site.structureType == STRUCTURE_CONTAINER;
@@ -410,13 +422,13 @@ var stages = {
 			Memory.ctx.workerUpgraderNum = 1;
 			Memory.ctx.workerBuilderNum = 3;
 
-			Memory.ctx.flagRoad3 = true;
+			Memory.ctx.flagRoad3 = 0;
 		},
 		loop: function(ctx) {
-			if(Game.time % 100 != 0 && !Memory.ctx.flagRoad3) {
-				Memory.ctx.flagRoad3 = false;
+			if(!checkBuildFlag('flagRoad3')) {
 				return false;
 			}
+
 			var constructing_roads = ctx.room.find(FIND_CONSTRUCTION_SITES, {
 				filter: (site) => {
 					return site.my && site.structureType == STRUCTURE_ROAD;
