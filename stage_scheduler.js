@@ -472,19 +472,92 @@ var stages = {
 		loop: function(ctx) {
 			return ctx.towers.length >= 1;
 		},
-		terminate: defaultTerminate
+		terminate: function(ctx, next) {
+			Memory.ctx.workerRepairerNum = 1;
+			defaultTerminate(ctx, next);
+		}
 	},
 	upgrade4: {
 		wait: 2,
-		next: [],
+		next: ['extension4'],
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+
+			Memory.ctx.workerUpgraderNum = 3;
+			Memory.ctx.BuilderNum = 0;
+		},
+		loop: function(ctx) {
+			return ctx.room.controller.level >= 4;
+		},
+		terminate: function(ctx, next) {
+			Memory.ctx.workerUpgraderNum = 1;
+			defaultTerminate(ctx, next);
+		}
+	},
+	extension4: {
+		wait: 1,
+		next: ['storage'],
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+
+			Memory.ctx.workerBuilderNum = 2;
+			Memory.ctx.workerUpgraderNum = 1;
+
+			var exts = ctx.room.find(FIND_STRUCTURES, {
+				filter: (structure) => {
+					return structure.my && structure.structureType == STRUCTURE_EXTENSION;
+				}
+			}).length;
+
+			var room = ctx.room, spawn = ctx.spawn, rem = 20 - exts;
+
+			for(var dist = 3; rem > 0; dist++) {
+				// TODO: get positions by range
+			    var positions = utils.get_positions_by_dist(room, spawn.pos, dist);
+			    positions = positions.filter((pos) => {
+			        return room.lookAt(pos).filter((val) => {
+			            return val.type == 'structure' ||
+			                   (val.type == 'terrain' && val.terrain == 'wall');
+			        }).length == 0;
+			    });
+			    if(positions.length > rem) {
+			        positions = positions.slice(0, rem);
+			    }
+			    rem = rem - positions.length;
+			    positions.forEach(function(pos) {
+			        room.createConstructionSite(pos.x, pos.y, STRUCTURE_EXTENSION);
+			    });
+			}
+
+			Memory.ctx.flagExtension4 = 0;
+		},
+		loop: function(ctx) {
+			if(!checkBuildFlag('flagExtension4')) {
+				return false;
+			}
+
+			var constructing_extensions = ctx.room.find(FIND_CONSTRUCTION_SITES, {
+				filter: (site) => {
+					return site.my && site.structureType == STRUCTURE_EXTENSION;
+				}
+			});
+			return constructing_extensions.length == 0;
+		},
+		terminate: function(ctx, next) {
+			Memory.ctx.workerBuilderNum = 0;
+			delete Memory.ctx.flagExtension4;
+			defaultTerminate(ctx, next);
+		}
+	},
+	storage: {
+		wait: 1,
+		nenxt: [],
 		init: defaultInit,
 		loop: function(ctx) {
 			return true;
 		},
 		terminate: defaultTerminate
 	},
-	extension4: {},
-	storage: {},
 	wallAndRam: {}
 };
 
