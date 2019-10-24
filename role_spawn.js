@@ -43,10 +43,10 @@ function createCreep(spawn, roleName, parts, creepMemory = {}) {
     spawn.spawnCreep(parts, newName, {memory: creepMemory});
 }
 
-var minerParts = [WORK, WORK, WORK, WORK, WORK, MOVE];
+var minerParts = [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE];
 
 function spawnMiner(ctx, sourceIdx) {
-    if(ctx.CurEnergy >= 550) {
+    if(ctx.CurEnergy >= 600) {
         createCreep(ctx.spawn, 'miner', minerParts, {'sourceIdx': sourceIdx});
     }
 }
@@ -96,13 +96,20 @@ function runAfterDevRoles(ctx, spawn) {
     // renew miner if neccesary
     for(var i in ctx.miners) {
         if(ctx.miners[i].ticksToLive < 1300) {
-            spawn.renewCreep(ctx.miners[i]);
-            return;
+            var err = spawn.renewCreep(ctx.miners[i]);
+            if(err != ERR_NOT_IN_RANGE) {
+                return;
+            }
         }
     }
     // spawn miner
     for(var i in ctx.sources) {
-        var miner = Game.getObjectById(ctx.sources[i].minerId);
+        if(Memory.ctx.minerId4Source == undefined) {
+            spawnMiner(ctx, i);
+            return;
+        }
+
+        var miner = Game.getObjectById(Memory.ctx.minerId4Source[i]);
         if(!miner) {
             spawnMiner(ctx, i);
             return;
@@ -120,22 +127,22 @@ function runAfterDevRoles(ctx, spawn) {
     }
     // spawn harvester for 
     if(ctx.workerHarvesters.length < Memory.ctx.workerHarvesterNum) {
-        spawnWorker(ctx, 'harvester');
+        spawnWorker(ctx, 'workerHarvester');
         return;
     }
     // spawn upgrader
     if(ctx.workerUpgraders .length < Memory.ctx.workerUpgraderNum) {
-        spawnWorker(ctx, 'upgrader');
+        spawnWorker(ctx, 'workerUpgrader');
         return;
     }
     // spawn repairer
     if(ctx.workerRepairers .length < Memory.ctx.workerRepairerNum) {
-        spawnWorker(ctx, 'repairer');
+        spawnWorker(ctx, 'workerRepairer');
         return;
     }
     // spawn builder
     if(ctx.workerBuilders .length < Memory.ctx.workerBuilderNum) {
-        spawnWorker(ctx, 'builder');
+        spawnWorker(ctx, 'workerBuilder');
         return;
     }
 }
@@ -149,13 +156,13 @@ function Run(ctx, spawn) {
         return;
     }
 
-    var workerHarvesters = utils.GetMyCreepsByRole('workerHarvester');
-    var workerUpgraders = utils.GetMyCreepsByRole('workerUpgrader');
-    var workerBuilders = utils.GetMyCreepsByRole('workerBuilder');
-    var workerRepairers = utils.GetMyCreepsByRole('workerRepairer');
-    var carriers = utils.GetMyCreepsByRole('carrier');
-    var spawners = utils.GetMyCreepsByRole('spawner');
-    var miners = utils.GetMyCreepsByRole('miner');
+    var workerHarvesters = utils.GetMyCreepsByRole(spawn.room, 'workerHarvester');
+    var workerUpgraders = utils.GetMyCreepsByRole(spawn.room, 'workerUpgrader');
+    var workerBuilders = utils.GetMyCreepsByRole(spawn.room, 'workerBuilder');
+    var workerRepairers = utils.GetMyCreepsByRole(spawn.room, 'workerRepairer');
+    var carriers = utils.GetMyCreepsByRole(spawn.room, 'carrier');
+    var spawners = utils.GetMyCreepsByRole(spawn.room, 'spawner');
+    var miners = utils.GetMyCreepsByRole(spawn.room, 'miner');
 
     var level = 300;
     if(workerHarvesters.length > 0) {
@@ -169,7 +176,7 @@ function Run(ctx, spawn) {
     }
 
     if(ctx.CurEnergy < level) return;
-    ver parts = workerParts[level];
+    var parts = workerParts[level];
 
     if(workerHarvesters.length < Memory.ctx.workerHarvesterNum) {
         createCreep(spawn, 'workerHarvester', parts);

@@ -241,14 +241,16 @@ var stages = {
 
 		    var goals = sources.map((source) => {return source.pos;});
 		    goals.push(room.controller.pos);
+
+			Memory.ctx.sourceContainerPos = [null, null];
 		    for(var i in goals) {
 		        var road_path = PathFinder.search(goals[i], {pos: spawn.pos, range: 2}).path;
 		        var pos = road_path[0];
 		        room.createConstructionSite(pos.x, pos.y, STRUCTURE_CONTAINER);
 		        if(i < 2) {
-		        	ctx.sources[i].memory.containerPos = pos;
+		        	Memory.ctx.sourceContainerPos[i] = pos;
 		        } else {
-		        	ctx.room.controller.memory.containerPos = pos;
+		        	Memory.ctx.controllerContainerPos = pos;
 		        }
 		    }
 
@@ -260,7 +262,7 @@ var stages = {
 		    });
 		    if(poss.length != 0) {
 		    	room.createConstructionSite(poss[0].x, poss[0].y, STRUCTURE_CONTAINER);
-		    	ctx.spawn.memory.containerPos = poss[0];
+		    	Memory.ctx.spawnContainerPos = poss[0];
 		    }
 
 		    Memory.ctx.flagContainer3 = true;
@@ -298,21 +300,22 @@ var stages = {
 			// set up container info
 			if(!Memory.ctx.flagSetContainerInfo){
 				Memory.ctx.flagSetContainerInfo = true;
-				var container = ctx.room.lookAt(ctx.spawn.memory.containerPos).filter((item) => {
+				var container = ctx.room.lookAt(Memory.ctx.spawnContainerPos).filter((item) => {
 					return item.structureType == STRUCTURE_CONTAINER
 				});
-				ctx.spawn.memory.containerId = container[0].id;
+				Memory.ctx.spawnContainerId = container[0].id;
 
-				container = ctx.room.lookAt(ctx.room.controller.memory.containerPos).filter((item) => {
+				container = ctx.room.lookAt(Memory.ctx.controllerContainerPos).filter((item) => {
 					return item.structureType == STRUCTURE_CONTAINER
 				});
-				ctx.room.controller.memory.containerId = container[0].id;
+				Memory.ctx.controllerContainerId = container[0].id;
 
+				Memory.ctx.sourceContainerIds = [null, null];
 				for(var i in ctx.sources) {
-					container = ctx.room.lookAt(ctx.sources[i].memory.containerPos).filter((item) => {
+					container = ctx.room.lookAt(Memory.ctx.sourceContainerPos[i]).filter((item) => {
 						return item.structureType == STRUCTURE_CONTAINER
 					});
-					ctx.sources[i].memory.containerId = container[0].id;
+					Memory.ctx.sourceContainerIds[i] = container[0].id;
 				}
 			}
 
@@ -350,7 +353,6 @@ var stages = {
 				if(ctx.miners.length >= Memory.ctx.minerNum) {
 					Memory.ctx.workerHarvesterNum = 0;
 
-					Memory.ctx.DoNotHarvest = true;
 					Memory.ctx.flagSpawningMiners = false;
 				} else {
 					return false;
@@ -368,10 +370,11 @@ var stages = {
 			defaultTerminate(ctx, next);
 		}
 	},
-	statRoad3: {},
+	statRoad3: {
+		
+	},
 	road3: {},
 	tower3: {},
-	setRepair3: {},
 	upgrade4: {},
 	extension4: {},
 	storage: {},
@@ -379,5 +382,6 @@ var stages = {
 };
 
 module.exports = {
+	startStage,
     stages
 };

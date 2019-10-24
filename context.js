@@ -17,26 +17,33 @@ function FetchCtx() {
 	var spawn = Game.getObjectById(Memory.ctx.spawnId);
 	var room = spawn.room;
 	var sources = Memory.ctx.sourcesId.map(Game.getObjectById);
+	var spawners = utils.GetMyCreepsByRole(room, 'spawner');
+	var carriers = utils.GetMyCreepsByRole(room, 'carrier');
+	if(spawners.length == 0 && carriers.length != 0) {
+		carriers[0].memory.role = 'spawner';
+		spawners = [carriers[0]];
+		carriers = utils.GetMyCreepsByRole(room, 'carrier');
+	}
 
 	var ctx = {
 		spawn: spawn,
 		room: room,
 		sources: sources,
 		// creep informations
-		workerHarvesters: utils.GetMyCreepsByRole('workerHarvester'),
-		workerUpgraders: utils.GetMyCreepsByRole('workerUpgrader'),
-		workerBuilders: utils.GetMyCreepsByRole('workerBuilder'),
-		workerRepairers: utils.GetMyCreepsByRole('workerRepairer'),
-		carriers: utils.GetMyCreepsByRole('carrier'),
-		spawners: utils.GetMyCreepsByRole('spawner'),
-		miners: utils.GetMyCreepsByRole('miner'),
+		workerHarvesters: utils.GetMyCreepsByRole(room, 'workerHarvester'),
+		workerUpgraders: utils.GetMyCreepsByRole(room, 'workerUpgrader'),
+		workerBuilders: utils.GetMyCreepsByRole(room, 'workerBuilder'),
+		workerRepairers: utils.GetMyCreepsByRole(room, 'workerRepairer'),
+		carriers: carriers,
+		spawners: spawners,
+		miners: utils.GetMyCreepsByRole(room, 'miner'),
 	};
 
 	if(Memory.ctx.flagSetContainerInfo) {
 		ctx.flagDevRole = true;
-		var sourceContainerIds = [sources[0].memory.containerId, sources[1].memory.containerId, spawn.memory.containerId];
+		var sourceContainerIds = [Memory.ctx.sourceContainerIds[0], Memory.ctx.sourceContainerIds[1], Memory.ctx.spawnContainerId];
 		ctx.sourceContainers = sourceContainerIds.map((id) => Game.getObjectById(id));
-		ctx.controllerContainer = Game.getObjectById(room.controller.memory.containerId);
+		ctx.controllerContainer = Game.getObjectById(Memory.ctx.controllerContainerId);
 	}
 	return ctx;
 }

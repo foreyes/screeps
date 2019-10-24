@@ -19,6 +19,7 @@ function findEnergy(ctx, creep) {
 function Run(ctx, creep) {
     if(creep.memory.sleep) {
         creep.memory.sleep -= 1;
+        return;
     }
     if(creep.memory.FindEnergy && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity(RESOURCE_ENERGY)) {
         creep.memory.FindEnergy = false;
@@ -34,8 +35,10 @@ function Run(ctx, creep) {
         utils.DefaultMoveTo(creep, ctx.room.controller);
     }
     if(err == 0) {
-        // TODO
-        creep.memory.sleep = 10;
+        // just keep level when no need to upgrade
+        if(Memory.ctx.workerUpgraderNum == 1) {
+            creep.memory.sleep = 10;
+        }
     }
 }
 

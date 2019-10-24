@@ -2,9 +2,12 @@ var utils = require('utils');
 
 function Run(ctx, creep) {
 	var source = ctx.sources[creep.memory.sourceIdx];
-	var target = Game.getObjectById(source.memory.containerId);
+	var target = ctx.sourceContainers[creep.memory.sourceIdx];
 
-	source.memory.minerId = creep.id;
+	if(Memory.ctx.minerId4Source == undefined) {
+		Memory.ctx.minerId4Source = [null, null];
+	}
+	Memory.ctx.minerId4Source[creep.memory.sourceIdx] = creep.id;
 
 	if(!utils.IsSamePosition(creep.pos, target.pos)) {
 		utils.DefaultMoveTo(creep, target);

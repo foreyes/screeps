@@ -6,7 +6,10 @@ var roleMap = {
     workerHarvester: require('role_harvester'),
     workerUpgrader: require('role_upgrader'),
     workerRepairer: require('role_repairer'),
-    workerBuilder: require('role_builder')
+    workerBuilder: require('role_builder'),
+    spawner: require('role_spawner'),
+    carrier: require('role_carrier'),
+    miner: require('role_miner'),
 };
 
 function fetchCtx() {

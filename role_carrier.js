@@ -21,7 +21,7 @@ function cmpByStorePriority(a, b) {
 }
 
 function getTarget(ctx, creep) {
-	if(ctx.controllerContainer.store[RESOURCE_ENERGY] < structure.store.getCapacity(RESOURCE_ENERGY)) {
+	if(ctx.controllerContainer.store[RESOURCE_ENERGY] < ctx.controllerContainer.store.getCapacity(RESOURCE_ENERGY)) {
 		return ctx.controllerContainer;
 	}
 	var targets = creep.room.find(FIND_STRUCTURES, {

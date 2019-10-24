@@ -39,7 +39,7 @@ function DefaultMoveTo(creep, target) {
 }
 
 function IsSamePosition(pos1, pos2) {
-    return pos1.room = pos2.room && pos1.x == pos2.x && pos1.y == pos2.y;
+    return pos1.room == pos2.room && pos1.x == pos2.x && pos1.y == pos2.y;
 }
 
 function GetMyCreepsByRole(room, roleName) {
@@ -54,7 +54,7 @@ function findNewStore(ctx, creep) {
     var targets = ctx.sourceContainers.filter((container) => {
         return container.store[RESOURCE_ENERGY] > 0;
     });
-    if(targets.length == 0) return;
+    if(targets.length == 0) return null;
     return creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
 }
 
