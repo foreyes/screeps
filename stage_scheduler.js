@@ -65,11 +65,8 @@ var stages = {
 			Memory.ctx.flagRoad1 = true;
 		},
 		loop: function(ctx) {
-			if(Memory.ctx.flagRoad1) {
+			if(Game.time % 100 != 0 && !Memory.ctx.flagRoad1) {
 				Memory.ctx.flagRoad1 = false;
-				return false;
-			}
-			if(Game.time % 100 != 0) {
 				return false;
 			}
 			var constructing_roads = ctx.room.find(FIND_CONSTRUCTION_SITES, {
@@ -286,7 +283,7 @@ var stages = {
 	},
 	devRoles: {
 		wait: 1,
-		next: [],
+		next: ['statRoad3', 'tower3'],
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 			Memory.ctx.flagDevRoles = true;
@@ -371,11 +368,85 @@ var stages = {
 		}
 	},
 	statRoad3: {
-		
+		wait: 1,
+		next: ['road3'],
+		init: defaultInit,
+		loop: function(ctx) {
+			if(!Memory.ctx.flagStatRoad3Start) {
+				Memory.ctx.flagStatRoad3Start = Game.time;
+			}
+			if(Memory.ctx.statsRoad == undefined) {
+				Memory.ctx.statsRoad = [];
+			}
+			var creeps = ctx.room.find(FIND_CREEPS, {
+				filter: (creep) => {
+					return creep.my;
+				}
+			});
+			var creepPos = creeps.map((creep) => creep.pos);
+			for(var i in creepPos) {
+				if(!utils.IsItemInList(creepPos[i], Memory.ctx.statsRoad, utils.IsSamePosition)) {
+					Memory.ctx.statsRoad.push(creepPos[i]);
+				}
+			}
+			return Game.time - Memory.ctx.flagStatRoad3Start > 500;
+		},
+		terminate: function(ctx, next) {
+			delete Memory.ctx.flagStatRoad3Start;
+			defaultTerminate(ctx, next);
+		}
 	},
-	road3: {},
-	tower3: {},
-	upgrade4: {},
+	road3: {
+		wait: 1,
+		next: ['upgrade4'],
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+			for(var i in Memory.ctx.statsRoad) {
+				var pos = Memory.ctx.statsRoad[i];
+				ctx.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD);
+			}
+			delete Memory.ctx.statsRoad;
+
+			Memory.ctx.workerUpgraderNum = 1;
+			Memory.ctx.workerBuilderNum = 3;
+
+			Memory.ctx.flagRoad3 = true;
+		},
+		loop: function(ctx) {
+			if(Game.time % 100 != 0 && !Memory.ctx.flagRoad3) {
+				Memory.ctx.flagRoad3 = false;
+				return false;
+			}
+			var constructing_roads = ctx.room.find(FIND_CONSTRUCTION_SITES, {
+				filter: (site) => {
+					return site.my && site.structureType == STRUCTURE_ROAD;
+				}
+			});
+			return constructing_roads.length == 0;
+		},
+		terminate: function(ctx, next) {
+			delete Memory.ctx.flagRoad3;
+			defaultTerminate(ctx, next);
+		}
+	},
+	tower3: {
+		wait: 1,
+		next: ['upgrade4'],
+		init: defaultInit,
+		loop: function(ctx) {
+			return true;
+		},
+		terminate: defaultTerminate
+	},
+	upgrade4: {
+		wait: 2,
+		next: [],
+		init: defaultInit,
+		loop: function(ctx) {
+			return true;
+		},
+		terminate: defaultTerminate
+	},
 	extension4: {},
 	storage: {},
 	wallAndRam: {}

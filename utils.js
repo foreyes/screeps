@@ -84,6 +84,17 @@ function GetEnergyFromControllerStore(ctx, creep) {
     }
 }
 
+function IsItemInList(item, lst, eqCond = null) {
+    for(var i in lst) {
+        if(eqCond == null) {
+            if(item == lst[i]) return true;
+        } else {
+            if(eqCond(item, lst[i])) return true;
+        }
+    }
+    return false;
+}
+
 module.exports = {
     get_positions_by_dist,
     GetDirectDistance,
@@ -93,4 +104,5 @@ module.exports = {
     GetMyCreepsByRole,
     GetEnergyFromStore,
     GetEnergyFromControllerStore,
+    IsItemInList,
 }
