@@ -30,6 +30,10 @@ function CmpByObjDist2GivenPos(pos) {
 
 function DefaultMoveTo(creep, target) {
     creep.memory.needMove = true;
+    if(creep.memory.role == 'miner') {
+        creep.moveTo(target, {reusePath: 10, visualizePathStyle: {stroke: '#ffaa00'}});
+        return;
+    }
     if(creep.memory.stuck < 3) {
         creep.moveTo(target, {reusePath: 10, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
     } else {

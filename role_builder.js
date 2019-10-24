@@ -5,6 +5,9 @@ function findEnergy(ctx, creep) {
         creep.memory.FindEnergy = true;
         creep.say('🔄 find energy');
     }
+    if(getTarget(ctx, creep) == null) {
+        return;
+    }
     if(ctx.flagDevRole) {
         utils.GetEnergyFromStore(ctx, creep)
         return;
@@ -89,7 +92,7 @@ function Run(ctx, creep) {
     }
     // no work to do
     // TODO: set a rest point
-    utils.DefaultMoveTo(creep, ctx.spawn);
+    utils.DefaultMoveTo(creep, ctx.restPos);
 }
 
 module.exports = {

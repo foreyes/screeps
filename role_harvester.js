@@ -66,7 +66,7 @@ function Run(ctx, creep) {
     }
     // no work to do
     // TODO: set a rest point
-    utils.DefaultMoveTo(creep, ctx.spawn);
+    utils.DefaultMoveTo(creep, ctx.restPos);
 }
 
 module.exports = {

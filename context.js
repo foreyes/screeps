@@ -25,7 +25,14 @@ function FetchCtx() {
 		carriers = utils.GetMyCreepsByRole(room, 'carrier');
 	}
 
+	var restPos = Game.flags['restPos'];
+	if(restPos == undefined || restPos == null) {
+		console.log("please set a restPos flag.");
+		restPos = spawn;
+	}
+
 	var ctx = {
+		restPos: restPos,
 		spawn: spawn,
 		room: room,
 		sources: sources,

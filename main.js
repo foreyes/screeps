@@ -22,6 +22,7 @@ function fetchCtx() {
 // make sure spawn's adjusted 4 cells are not wall when respawn.
 // spawn should not near by sources.
 // sort from small to big
+// set a restPos Flag
 module.exports.loop = function () {
     var ctx = fetchCtx();
 
@@ -87,7 +88,9 @@ module.exports.loop = function () {
         if(!creep.memory.needMove || creep.pos.x != creep.memory.lastPos.x || creep.pos.y != creep.memory.lastPos.y) {
             creep.memory.stuck = 0;
         } else {
-            creep.memory.stuck += 1;
+            if(creep.fatigue == 0){
+                creep.memory.stuck += 1;
+            }
         }
         creep.memory.lastPos = creep.pos;
     }
