@@ -551,14 +551,51 @@ var stages = {
 	},
 	storage: {
 		wait: 1,
+		nenxt: ['wallAndRam'],
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+
+			Memory.ctx.workerBuilderNum = 2;
+			Memory.ctx.workerUpgraderNum = 1;
+
+			var room = ctx.room, spawn = ctx.spawn, rem = 1;
+			if(ctx.storage != undefined) rem = 0;
+
+			for(var dist = 1; rem > 0; dist++) {
+				// TODO: get positions by range
+			    var positions = utils.get_positions_by_dist(room, spawn.pos, dist);
+			    positions = positions.filter((pos) => {
+			        return room.lookAt(pos).filter((val) => {
+			            return val.type == 'structure' ||
+			                   (val.type == 'terrain' && val.terrain == 'wall');
+			        }).length == 0;
+			    });
+			    if(positions.length > rem) {
+			        positions = positions.slice(0, rem);
+			    }
+			    rem = rem - positions.length;
+			    positions.forEach(function(pos) {
+			        room.createConstructionSite(pos.x, pos.y, STRUCTURE_STORAGE);
+			    });
+			}
+		},
+		loop: function(ctx) {
+			return ctx.storage != undefined;
+		},
+		terminate: function(ctx, next) {
+			Memory.ctx.workerBuilderNum = 0;
+			defaultTerminate(ctx, next);
+		}
+	},
+	wallAndRam: {
+		wait: 1,
 		nenxt: [],
 		init: defaultInit,
 		loop: function(ctx) {
 			return true;
 		},
 		terminate: defaultTerminate
-	},
-	wallAndRam: {}
+	}
 };
 
 module.exports = {
