@@ -32,7 +32,7 @@ function checkTarget4Repair(target) {
 
 function getTarget(ctx, creep) {
     var targets = creep.room.find(FIND_STRUCTURES, {
-        filter: (site) => {
+        filter: (structure) => {
             var res = structure.hits != undefined;
             res = res && structure.hits < structure.hitsMax && structure.structureType != 'constructedWall';
             if(structure.my != undefined) {
