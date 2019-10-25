@@ -1,5 +1,6 @@
 // TODOs: suicade logic, fix find energy then store, refactor ctx, recycle droped energy
-// build err, stats road, refactor stages
+// build err, stats road, refactor stages, extension use, reuse carrier and spawner
+// get position by dist, tower logic, wall and rampart
 
 var utils = require('utils');
 var stages = require('stage_scheduler').stages;

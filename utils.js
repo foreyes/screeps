@@ -54,6 +54,7 @@ function GetMyCreepsByRole(room, roleName) {
     });
 }
 
+// find in center
 function findNewStore(ctx, creep) {
     var targets = ctx.sourceContainers.filter((container) => {
         return container.store[RESOURCE_ENERGY] >= 100;

@@ -120,6 +120,7 @@ var stages = {
 			Memory.ctx.workerBuilderNum = 3;
 			Memory.ctx.workerUpgraderNum = 1;
 
+			// TODO: ctx
 			var exts = ctx.room.find(FIND_STRUCTURES, {
 				filter: (structure) => {
 					return structure.my && structure.structureType == STRUCTURE_EXTENSION;
