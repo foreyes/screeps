@@ -452,7 +452,7 @@ var stages = {
 
 			var room = ctx.room, spawn = ctx.spawn, rem = 1 - ctx.towers.length;
 
-			for(var dist = 3; rem > 0; dist++) {
+			for(var dist = 1; rem > 0; dist++) {
 			    var positions = utils.get_positions_by_dist(room, spawn.pos, dist);
 			    positions = positions.filter((pos) => {
 			        return room.lookAt(pos).filter((val) => {
@@ -473,6 +473,7 @@ var stages = {
 			return ctx.towers.length >= 1;
 		},
 		terminate: function(ctx, next) {
+			Memory.ctx.workerBuilderNum = 0;
 			Memory.ctx.workerRepairerNum = 1;
 			defaultTerminate(ctx, next);
 		}
@@ -551,7 +552,7 @@ var stages = {
 	},
 	storage: {
 		wait: 1,
-		nenxt: ['wallAndRam'],
+		next: ['upgrade5'],
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
@@ -587,9 +588,113 @@ var stages = {
 			defaultTerminate(ctx, next);
 		}
 	},
+	upgrade5: {
+		wait: 1,
+		next: ['tower5'],
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+			Memory.ctx.workerUpgraderNum = 2;
+		},
+		loop: function(ctx) {
+			return ctx.room.controller.level >= 5;
+		},
+		terminate: function(ctx, next) {
+			Memory.ctx.workerUpgraderNum = 1;
+			defaultTerminate(ctx, next);
+		}
+	},
+	tower5: {
+		wait: 1,
+		next: ['extension5'],
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+
+			Memory.ctx.workerBuilderNum = 2;
+
+			var room = ctx.room, spawn = ctx.spawn, rem = 2 - ctx.towers.length;
+
+			for(var dist = 1; rem > 0; dist++) {
+			    var positions = utils.get_positions_by_dist(room, spawn.pos, dist);
+			    positions = positions.filter((pos) => {
+			        return room.lookAt(pos).filter((val) => {
+			            return val.type == 'structure' ||
+			                   (val.type == 'terrain' && val.terrain == 'wall');
+			        }).length == 0;
+			    });
+			    if(positions.length > rem) {
+			        positions = positions.slice(0, rem);
+			    }
+			    rem = rem - positions.length;
+			    positions.forEach(function(pos) {
+			        room.createConstructionSite(pos, STRUCTURE_TOWER);
+			    });
+			}
+		},
+		loop: function(ctx) {
+			return ctx.towers.length >= 2;
+		},
+		terminate: function(ctx, next) {
+			Memory.ctx.workerBuilderNum = 0;
+			defaultTerminate(ctx, next);
+		}
+	},
+	extension5: {
+		wait: 1,
+		next: [],
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+
+			Memory.ctx.workerBuilderNum = 2;
+
+			var exts = ctx.room.find(FIND_STRUCTURES, {
+				filter: (structure) => {
+					return structure.my && structure.structureType == STRUCTURE_EXTENSION;
+				}
+			}).length;
+
+			var room = ctx.room, spawn = ctx.spawn, rem = 30 - exts;
+
+			for(var dist = 3; rem > 0; dist++) {
+				// TODO: get positions by range
+			    var positions = utils.get_positions_by_dist(room, spawn.pos, dist);
+			    positions = positions.filter((pos) => {
+			        return room.lookAt(pos).filter((val) => {
+			            return val.type == 'structure' ||
+			                   (val.type == 'terrain' && val.terrain == 'wall');
+			        }).length == 0;
+			    });
+			    if(positions.length > rem) {
+			        positions = positions.slice(0, rem);
+			    }
+			    rem = rem - positions.length;
+			    positions.forEach(function(pos) {
+			        room.createConstructionSite(pos.x, pos.y, STRUCTURE_EXTENSION);
+			    });
+			}
+
+			Memory.ctx.flagExtension5 = 0;
+		},
+		loop: function(ctx) {
+			if(!checkBuildFlag('flagExtension5')) {
+				return false;
+			}
+
+			var constructing_extensions = ctx.room.find(FIND_CONSTRUCTION_SITES, {
+				filter: (site) => {
+					return site.my && site.structureType == STRUCTURE_EXTENSION;
+				}
+			});
+			return constructing_extensions.length == 0;
+		},
+		terminate: function(ctx, next) {
+			Memory.ctx.workerBuilderNum = 0;
+			delete Memory.ctx.flagExtension5;
+			defaultTerminate(ctx, next);
+		}
+	},
 	wallAndRam: {
 		wait: 1,
-		nenxt: [],
+		next: [],
 		init: defaultInit,
 		loop: function(ctx) {
 			return true;

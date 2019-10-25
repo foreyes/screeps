@@ -1,3 +1,6 @@
+// TODOs: suicade logic, fix find energy then store, refactor ctx, recycle droped energy
+// build err, stats road, refactor stages
+
 var utils = require('utils');
 var stages = require('stage_scheduler').stages;
 

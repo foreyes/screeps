@@ -43,6 +43,9 @@ function getTarget(ctx, creep) {
             if(structure.my != undefined) {
                 res = res && structure.my;
             }
+            if(ctx.towers.length != 0) {
+                res = res && structure.structureType != STRUCTURE_ROAD;
+            }
             return res;
         }
     });

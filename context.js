@@ -19,7 +19,7 @@ function FetchCtx() {
 	var sources = Memory.ctx.sourcesId.map(Game.getObjectById);
 	var spawners = utils.GetMyCreepsByRole(room, 'spawner');
 	var carriers = utils.GetMyCreepsByRole(room, 'carrier');
-	var towers = room.find(FIND_STRUCTURE, {
+	var towers = room.find(FIND_STRUCTURES, {
 		filter: (structure) => {
 			return structure.structureType == STRUCTURE_TOWER && structure.my;
 		}
@@ -30,9 +30,15 @@ function FetchCtx() {
 		carriers = utils.GetMyCreepsByRole(room, 'carrier');
 	}
 
-	var enemies = ctx.room.find(FIND_CREEPS, {
+	var enemies = room.find(FIND_CREEPS, {
         filter: (creep) => {
             return !creep.my;
+        }
+    });
+
+    var myCreeps = room.find(FIND_CREEPS, {
+        filter: (creep) => {
+            return creep.my;
         }
     });
 
@@ -42,6 +48,18 @@ function FetchCtx() {
 		restPos = spawn;
 	}
 
+	// larger than 100
+	var dropedEnergy = room.find(FIND_DROPPED_RESOURCES, {
+		filter: (resource) => {
+			return resource.amount >= 300 && resource.resourceType == RESOURCE_ENERGY;
+		}
+	});
+
+	var storage = room.storage;
+	if(storage != undefined && storage.progress != undefined) {
+		storage = undefined;
+	}
+
 	var ctx = {
 		restPos: restPos,
 		spawn: spawn,
@@ -49,7 +67,9 @@ function FetchCtx() {
 		sources: sources,
 		towers: towers,
 		enemies: enemies,
+		myCreeps: myCreeps,
 		storage: room.storage,
+		dropedEnergy: dropedEnergy,
 		// creep informations
 		workerHarvesters: utils.GetMyCreepsByRole(room, 'workerHarvester'),
 		workerUpgraders: utils.GetMyCreepsByRole(room, 'workerUpgrader'),

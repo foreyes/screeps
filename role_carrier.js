@@ -28,11 +28,14 @@ function getTarget(ctx, creep) {
 		filter: (structure) => {
 			var st = structure.structureType;
 			var res = st == STRUCTURE_TOWER || st == STRUCTURE_CONTAINER || st == STRUCTURE_STORAGE;
-			res = res && structure.id != ctx.sourceContainers[0].sid && structure.id != ctx.sourceContainers[1].id;
+			res = res && structure.id != ctx.sourceContainers[0].id && structure.id != ctx.sourceContainers[1].id;
 			res = res && structure.store[RESOURCE_ENERGY] < structure.store.getCapacity(RESOURCE_ENERGY);
 			if(structure.my != undefined) {
 				res = res && structure.my;
 			}
+            if(creep.memory.fromWhere) {
+                res = res && structure.id != creep.memory.fromWhere;
+            }
 			return res;
 		}
 	});

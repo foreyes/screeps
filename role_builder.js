@@ -66,6 +66,7 @@ function try2Build(ctx, creep) {
     if(err == ERR_NOT_IN_RANGE) {
         utils.DefaultMoveTo(creep, target);
     }
+    // TODO: err 7
     return true;
 }
 
