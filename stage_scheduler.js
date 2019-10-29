@@ -45,6 +45,22 @@ function startStage(stageName, roomName) {
 
 // loop returning true means need terminate.
 var stages = {
+	Build_1: {
+		wait: 0,
+		next: [],
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+			ctx.room.memory.ctx.workerBuilderNum += 1;
+		},
+		loop: function(ctx) {
+			var constructing = ctx.room.find(FIND_CONSTRUCTION_SITES);
+			return constructing.length == 0;
+		},
+		terminate: function(ctx, next) {
+			ctx.room.memory.ctx.workerBuilderNum -= 1;
+			defaultTerminate(ctx, next);
+		}
+	},
 	road1: {
 		wait: 0,
 		next: ['upgrade2'],
