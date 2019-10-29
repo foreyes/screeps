@@ -78,6 +78,8 @@ module.exports.loop = function () {
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
         creep.memory.needMove = false;
+        if(creep.memory.role == undefined) continue;
+
         roleMap[creep.memory.role].Run(ctx, creep);
         if(creep.memory.lastPos == undefined) {
             creep.memory.lastPos = creep.pos;
@@ -92,5 +94,32 @@ module.exports.loop = function () {
         }
         creep.memory.lastPos = creep.pos;
     }
-    roleMap['spawn'].Run(ctx, spawn)
+    roleMap['spawn'].Run(ctx, spawn);
+
+    // extra
+    if(Memory.ctx.ExtraWork && Memory.ctx.ExtraWork.length > 0) {
+        var newExt = [];
+        for(var i in Memory.ctx.ExtraWork) {
+            var workPair = Memory.ctx.ExtraWork[i];
+            var creep = Game.getObjectById(workPair.id);
+            if(!creep) continue;
+            if(workPair.type == 'walk') {
+                var target = new RoomPosition(workPair.target.x, workPair.target.y, workPair.target.roomName);
+                if(!utils.IsSamePosition(creep.pos, target)) {
+                    utils.DefaultMoveTo(creep, target);
+                    newExt.push(workPair);
+                }
+            } else if(workPair.type == 'attack') {
+                var target = Game.getObjectById(workPair.target);
+                if(!target) continue;
+                var err = creep.attack(target);
+                if(err == ERR_NOT_IN_RANGE) {
+                    utils.DefaultMoveTo(creep, target);
+                }
+                newExt.push(workPair);
+            }
+            
+        }
+        Memory.ctx.ExtraWork = newExt;
+    }
 };

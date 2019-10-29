@@ -641,7 +641,7 @@ var stages = {
 	},
 	extension5: {
 		wait: 1,
-		next: [],
+		next: ['upgrade6'],
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
@@ -690,6 +690,21 @@ var stages = {
 		terminate: function(ctx, next) {
 			Memory.ctx.workerBuilderNum = 0;
 			delete Memory.ctx.flagExtension5;
+			defaultTerminate(ctx, next);
+		}
+	},
+	upgrade6: {
+		wait: 1,
+		next: [],
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+			Memory.ctx.workerUpgraderNum = 3;
+		},
+		loop: function(ctx) {
+			return ctx.room.controller.level >= 6;
+		},
+		terminate: function(ctx, next) {
+			Memory.ctx.workerUpgraderNum = 1;
 			defaultTerminate(ctx, next);
 		}
 	},

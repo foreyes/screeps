@@ -32,7 +32,7 @@ function FetchCtx() {
 
 	var enemies = room.find(FIND_CREEPS, {
         filter: (creep) => {
-            return !creep.my;
+            return !creep.my && creep.owner != 'zkl2333';
         }
     });
 
