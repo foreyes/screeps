@@ -34,11 +34,11 @@ function DefaultMoveTo(creep, target) {
         creep.moveTo(target, {reusePath: 10, visualizePathStyle: {stroke: '#ffaa00'}});
         return;
     }
-    if(creep.memory.stuck < 1) {
+    if(creep.memory.stuck < 2) {
         creep.moveTo(target, {reusePath: 10, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
     } else {
         // creep.say('change path');
-        creep.moveTo(target, {reusePath: 0, visualizePathStyle: {stroke: '#ffaa00'}});
+        creep.moveTo(target, {reusePath: 1, visualizePathStyle: {stroke: '#ffaa00'}});
     }
 }
 

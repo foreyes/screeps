@@ -45,7 +45,7 @@ function startStage(stageName, roomName) {
 
 // loop returning true means need terminate.
 var stages = {
-	Build_1: {
+	build_1: {
 		wait: 0,
 		next: [],
 		init: function(ctx, next) {
