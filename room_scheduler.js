@@ -60,8 +60,8 @@ function Run(gCtx, room) {
     // run role logic.
     var spawn = ctx.spawn, room = ctx.room;
 
-    for(var name in Game.creeps) {
-        var creep = Game.creeps[name];
+    for(var name in ctx.creeps) {
+        var creep = ctx.creeps[name];
         creep.memory.needMove = false;
         if(creep.memory.role == undefined) continue;
 
@@ -79,7 +79,9 @@ function Run(gCtx, room) {
         }
         creep.memory.lastPos = creep.pos;
     }
-    roleMap['spawn'].Run(ctx, spawn);
+    if(spawn != undefined && spawn.my) {
+        roleMap['spawn'].Run(ctx, spawn);
+    }
 }
 
 module.exports = {

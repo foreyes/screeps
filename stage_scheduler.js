@@ -347,8 +347,7 @@ var stages = {
 
 			// spawn carriers and spawner
 			if(!ctx.room.memory.ctx.flagSpawnCarriers) {
-				ctx.room.memory.ctx.carrierNum = 2;
-				ctx.room.memory.ctx.spawnerNum = 1;
+				ctx.room.memory.ctx.carrierNum = 3;
 				ctx.room.memory.ctx.workerHarvesterNum = 2;
 				ctx.room.memory.ctx.workerRepairerNum = 1;
 				ctx.room.memory.ctx.workerUpgraderNum = 1;
@@ -359,7 +358,7 @@ var stages = {
 			}
 			// check if finished
 			if(ctx.room.memory.ctx.flagSpawningCarriers) {
-				if(ctx.carriers.length >= ctx.room.memory.ctx.carrierNum && ctx.spawners.length >= ctx.room.memory.ctx.spawnerNum) {
+				if(ctx.carriers.length + ctx.spawners.length >= ctx.room.memory.ctx.carrierNum) {
 					ctx.room.memory.ctx.flagSpawningCarriers = false;
 				} else {
 					return false;

@@ -23,8 +23,8 @@ function InitRoomCtx(gCtx, room) {
 
 function FetchRoomCtx(gCtx, room) {
 	// ownership
-	var my = room.controller.my;
-	var neutral = room.controller.owner == 'None';
+	var my = room.controller != undefined && room.controller.my;
+	var neutral = room.controller == undefined || room.controller.owner == 'None';
 	var hostile = !my && !neutral
 	// spawns
 	var spawns = room.memory.ctx.spawnIds.map(Game.getObjectById);
@@ -66,18 +66,34 @@ function FetchRoomCtx(gCtx, room) {
 	});
 	// storage
 	var storage = room.storage;
+	// constructing
+	var constructing = room.find(FIND_CONSTRUCTION_SITES);
+	// empty extension
+	var emptyExts = room.find(FIND_STRUCTURES, {
+		filter: (struct) => {
+			var res = struct.structureType == STRUCTURE_EXTENSION || struct.structureType == STRUCTURE_SPAWN;
+			return res && struct.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+		}
+	});
 	// creeps by role
 	var workerHarvesters = utils.GetMyCreepsByRole(room, 'workerHarvester');
 	var workerUpgraders = utils.GetMyCreepsByRole(room, 'workerUpgrader');
 	var workerBuilders = utils.GetMyCreepsByRole(room, 'workerBuilder');
 	var workerRepairers = utils.GetMyCreepsByRole(room, 'workerRepairer');
-	var spawners = utils.GetMyCreepsByRole(room, 'spawner');
-	var carriers = utils.GetMyCreepsByRole(room, 'carrier');
 	var miners = utils.GetMyCreepsByRole(room, 'miner');
-	if(spawners.length == 0 && carriers.length != 0) {
-		carriers[0].memory.role = 'spawner';
-		spawners = [carriers[0]];
-		carriers = utils.GetMyCreepsByRole(room, 'carrier');
+	var workerCarriers = utils.GetMyCreepsByRole(room, 'spawner').concat(utils.GetMyCreepsByRole(room, 'carrier'));
+	var spawners = [], carriers = [];
+	// carrier role change
+	if(emptyExts.length > 0) {
+		for(var i in workerCarriers) {
+			workerCarriers[i].memory.role = 'spawner';
+		}
+		spawners = workerCarriers;
+	} else {
+		for(var i in workerCarriers) {
+			workerCarriers[i].memory.role = 'carrier';
+		}
+		carriers = workerCarriers;
 	}
 
 	var ctx = {
@@ -96,6 +112,8 @@ function FetchRoomCtx(gCtx, room) {
 		restPos: restPos,
 		dropedEnergy: dropedEnergy,
 		storage: storage,
+		constructing: constructing,
+		emptyExts: emptyExts,
 		workerHarvesters: workerHarvesters,
 		workerUpgraders: workerUpgraders,
 		workerBuilders: workerBuilders,

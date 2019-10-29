@@ -21,7 +21,7 @@ function getTarget(ctx, creep) {
     if(targets.length == 0) {
         return null;
     }
-    return targets[0];
+    return creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
 }
 
 function transfer2Store(ctx, creep) {

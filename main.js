@@ -39,8 +39,10 @@ module.exports.loop = function() {
             var workPair = Memory.ExtraWork[i];
             var creep = Game.getObjectById(workPair.id);
             if(!creep) continue;
+
             if(workPair.type == 'walk') {
                 var target = new RoomPosition(workPair.target.x, workPair.target.y, workPair.target.roomName);
+                if(!target) continue;
                 if(!utils.IsSamePosition(creep.pos, target)) {
                     utils.DefaultMoveTo(creep, target);
                     newExt.push(workPair);
@@ -49,6 +51,22 @@ module.exports.loop = function() {
                 var target = Game.getObjectById(workPair.target);
                 if(!target) continue;
                 var err = creep.attack(target);
+                if(err == ERR_NOT_IN_RANGE) {
+                    utils.DefaultMoveTo(creep, target);
+                }
+                newExt.push(workPair);
+            } else if(workPair.type == 'heal') {
+                var target = Game.getObjectById(workPair.target);
+                if(!target) continue;
+                var err = creep.heal(target);
+                if(err == ERR_NOT_IN_RANGE) {
+                    utils.DefaultMoveTo(creep, target);
+                }
+                newExt.push(workPair);
+            } else if(workPair.type == 'dismantle') {
+                var target = Game.getObjectById(workPair.target);
+                if(!target) continue;
+                var err = creep.dismantle(target);
                 if(err == ERR_NOT_IN_RANGE) {
                     utils.DefaultMoveTo(creep, target);
                 }

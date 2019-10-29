@@ -86,7 +86,7 @@ function spawnWorker(ctx, roleName) {
 
 function runAfterDevRoles(ctx, spawn) {
     // spawn spawner if there is no spawner
-    if(ctx.spawners.length == 0) {
+    if(ctx.spawners.length + ctx.carriers.length == 0) {
         if(ctx.CurEnergy >= 300) {
             var partsLevel = getCarrierPartsLevel(ctx.CurEnergy);
             createCreep(spawn, 'spawner', carrierParts[partsLevel]);
@@ -115,13 +115,8 @@ function runAfterDevRoles(ctx, spawn) {
             return;
         }
     }
-    // spawn spawner
-    if(ctx.spawners.length < ctx.room.memory.ctx.spawnerNum) {
-        spawnCarrier(ctx, 'spawner');
-        return;
-    }
     // spawn carrier
-    if(ctx.carriers.length < ctx.room.memory.ctx.carrierNum) {
+    if(ctx.carriers.length + ctx.spawners.length < ctx.room.memory.ctx.carrierNum) {
         spawnCarrier(ctx, 'carrier');
         return;
     }
