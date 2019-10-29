@@ -4,10 +4,10 @@ function Run(ctx, creep) {
 	var source = ctx.sources[creep.memory.sourceIdx];
 	var target = ctx.sourceContainers[creep.memory.sourceIdx];
 
-	if(Memory.ctx.minerId4Source == undefined) {
-		Memory.ctx.minerId4Source = [null, null];
+	if(ctx.room.memory.ctx.minerId4Source == undefined) {
+		ctx.room.memory.ctx.minerId4Source = [null, null];
 	}
-	Memory.ctx.minerId4Source[creep.memory.sourceIdx] = creep.id;
+	ctx.room.memory.ctx.minerId4Source[creep.memory.sourceIdx] = creep.id;
 
 	if(!utils.IsSamePosition(creep.pos, target.pos)) {
 		utils.DefaultMoveTo(creep, target);

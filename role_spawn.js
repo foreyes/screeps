@@ -104,44 +104,44 @@ function runAfterDevRoles(ctx, spawn) {
     }
     // spawn miner
     for(var i in ctx.sources) {
-        if(Memory.ctx.minerId4Source == undefined) {
+        if(ctx.room.memory.ctx.minerId4Source == undefined) {
             spawnMiner(ctx, i);
             return;
         }
 
-        var miner = Game.getObjectById(Memory.ctx.minerId4Source[i]);
+        var miner = Game.getObjectById(ctx.room.memory.ctx.minerId4Source[i]);
         if(!miner) {
             spawnMiner(ctx, i);
             return;
         }
     }
     // spawn spawner
-    if(ctx.spawners.length < Memory.ctx.spawnerNum) {
+    if(ctx.spawners.length < ctx.room.memory.ctx.spawnerNum) {
         spawnCarrier(ctx, 'spawner');
         return;
     }
     // spawn carrier
-    if(ctx.carriers.length < Memory.ctx.carrierNum) {
+    if(ctx.carriers.length < ctx.room.memory.ctx.carrierNum) {
         spawnCarrier(ctx, 'carrier');
         return;
     }
     // spawn harvester for 
-    if(ctx.workerHarvesters.length < Memory.ctx.workerHarvesterNum) {
+    if(ctx.workerHarvesters.length < ctx.room.memory.ctx.workerHarvesterNum) {
         spawnWorker(ctx, 'workerHarvester');
         return;
     }
     // spawn upgrader
-    if(ctx.workerUpgraders .length < Memory.ctx.workerUpgraderNum) {
+    if(ctx.workerUpgraders .length < ctx.room.memory.ctx.workerUpgraderNum) {
         spawnWorker(ctx, 'workerUpgrader');
         return;
     }
     // spawn repairer
-    if(ctx.workerRepairers .length < Memory.ctx.workerRepairerNum) {
+    if(ctx.workerRepairers .length < ctx.room.memory.ctx.workerRepairerNum) {
         spawnWorker(ctx, 'workerRepairer');
         return;
     }
     // spawn builder
-    if(ctx.workerBuilders .length < Memory.ctx.workerBuilderNum) {
+    if(ctx.workerBuilders .length < ctx.room.memory.ctx.workerBuilderNum) {
         spawnWorker(ctx, 'workerBuilder');
         return;
     }
@@ -178,13 +178,13 @@ function Run(ctx, spawn) {
     if(ctx.CurEnergy < level) return;
     var parts = workerParts[level];
 
-    if(workerHarvesters.length < Memory.ctx.workerHarvesterNum) {
+    if(workerHarvesters.length < ctx.room.memory.ctx.workerHarvesterNum) {
         createCreep(spawn, 'workerHarvester', parts);
-    } else if(workerUpgraders.length < Memory.ctx.workerUpgraderNum) {
+    } else if(workerUpgraders.length < ctx.room.memory.ctx.workerUpgraderNum) {
         createCreep(spawn, 'workerUpgrader', parts);
-    } else if(workerRepairers.length < Memory.ctx.workerRepairerNum) {
+    } else if(workerRepairers.length < ctx.room.memory.ctx.workerRepairerNum) {
         createCreep(spawn, 'workerRepairer', parts);
-    } else if(workerBuilders.length < Memory.ctx.workerBuilderNum) {
+    } else if(workerBuilders.length < ctx.room.memory.ctx.workerBuilderNum) {
         createCreep(spawn, 'workerBuilder', parts);
     }
 }

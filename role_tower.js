@@ -18,7 +18,7 @@ function Run(ctx, tower) {
     	return;
     }
     // heal
-    var needHeal = ctx.myCreeps.filter((creep) => creep.hits < creep.hitsMax);
+    var needHeal = ctx.creeps.filter((creep) => creep.hits < creep.hitsMax);
     if(needHeal.length != 0) {
     	var target = tower.pos.findClosestByRange(needHeal);
     	tower.heal(target);

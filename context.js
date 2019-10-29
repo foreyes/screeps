@@ -1,96 +1,121 @@
 var utils = require('utils');
 
-function InitWhenRespawn(spawnName = 'Spawn1') {
-	if(Memory.ctx != undefined) {
-		delete Memory.ctx;
+function InitRoomCtx(gCtx, room) {
+	var roomName = room.name;
+	if(Memory.rooms[roomName] != undefined) {
+		delete Memory.rooms[roomName];
 	}
-	Memory.ctx = {Wait: [{wait: 0, name: 'road1'}], InProgress: []};
+	Memory.rooms[roomName] = {};
 
-	var spawn = Game.spawns[spawnName];
-	var room = spawn.room;
+	if(room.memory.ctx != undefined) {
+		delete room.memory.ctx;
+	}
+	room.memory.ctx = {Wait: [], Running: []};
 
-	Memory.ctx.spawnId = spawn.id;
-	Memory.ctx.sourcesId = room.find(FIND_SOURCES).map((obj) => {return obj.id;});
-}
-
-function FetchCtx() {
-	var spawn = Game.getObjectById(Memory.ctx.spawnId);
-	var room = spawn.room;
-	var sources = Memory.ctx.sourcesId.map(Game.getObjectById);
-	var spawners = utils.GetMyCreepsByRole(room, 'spawner');
-	var carriers = utils.GetMyCreepsByRole(room, 'carrier');
-	var towers = room.find(FIND_STRUCTURES, {
-		filter: (structure) => {
-			return structure.structureType == STRUCTURE_TOWER && structure.my;
+	var spawns = room.find(FIND_STRUCTURES, {
+		filter: (struct) => {
+			return struct.structureType == STRUCTURE_SPAWN;
 		}
 	});
+	room.memory.ctx.spawnIds = spawns.map((struct) => struct.id);
+	room.memory.ctx.sourceIds = room.find(FIND_SOURCES).map((src) => src.id);
+}
+
+function FetchRoomCtx(gCtx, room) {
+	// ownership
+	var my = room.controller.my;
+	var neutral = room.controller.owner == 'None';
+	var hostile = !my && !neutral
+	// spawns
+	var spawns = room.memory.ctx.spawnIds.map(Game.getObjectById);
+	var spawn = undefined;
+	if(spawns.length > 0) {
+		spawn = spawns[0];
+	}
+	// sources
+	var sources = room.memory.ctx.sourceIds.map(Game.getObjectById);
+	// creeps
+	var ctrlCreeps = _.filter(Game.creeps, (creep) => {
+		return creep.ctrlRoom == room.name;
+	});
+	var ownCreeps = _.filter(Game.creeps, (creep) => {
+		return creep.ownRoom == room.name;
+	});
+	var creeps = _.filter(Game.creeps, (creep) => {
+		return creep.room.name == room.name;
+	});
+	// towers
+	var towers = room.find(FIND_STRUCTURES, {
+		filter: (structure) => {
+			return structure.structureType == STRUCTURE_TOWER;
+		}
+	});
+	// enemies
+	var enemies = room.find(FIND_CREEPS, {
+        filter: (creep) => {
+            return !creep.my && creep.owner != 'zkl2333';
+        }
+    });
+    // restPos
+    var restPos = spawn;
+    // droped energy > 300
+    var dropedEnergy = room.find(FIND_DROPPED_RESOURCES, {
+		filter: (resource) => {
+			return resource.amount >= 300 && resource.resourceType == RESOURCE_ENERGY;
+		}
+	});
+	// storage
+	var storage = room.storage;
+	// creeps by role
+	var workerHarvesters = utils.GetMyCreepsByRole(room, 'workerHarvester');
+	var workerUpgraders = utils.GetMyCreepsByRole(room, 'workerUpgrader');
+	var workerBuilders = utils.GetMyCreepsByRole(room, 'workerBuilder');
+	var workerRepairers = utils.GetMyCreepsByRole(room, 'workerRepairer');
+	var spawners = utils.GetMyCreepsByRole(room, 'spawner');
+	var carriers = utils.GetMyCreepsByRole(room, 'carrier');
+	var miners = utils.GetMyCreepsByRole(room, 'miner');
 	if(spawners.length == 0 && carriers.length != 0) {
 		carriers[0].memory.role = 'spawner';
 		spawners = [carriers[0]];
 		carriers = utils.GetMyCreepsByRole(room, 'carrier');
 	}
 
-	var enemies = room.find(FIND_CREEPS, {
-        filter: (creep) => {
-            return !creep.my && creep.owner != 'zkl2333';
-        }
-    });
-
-    var myCreeps = room.find(FIND_CREEPS, {
-        filter: (creep) => {
-            return creep.my;
-        }
-    });
-
-	var restPos = Game.flags['restPos'];
-	if(restPos == undefined || restPos == null) {
-		console.log("please set a restPos flag.");
-		restPos = spawn;
-	}
-
-	// larger than 100
-	var dropedEnergy = room.find(FIND_DROPPED_RESOURCES, {
-		filter: (resource) => {
-			return resource.amount >= 300 && resource.resourceType == RESOURCE_ENERGY;
-		}
-	});
-
-	var storage = room.storage;
-	if(storage != undefined && storage.progress != undefined) {
-		storage = undefined;
-	}
-
 	var ctx = {
-		restPos: restPos,
-		spawn: spawn,
 		room: room,
+		my: my,
+		neutral: neutral,
+		hostile: hostile,
+		spawns: spawns,
+		spawn: spawn,
 		sources: sources,
+		ctrlCreeps: ctrlCreeps,
+		ownCreeps: ownCreeps,
+		creeps: creeps,
 		towers: towers,
 		enemies: enemies,
-		myCreeps: myCreeps,
-		storage: room.storage,
+		restPos: restPos,
 		dropedEnergy: dropedEnergy,
-		// creep informations
-		workerHarvesters: utils.GetMyCreepsByRole(room, 'workerHarvester'),
-		workerUpgraders: utils.GetMyCreepsByRole(room, 'workerUpgrader'),
-		workerBuilders: utils.GetMyCreepsByRole(room, 'workerBuilder'),
-		workerRepairers: utils.GetMyCreepsByRole(room, 'workerRepairer'),
-		carriers: carriers,
+		storage: storage,
+		workerHarvesters: workerHarvesters,
+		workerUpgraders: workerUpgraders,
+		workerBuilders: workerBuilders,
+		workerRepairers: workerRepairers,
 		spawners: spawners,
-		miners: utils.GetMyCreepsByRole(room, 'miner'),
+		carriers: carriers,
+		miners: miners,
 	};
 
-	if(Memory.ctx.flagSetContainerInfo) {
+	if(room.memory.ctx.flagSetContainerInfo) {
 		ctx.flagDevRole = true;
-		var sourceContainerIds = [Memory.ctx.sourceContainerIds[0], Memory.ctx.sourceContainerIds[1], Memory.ctx.spawnContainerId];
-		ctx.sourceContainers = sourceContainerIds.map((id) => Game.getObjectById(id));
-		ctx.controllerContainer = Game.getObjectById(Memory.ctx.controllerContainerId);
+		var sourceContainerIds = [room.memory.ctx.sourceContainerIds[0], room.memory.ctx.sourceContainerIds[1], room.memory.ctx.spawnContainerId];
+		ctx.sourceContainers = sourceContainerIds.map(Game.getObjectById);
+		ctx.controllerContainer = Game.getObjectById(room.memory.ctx.controllerContainerId);
 	}
 	return ctx;
 }
 
 module.exports = {
-	InitWhenRespawn,
-	FetchCtx
+	InitRoomCtx,
+	FetchRoomCtx,
 };
 

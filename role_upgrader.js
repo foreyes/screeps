@@ -36,7 +36,7 @@ function Run(ctx, creep) {
     }
     if(err == 0) {
         // just keep level when no need to upgrade
-        if(Memory.ctx.workerUpgraderNum == 1) {
+        if(ctx.room.memory.ctx.workerUpgraderNum == 1) {
             creep.memory.sleep = 10;
         }
     }

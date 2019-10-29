@@ -3,44 +3,44 @@ var utils = require('utils');
 function defaultInit(ctx, next) {
 	for(var i in next) {
 		var exist = false;
-		for(var j in Memory.ctx.Wait) {
-			var name = Memory.ctx.Wait[j].name;
+		for(var j in ctx.room.memory.ctx.Wait) {
+			var name = ctx.room.memory.ctx.Wait[j].name;
 			if(name == next[i]) {
 				exist = true;
 				break;
 			}
 		}
 		if(!exist) {
-			Memory.ctx.Wait.push({name: next[i], wait: stages[next[i]].wait});
+			ctx.room.memory.ctx.Wait.push({name: next[i], wait: stages[next[i]].wait});
 		}
 	}
 }
 
 function defaultTerminate(ctx, next) {
 	for(var i in next) {
-		for(var j in Memory.ctx.Wait) {
-			var name = Memory.ctx.Wait[j].name;
+		for(var j in ctx.room.memory.ctx.Wait) {
+			var name = ctx.room.memory.ctx.Wait[j].name;
 			if(name == next[i]) {
-				Memory.ctx.Wait[j].wait -= 1;
+				ctx.room.memory.ctx.Wait[j].wait -= 1;
 			}
 		}
 	}
 }
 
-function checkBuildFlag(flagName = 'flagflag', timeSlot = 50) {
-	if(Memory.ctx[flagName] == 0) {
-		Memory.ctx[flagName] = 1;
+function checkBuildFlag(ctx, flagName = 'flagflag', timeSlot = 50) {
+	if(ctx.room.memory.ctx[flagName] == 0) {
+		ctx.room.memory.ctx[flagName] = 1;
 		return false;
 	}
-	if(Game.time % timeSlot != 0 && Memory.ctx[flagName] != 1) {
+	if(Game.time % timeSlot != 0 && ctx.room.memory.ctx[flagName] != 1) {
 		return false;
 	}
-	Memory.ctx[flagName] = 2;
+	ctx.room.memory.ctx[flagName] = 2;
 	return true;
 }
 
-function startStage(stageName) {
-	Memory.ctx.Wait.push({wait: 0, name: stageName});
+function startStage(stageName, roomName) {
+	Memory.rooms[roomName].ctx.Wait.push({wait: 0, name: stageName});
 }
 
 // loop returning true means need terminate.
@@ -51,10 +51,10 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerHarvesterNum = 2;
-			Memory.ctx.workerRepairerNum = 0;
-			Memory.ctx.workerBuilderNum = 4;
-			Memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerHarvesterNum = 2;
+			ctx.room.memory.ctx.workerRepairerNum = 0;
+			ctx.room.memory.ctx.workerBuilderNum = 4;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
 
 			var room = ctx.room, spawn = ctx.spawn, sources = ctx.sources;
 
@@ -74,10 +74,10 @@ var stages = {
 			for(var i in res) {
 				room.createConstructionSite(res[i].x, res[i].y, STRUCTURE_ROAD);
 			}
-			Memory.ctx.flagRoad1 = 0;
+			ctx.room.memory.ctx.flagRoad1 = 0;
 		},
 		loop: function(ctx) {
-			if(!checkBuildFlag('flagRoad1')) {
+			if(!checkBuildFlag(ctx, 'flagRoad1')) {
 				return false;
 			}
 
@@ -89,7 +89,7 @@ var stages = {
 			return constructing_roads.length == 0;
 		},
 		terminate: function(ctx, next) {
-			delete Memory.ctx.flagRoad1;
+			delete ctx.room.memory.ctx.flagRoad1;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -99,10 +99,10 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerHarvesterNum = 2;
-			Memory.ctx.workerRepairerNum = 1;
-			Memory.ctx.workerBuilderNum = 0;
-			Memory.ctx.workerUpgraderNum = 4;
+			ctx.room.memory.ctx.workerHarvesterNum = 2;
+			ctx.room.memory.ctx.workerRepairerNum = 1;
+			ctx.room.memory.ctx.workerBuilderNum = 0;
+			ctx.room.memory.ctx.workerUpgraderNum = 4;
 		},
 		loop: function(ctx) {
 			return ctx.room.controller.level >= 2;
@@ -115,10 +115,10 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerHarvesterNum = 2;
-			Memory.ctx.workerRepairerNum = 1;
-			Memory.ctx.workerBuilderNum = 3;
-			Memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerHarvesterNum = 2;
+			ctx.room.memory.ctx.workerRepairerNum = 1;
+			ctx.room.memory.ctx.workerBuilderNum = 3;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
 
 			// TODO: ctx
 			var exts = ctx.room.find(FIND_STRUCTURES, {
@@ -146,10 +146,10 @@ var stages = {
 		        });
 		    }
 
-		    Memory.ctx.flagExtension2 = 0;
+		    ctx.room.memory.ctx.flagExtension2 = 0;
 		},
 		loop: function(ctx) {
-			if(!checkBuildFlag('flagExtension2')) {
+			if(!checkBuildFlag(ctx, 'flagExtension2')) {
 				return false;
 			}
 
@@ -161,7 +161,7 @@ var stages = {
 			return constructing_extensions.length == 0;
 		},
 		terminate: function(ctx, next) {
-			delete Memory.ctx.flagExtension2;
+			delete ctx.room.memory.ctx.flagExtension2;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -171,10 +171,10 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerHarvesterNum = 2;
-			Memory.ctx.workerRepairerNum = 1;
-			Memory.ctx.workerBuilderNum = 0;
-			Memory.ctx.workerUpgraderNum = 4;
+			ctx.room.memory.ctx.workerHarvesterNum = 2;
+			ctx.room.memory.ctx.workerRepairerNum = 1;
+			ctx.room.memory.ctx.workerBuilderNum = 0;
+			ctx.room.memory.ctx.workerUpgraderNum = 4;
 		},
 		loop: function(ctx) {
 			return ctx.room.controller.level >= 3;
@@ -187,10 +187,10 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerHarvesterNum = 2;
-			Memory.ctx.workerRepairerNum = 1;
-			Memory.ctx.workerBuilderNum = 3;
-			Memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerHarvesterNum = 2;
+			ctx.room.memory.ctx.workerRepairerNum = 1;
+			ctx.room.memory.ctx.workerBuilderNum = 3;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
 
 			var exts = ctx.room.find(FIND_STRUCTURES, {
 				filter: (structure) => {
@@ -217,10 +217,10 @@ var stages = {
 			    });
 			}
 
-			Memory.ctx.flagExtension3 = 0;
+			ctx.room.memory.ctx.flagExtension3 = 0;
 		},
 		loop: function(ctx) {
-			if(!checkBuildFlag('flagExtension3')) {
+			if(!checkBuildFlag(ctx, 'flagExtension3')) {
 				return false;
 			}
 
@@ -232,7 +232,7 @@ var stages = {
 			return constructing_extensions.length == 0;
 		},
 		terminate: function(ctx, next) {
-			delete Memory.ctx.flagExtension3;
+			delete ctx.room.memory.ctx.flagExtension3;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -242,25 +242,25 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerHarvesterNum = 2;
-			Memory.ctx.workerRepairerNum = 2;
-			Memory.ctx.workerBuilderNum = 3;
-			Memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerHarvesterNum = 2;
+			ctx.room.memory.ctx.workerRepairerNum = 2;
+			ctx.room.memory.ctx.workerBuilderNum = 3;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
 
 			var room = ctx.room, spawn = ctx.spawn, sources = ctx.sources;
 
 		    var goals = sources.map((source) => {return source.pos;});
 		    goals.push(room.controller.pos);
 
-			Memory.ctx.sourceContainerPos = [null, null];
+			ctx.room.memory.ctx.sourceContainerPos = [null, null];
 		    for(var i in goals) {
 		        var road_path = PathFinder.search(goals[i], {pos: spawn.pos, range: 2}).path;
 		        var pos = road_path[0];
 		        room.createConstructionSite(pos.x, pos.y, STRUCTURE_CONTAINER);
 		        if(i < 2) {
-		        	Memory.ctx.sourceContainerPos[i] = pos;
+		        	ctx.room.memory.ctx.sourceContainerPos[i] = pos;
 		        } else {
-		        	Memory.ctx.controllerContainerPos = pos;
+		        	ctx.room.memory.ctx.controllerContainerPos = pos;
 		        }
 		    }
 
@@ -272,13 +272,13 @@ var stages = {
 		    });
 		    if(poss.length != 0) {
 		    	room.createConstructionSite(poss[0].x, poss[0].y, STRUCTURE_CONTAINER);
-		    	Memory.ctx.spawnContainerPos = poss[0];
+		    	ctx.room.memory.ctx.spawnContainerPos = poss[0];
 		    }
 
-		    Memory.ctx.flagContainer3 = 0;
+		    ctx.room.memory.ctx.flagContainer3 = 0;
 		},
 		loop: function(ctx) {
-			if(!checkBuildFlag('flagContainer3')) {
+			if(!checkBuildFlag(ctx, 'flagContainer3')) {
 				return false;
 			}
 
@@ -290,7 +290,7 @@ var stages = {
 			return constructing_containers.length == 0;
 		},
 		terminate: function(ctx, next) {
-			delete Memory.ctx.flagContainer3;
+			delete ctx.room.memory.ctx.flagContainer3;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -299,71 +299,71 @@ var stages = {
 		next: ['statRoad3', 'tower3'],
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
-			Memory.ctx.flagDevRoles = true;
+			ctx.room.memory.ctx.flagDevRoles = true;
 		},
 		loop: function(ctx) {
-			if(Game.time % 20 != 0 && !Memory.ctx.flagDevRoles) {
-				Memory.ctx.flagDevRoles = false;
+			if(Game.time % 20 != 0 && !ctx.room.memory.ctx.flagDevRoles) {
+				ctx.room.memory.ctx.flagDevRoles = false;
 				return false;
 			}
 
 			// set up container info
-			if(!Memory.ctx.flagSetContainerInfo){
-				Memory.ctx.flagSetContainerInfo = true;
-				var container = ctx.room.lookAt(Memory.ctx.spawnContainerPos).filter((item) => {
+			if(!ctx.room.memory.ctx.flagSetContainerInfo){
+				ctx.room.memory.ctx.flagSetContainerInfo = true;
+				var container = ctx.room.lookAt(ctx.room.memory.ctx.spawnContainerPos).filter((item) => {
 					return item.structureType == STRUCTURE_CONTAINER
 				});
-				Memory.ctx.spawnContainerId = container[0].id;
+				ctx.room.memory.ctx.spawnContainerId = container[0].id;
 
-				container = ctx.room.lookAt(Memory.ctx.controllerContainerPos).filter((item) => {
+				container = ctx.room.lookAt(ctx.room.memory.ctx.controllerContainerPos).filter((item) => {
 					return item.structureType == STRUCTURE_CONTAINER
 				});
-				Memory.ctx.controllerContainerId = container[0].id;
+				ctx.room.memory.ctx.controllerContainerId = container[0].id;
 
-				Memory.ctx.sourceContainerIds = [null, null];
+				ctx.room.memory.ctx.sourceContainerIds = [null, null];
 				for(var i in ctx.sources) {
-					container = ctx.room.lookAt(Memory.ctx.sourceContainerPos[i]).filter((item) => {
+					container = ctx.room.lookAt(ctx.room.memory.ctx.sourceContainerPos[i]).filter((item) => {
 						return item.structureType == STRUCTURE_CONTAINER
 					});
-					Memory.ctx.sourceContainerIds[i] = container[0].id;
+					ctx.room.memory.ctx.sourceContainerIds[i] = container[0].id;
 				}
 			}
 
 			// spawn carriers and spawner
-			if(!Memory.ctx.flagSpawnCarriers) {
-				Memory.ctx.carrierNum = 2;
-				Memory.ctx.spawnerNum = 1;
-				Memory.ctx.workerHarvesterNum = 2;
-				Memory.ctx.workerRepairerNum = 1;
-				Memory.ctx.workerUpgraderNum = 1;
-				Memory.ctx.workerBuilderNum = 0;
+			if(!ctx.room.memory.ctx.flagSpawnCarriers) {
+				ctx.room.memory.ctx.carrierNum = 2;
+				ctx.room.memory.ctx.spawnerNum = 1;
+				ctx.room.memory.ctx.workerHarvesterNum = 2;
+				ctx.room.memory.ctx.workerRepairerNum = 1;
+				ctx.room.memory.ctx.workerUpgraderNum = 1;
+				ctx.room.memory.ctx.workerBuilderNum = 0;
 
-				Memory.ctx.flagSpawnCarriers = true;
-				Memory.ctx.flagSpawningCarriers = true;
+				ctx.room.memory.ctx.flagSpawnCarriers = true;
+				ctx.room.memory.ctx.flagSpawningCarriers = true;
 			}
 			// check if finished
-			if(Memory.ctx.flagSpawningCarriers) {
-				if(ctx.carriers.length >= Memory.ctx.carrierNum && ctx.spawners.length >= Memory.ctx.spawnerNum) {
-					Memory.ctx.flagSpawningCarriers = false;
+			if(ctx.room.memory.ctx.flagSpawningCarriers) {
+				if(ctx.carriers.length >= ctx.room.memory.ctx.carrierNum && ctx.spawners.length >= ctx.room.memory.ctx.spawnerNum) {
+					ctx.room.memory.ctx.flagSpawningCarriers = false;
 				} else {
 					return false;
 				}
 			}
 
 			// spawn miners
-			if(!Memory.ctx.flagSpawnMiners) {
-				Memory.ctx.minerNum = 2;
-				Memory.ctx.workerHarvesterNum = 1;
+			if(!ctx.room.memory.ctx.flagSpawnMiners) {
+				ctx.room.memory.ctx.minerNum = 2;
+				ctx.room.memory.ctx.workerHarvesterNum = 1;
 
-				Memory.ctx.flagSpawnMiners = true;
-				Memory.ctx.flagSpawningMiners = true;
+				ctx.room.memory.ctx.flagSpawnMiners = true;
+				ctx.room.memory.ctx.flagSpawningMiners = true;
 			}
 			// check if finished
-			if(Memory.ctx.flagSpawningMiners) {
-				if(ctx.miners.length >= Memory.ctx.minerNum) {
-					Memory.ctx.workerHarvesterNum = 0;
+			if(ctx.room.memory.ctx.flagSpawningMiners) {
+				if(ctx.miners.length >= ctx.room.memory.ctx.minerNum) {
+					ctx.room.memory.ctx.workerHarvesterNum = 0;
 
-					Memory.ctx.flagSpawningMiners = false;
+					ctx.room.memory.ctx.flagSpawningMiners = false;
 				} else {
 					return false;
 				}
@@ -372,11 +372,11 @@ var stages = {
 			return true;
 		},
 		terminate: function(ctx, next) {
-			delete Memory.ctx.flagDevRoles;
-			delete Memory.ctx.flagSpawnCarriers;
-			delete Memory.ctx.flagSpawningCarriers;
-			delete Memory.ctx.flagSpawnMiners;
-			delete Memory.ctx.flagSpawningMiners;
+			delete ctx.room.memory.ctx.flagDevRoles;
+			delete ctx.room.memory.ctx.flagSpawnCarriers;
+			delete ctx.room.memory.ctx.flagSpawningCarriers;
+			delete ctx.room.memory.ctx.flagSpawnMiners;
+			delete ctx.room.memory.ctx.flagSpawningMiners;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -385,11 +385,11 @@ var stages = {
 		next: ['road3'],
 		init: defaultInit,
 		loop: function(ctx) {
-			if(!Memory.ctx.flagStatRoad3Start) {
-				Memory.ctx.flagStatRoad3Start = Game.time;
+			if(!ctx.room.memory.ctx.flagStatRoad3Start) {
+				ctx.room.memory.ctx.flagStatRoad3Start = Game.time;
 			}
-			if(Memory.ctx.statsRoad == undefined) {
-				Memory.ctx.statsRoad = [];
+			if(ctx.room.memory.ctx.statsRoad == undefined) {
+				ctx.room.memory.ctx.statsRoad = [];
 			}
 			var creeps = ctx.room.find(FIND_CREEPS, {
 				filter: (creep) => {
@@ -398,14 +398,14 @@ var stages = {
 			});
 			var creepPos = creeps.map((creep) => creep.pos);
 			for(var i in creepPos) {
-				if(!utils.IsItemInList(creepPos[i], Memory.ctx.statsRoad, utils.IsSamePosition)) {
-					Memory.ctx.statsRoad.push(creepPos[i]);
+				if(!utils.IsItemInList(creepPos[i], ctx.room.memory.ctx.statsRoad, utils.IsSamePosition)) {
+					ctx.room.memory.ctx.statsRoad.push(creepPos[i]);
 				}
 			}
-			return Game.time - Memory.ctx.flagStatRoad3Start > 500;
+			return Game.time - ctx.room.memory.ctx.flagStatRoad3Start > 500;
 		},
 		terminate: function(ctx, next) {
-			delete Memory.ctx.flagStatRoad3Start;
+			delete ctx.room.memory.ctx.flagStatRoad3Start;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -414,19 +414,19 @@ var stages = {
 		next: ['upgrade4'],
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
-			for(var i in Memory.ctx.statsRoad) {
-				var pos = Memory.ctx.statsRoad[i];
+			for(var i in ctx.room.memory.ctx.statsRoad) {
+				var pos = ctx.room.memory.ctx.statsRoad[i];
 				ctx.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD);
 			}
-			delete Memory.ctx.statsRoad;
+			delete ctx.room.memory.ctx.statsRoad;
 
-			Memory.ctx.workerUpgraderNum = 1;
-			Memory.ctx.workerBuilderNum = 3;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerBuilderNum = 3;
 
-			Memory.ctx.flagRoad3 = 0;
+			ctx.room.memory.ctx.flagRoad3 = 0;
 		},
 		loop: function(ctx) {
-			if(!checkBuildFlag('flagRoad3')) {
+			if(!checkBuildFlag(ctx, 'flagRoad3')) {
 				return false;
 			}
 
@@ -438,7 +438,7 @@ var stages = {
 			return constructing_roads.length == 0;
 		},
 		terminate: function(ctx, next) {
-			delete Memory.ctx.flagRoad3;
+			delete ctx.room.memory.ctx.flagRoad3;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -448,8 +448,8 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerBuilderNum = 2;
-			Memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerBuilderNum = 2;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
 
 			var room = ctx.room, spawn = ctx.spawn, rem = 1 - ctx.towers.length;
 
@@ -474,8 +474,8 @@ var stages = {
 			return ctx.towers.length >= 1;
 		},
 		terminate: function(ctx, next) {
-			Memory.ctx.workerBuilderNum = 0;
-			Memory.ctx.workerRepairerNum = 1;
+			ctx.room.memory.ctx.workerBuilderNum = 0;
+			ctx.room.memory.ctx.workerRepairerNum = 1;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -485,14 +485,14 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerUpgraderNum = 3;
-			Memory.ctx.BuilderNum = 0;
+			ctx.room.memory.ctx.workerUpgraderNum = 3;
+			ctx.room.memory.ctx.BuilderNum = 0;
 		},
 		loop: function(ctx) {
 			return ctx.room.controller.level >= 4;
 		},
 		terminate: function(ctx, next) {
-			Memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -502,8 +502,8 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerBuilderNum = 2;
-			Memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerBuilderNum = 2;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
 
 			var exts = ctx.room.find(FIND_STRUCTURES, {
 				filter: (structure) => {
@@ -531,10 +531,10 @@ var stages = {
 			    });
 			}
 
-			Memory.ctx.flagExtension4 = 0;
+			ctx.room.memory.ctx.flagExtension4 = 0;
 		},
 		loop: function(ctx) {
-			if(!checkBuildFlag('flagExtension4')) {
+			if(!checkBuildFlag(ctx, 'flagExtension4')) {
 				return false;
 			}
 
@@ -546,8 +546,8 @@ var stages = {
 			return constructing_extensions.length == 0;
 		},
 		terminate: function(ctx, next) {
-			Memory.ctx.workerBuilderNum = 0;
-			delete Memory.ctx.flagExtension4;
+			ctx.room.memory.ctx.workerBuilderNum = 0;
+			delete ctx.room.memory.ctx.flagExtension4;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -557,8 +557,8 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerBuilderNum = 2;
-			Memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerBuilderNum = 2;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
 
 			var room = ctx.room, spawn = ctx.spawn, rem = 1;
 			if(ctx.storage != undefined) rem = 0;
@@ -585,7 +585,7 @@ var stages = {
 			return ctx.storage != undefined;
 		},
 		terminate: function(ctx, next) {
-			Memory.ctx.workerBuilderNum = 0;
+			ctx.room.memory.ctx.workerBuilderNum = 0;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -594,13 +594,13 @@ var stages = {
 		next: ['tower5'],
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
-			Memory.ctx.workerUpgraderNum = 2;
+			ctx.room.memory.ctx.workerUpgraderNum = 2;
 		},
 		loop: function(ctx) {
 			return ctx.room.controller.level >= 5;
 		},
 		terminate: function(ctx, next) {
-			Memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -610,7 +610,7 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerBuilderNum = 2;
+			ctx.room.memory.ctx.workerBuilderNum = 2;
 
 			var room = ctx.room, spawn = ctx.spawn, rem = 2 - ctx.towers.length;
 
@@ -635,7 +635,7 @@ var stages = {
 			return ctx.towers.length >= 2;
 		},
 		terminate: function(ctx, next) {
-			Memory.ctx.workerBuilderNum = 0;
+			ctx.room.memory.ctx.workerBuilderNum = 0;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -645,7 +645,7 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 
-			Memory.ctx.workerBuilderNum = 2;
+			ctx.room.memory.ctx.workerBuilderNum = 2;
 
 			var exts = ctx.room.find(FIND_STRUCTURES, {
 				filter: (structure) => {
@@ -673,10 +673,10 @@ var stages = {
 			    });
 			}
 
-			Memory.ctx.flagExtension5 = 0;
+			ctx.room.memory.ctx.flagExtension5 = 0;
 		},
 		loop: function(ctx) {
-			if(!checkBuildFlag('flagExtension5')) {
+			if(!checkBuildFlag(ctx, 'flagExtension5')) {
 				return false;
 			}
 
@@ -688,8 +688,8 @@ var stages = {
 			return constructing_extensions.length == 0;
 		},
 		terminate: function(ctx, next) {
-			Memory.ctx.workerBuilderNum = 0;
-			delete Memory.ctx.flagExtension5;
+			ctx.room.memory.ctx.workerBuilderNum = 0;
+			delete ctx.room.memory.ctx.flagExtension5;
 			defaultTerminate(ctx, next);
 		}
 	},
@@ -698,13 +698,13 @@ var stages = {
 		next: [],
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
-			Memory.ctx.workerUpgraderNum = 3;
+			ctx.room.memory.ctx.workerUpgraderNum = 3;
 		},
 		loop: function(ctx) {
 			return ctx.room.controller.level >= 6;
 		},
 		terminate: function(ctx, next) {
-			Memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
 			defaultTerminate(ctx, next);
 		}
 	},
