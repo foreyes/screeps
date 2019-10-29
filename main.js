@@ -33,10 +33,10 @@ module.exports.loop = function() {
     }
 
     // extra
-    if(Memory.ctx.ExtraWork && Memory.ctx.ExtraWork.length > 0) {
+    if(Memory.ExtraWork && Memory.ExtraWork.length > 0) {
         var newExt = [];
-        for(var i in Memory.ctx.ExtraWork) {
-            var workPair = Memory.ctx.ExtraWork[i];
+        for(var i in Memory.ExtraWork) {
+            var workPair = Memory.ExtraWork[i];
             var creep = Game.getObjectById(workPair.id);
             if(!creep) continue;
             if(workPair.type == 'walk') {
@@ -56,6 +56,6 @@ module.exports.loop = function() {
             }
             
         }
-        Memory.ctx.ExtraWork = newExt;
+        Memory.ExtraWork = newExt;
     }
 };

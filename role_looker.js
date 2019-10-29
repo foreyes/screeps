@@ -18,18 +18,18 @@ function createSoilder(type, name) {
 function creepMoveTo(creepName, x, y, roomName) {
 	var creep = Game.creeps[creepName];
 	var pos = new RoomPosition(x, y, roomName);
-	if(!Memory.ctx.ExtraWork) {
-		Memory.ctx.ExtraWork = [];
+	if(!Memory.ExtraWork) {
+		Memory.ExtraWork = [];
 	}
-	Memory.ctx.ExtraWork.push({type: 'walk', id: creep.id, target: pos,});
+	Memory.ExtraWork.push({type: 'walk', id: creep.id, target: pos,});
 }
 
 function creepAttack(creepName, did) {
 	var creep = Game.creeps[creepName];
-	if(!Memory.ctx.ExtraWork) {
-		Memory.ctx.ExtraWork = [];
+	if(!Memory.ExtraWork) {
+		Memory.ExtraWork = [];
 	}
-	Memory.ctx.ExtraWork.push({type: 'attack', id: creep.id, target: did,});
+	Memory.ExtraWork.push({type: 'attack', id: creep.id, target: did,});
 }
 
 module.exports = {
