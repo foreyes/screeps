@@ -24,28 +24,31 @@ function Run(gCtx, room) {
 	var ctx = fetchRoomCtx(gCtx, room);
 
 	// run room scheduler logic
+    // step1: if a task is ready, pick it into ready.
     var newWait = [], ready = [];
     for(var i in room.memory.ctx.Wait) {
-        var x = room.memory.ctx.Wait[i];
-        if(x.wait == 0) {
-            ready.push(x.name);
+        var task = room.memory.ctx.Wait[i];
+        if(task.wait == 0) {
+            ready.push(task.name);
         } else {
-            newWait.push(x);
+            newWait.push(task);
         }
     }
+    // step2: run init function for ready tasks, then push into Running.
     room.memory.ctx.Wait = newWait;
     for(var i in ready) {
         var name = ready[i];
-        var stage = stages[name];
-        stage.init(ctx, stage.next);
+        var task = stages[name];
+        task.init(ctx, task.next);
         room.memory.ctx.Running.push(name);
     }
+    // step3: run loop function for Running tasks, check if need terminate.
     var newRunning = [];
     for(var i in room.memory.ctx.Running) {
         var name = room.memory.ctx.Running[i];
-        var stage = stages[name];
-        if(stage.loop(ctx)) {
-            stage.terminate(ctx, stage.next);
+        var task = stages[name];
+        if(task.loop(ctx)) {
+            task.terminate(ctx, task.next);
         } else {
             newRunning.push(name);
         }
