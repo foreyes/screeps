@@ -39,7 +39,15 @@ function getCurEnergyForSpawn(spawn) {
 
 function createCreep(spawn, roleName, parts, creepMemory = {}) {
     var newName = roleName + Game.time;
-    creepMemory.role = roleName;
+    if(creepMemory.role == undefined) {
+        creepMemory.role = roleName;
+    }
+    if(creepMemory.ctrlRoom == undefined) {
+        creepMemory.ctrlRoom = spawn.room.name;
+    }
+    if(creepMemory.ownRoom == undefined) {
+        creepMemory.ownRoom = spawn.room.name;
+    }
     spawn.spawnCreep(parts, newName, {memory: creepMemory});
 }
 
@@ -82,6 +90,12 @@ function spawnWorker(ctx, roleName) {
     var needEnergy = getWorkerPartsLevel(ctx.MaxEnergy);
     if(ctx.CurEnergy < needEnergy) return;
     createCreep(ctx.spawn, roleName, workerParts[needEnergy]);
+}
+
+function SpawnWorker4Room(spawnName, roomName, roleName) {
+    var spawn = Game.spawns[spawnName];
+    var needEnergy = 1200;
+    createCreep(spawn, roleName, workerParts[needEnergy], {ownRoom: roomName, ctrlRoom: roomName});
 }
 
 function runAfterDevRoles(ctx, spawn) {
@@ -185,5 +199,6 @@ function Run(ctx, spawn) {
 }
 
 module.exports = {
+    SpawnWorker4Room,
     Run
 };

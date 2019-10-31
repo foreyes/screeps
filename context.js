@@ -35,14 +35,14 @@ function FetchRoomCtx(gCtx, room) {
 	// sources
 	var sources = room.memory.ctx.sourceIds.map(Game.getObjectById);
 	// creeps
-	var ctrlCreeps = _.filter(Game.creeps, (creep) => {
-		return creep.ctrlRoom == room.name;
+	var outCreeps = _.filter(Game.creeps, (creep) => {
+		return creep.memory.ctrlRoom == room.name && creep.room.name != room.name;
 	});
 	var ownCreeps = _.filter(Game.creeps, (creep) => {
-		return creep.ownRoom == room.name;
+		return creep.memory.ownRoom == room.name;
 	});
 	var creeps = _.filter(Game.creeps, (creep) => {
-		return creep.room.name == room.name;
+		return (!creep.memory.ctrlRoom && creep.room.name == room.name) || creep.memory.ctrlRoom == room.name;
 	});
 	// towers
 	var towers = room.find(FIND_STRUCTURES, {
@@ -104,7 +104,7 @@ function FetchRoomCtx(gCtx, room) {
 		spawns: spawns,
 		spawn: spawn,
 		sources: sources,
-		ctrlCreeps: ctrlCreeps,
+		outCreeps: outCreeps,
 		ownCreeps: ownCreeps,
 		creeps: creeps,
 		towers: towers,

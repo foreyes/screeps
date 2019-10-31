@@ -68,6 +68,10 @@ function Run(gCtx, room) {
         creep.memory.needMove = false;
         if(creep.memory.role == undefined) continue;
 
+        if(creep.room.name != room.name) {
+            utils.DefaultMoveTo(creep, new RoomPosition(25, 25, room.name));
+            continue;
+        }
         roleMap[creep.memory.role].Run(ctx, creep);
         if(creep.memory.lastPos == undefined) {
             creep.memory.lastPos = creep.pos;

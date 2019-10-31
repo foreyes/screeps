@@ -34,7 +34,7 @@ function checkTarget4Build(target) {
 }
 
 function getTarget(ctx, creep) {
-    var targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
+    var targets = ctx.room.find(FIND_CONSTRUCTION_SITES, {
         filter: (site) => {
             return site.my;
         }
