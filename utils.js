@@ -37,8 +37,8 @@ function DefaultMoveTo(creep, target) {
     if(creep.memory.stuck < 2) {
         creep.moveTo(target, {reusePath: 10, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
     } else {
-        // creep.say('change path');
-        creep.moveTo(target, {reusePath: 1, visualizePathStyle: {stroke: '#ffaa00'}});
+        delete creep.memory._move;
+        creep.moveTo(target, {reusePath: 10, visualizePathStyle: {stroke: '#ffaa00'}});
     }
 }
 
