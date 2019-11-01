@@ -325,24 +325,30 @@ var stages = {
 
 			// set up container info
 			if(!ctx.room.memory.ctx.flagSetContainerInfo){
-				ctx.room.memory.ctx.flagSetContainerInfo = true;
-				var container = ctx.room.lookAt(ctx.room.memory.ctx.spawnContainerPos).filter((item) => {
-					return item.structureType == STRUCTURE_CONTAINER
+				var pos = ctx.room.memory.ctx.spawnContainerPos;
+				pos = new RoomPosition(pos.x, pos.y, pos.roomName);
+				var container = ctx.room.lookAt(pos).filter((item) => {
+					return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 				});
 				ctx.room.memory.ctx.spawnContainerId = container[0].id;
-
-				container = ctx.room.lookAt(ctx.room.memory.ctx.controllerContainerPos).filter((item) => {
-					return item.structureType == STRUCTURE_CONTAINER
+		
+				pos = ctx.room.memory.ctx.controllerContainerPos;
+				pos = new RoomPosition(pos.x, pos.y, pos.roomName);
+				container = ctx.room.lookAt(pos).filter((item) => {
+					return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 				});
 				ctx.room.memory.ctx.controllerContainerId = container[0].id;
 
 				ctx.room.memory.ctx.sourceContainerIds = [null, null];
 				for(var i in ctx.sources) {
-					container = ctx.room.lookAt(ctx.room.memory.ctx.sourceContainerPos[i]).filter((item) => {
-						return item.structureType == STRUCTURE_CONTAINER
+					pos = ctx.room.memory.ctx.sourceContainerPos[i];
+					pos = new RoomPosition(pos.x, pos.y, pos.roomName);
+					container = ctx.room.lookAt(pos).filter((item) => {
+						return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 					});
 					ctx.room.memory.ctx.sourceContainerIds[i] = container[0].id;
 				}
+				ctx.room.memory.ctx.flagSetContainerInfo = true;
 			}
 
 			// spawn carriers and spawner

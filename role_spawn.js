@@ -56,6 +56,14 @@ var minerParts = [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE];
 function spawnMiner(ctx, sourceIdx) {
     if(ctx.CurEnergy >= 600) {
         createCreep(ctx.spawn, 'miner', minerParts, {'sourceIdx': sourceIdx});
+    } else if(ctx.CurEnergy >= 550) {
+        createCreep(ctx.spawn, 'miner', [WORK, WORK, WORK, WORK, WORK, MOVE], {'sourceIdx': sourceIdx});
+    } else if(ctx.CurEnergy >= 450) {
+        createCreep(ctx.spawn, 'miner', [WORK, WORK, WORK, WORK, MOVE], {'sourceIdx': sourceIdx});
+    } else if(ctx.CurEnergy >= 350) {
+        createCreep(ctx.spawn, 'miner', [WORK, WORK, WORK, MOVE], {'sourceIdx': sourceIdx});
+    } else {
+        createCreep(ctx.spawn, 'miner', [WORK, WORK, MOVE], {'sourceIdx': sourceIdx});
     }
 }
 
