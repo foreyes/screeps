@@ -21,7 +21,7 @@ var carrierParts = {
 
 function getMaxEnergyForSpawn(spawn) {
     var res = spawn.store.getCapacity(RESOURCE_ENERGY);
-    var extensions = spawn.room.find(FIND_STRUCTURES, {filter: (structure) => structure.structureType == 'extension'});
+    var extensions = spawn.room.find(FIND_STRUCTURES, {filter: (structure) => structure.structureType == 'extension' && structure.isActive()});
     for(var i in extensions) {
         res += extensions[i].store.getCapacity(RESOURCE_ENERGY);
     }
@@ -30,7 +30,7 @@ function getMaxEnergyForSpawn(spawn) {
 
 function getCurEnergyForSpawn(spawn) {
     var res = spawn.store[RESOURCE_ENERGY];
-    var extensions = spawn.room.find(FIND_STRUCTURES, {filter: (structure) => structure.structureType == 'extension'});
+    var extensions = spawn.room.find(FIND_STRUCTURES, {filter: (structure) => structure.structureType == 'extension' && structure.isActive()});
     for(var i in extensions) {
         res += extensions[i].store[RESOURCE_ENERGY];
     }
