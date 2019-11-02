@@ -77,6 +77,7 @@ function GetEnergyFromStore(ctx, creep) {
         // target = ctx.dropedEnergy[0];
         // ctx.dropedEnergy = ctx.dropedEnergy.slice(1);
     }
+    if(!target) return;
 
     var err = creep.withdraw(target, RESOURCE_ENERGY);
     if(err == ERR_NOT_IN_RANGE) {

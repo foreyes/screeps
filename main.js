@@ -76,4 +76,14 @@ module.exports.loop = function() {
         }
         Memory.ExtraWork = newExt;
     }
+
+    // cpu use stats
+    if(Memory.cpuUse == undefined) {
+        Memory.cpuUse = Game.cpu.getUsed();
+    } else {
+        Memory.cpuUse = Memory.cpuUse * 0.99 + Game.cpu.getUsed() * 0.01;
+    }
+    if(Game.time % 10 == 0) {
+        console.log(Memory.cpuUse);
+    }
 };

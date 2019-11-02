@@ -330,14 +330,14 @@ var stages = {
 				var container = ctx.room.lookAt(pos).filter((item) => {
 					return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 				});
-				ctx.room.memory.ctx.spawnContainerId = container[0].id;
+				ctx.room.memory.ctx.spawnContainerId = container[0].structure.id;
 		
 				pos = ctx.room.memory.ctx.controllerContainerPos;
 				pos = new RoomPosition(pos.x, pos.y, pos.roomName);
 				container = ctx.room.lookAt(pos).filter((item) => {
 					return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 				});
-				ctx.room.memory.ctx.controllerContainerId = container[0].id;
+				ctx.room.memory.ctx.controllerContainerId = container[0].structure.id;
 
 				ctx.room.memory.ctx.sourceContainerIds = [null, null];
 				for(var i in ctx.sources) {
@@ -346,7 +346,7 @@ var stages = {
 					container = ctx.room.lookAt(pos).filter((item) => {
 						return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 					});
-					ctx.room.memory.ctx.sourceContainerIds[i] = container[0].id;
+					ctx.room.memory.ctx.sourceContainerIds[i] = container[0].structure.id;
 				}
 				ctx.room.memory.ctx.flagSetContainerInfo = true;
 			}
@@ -507,7 +507,7 @@ var stages = {
 			defaultInit(ctx, next);
 
 			ctx.room.memory.ctx.workerUpgraderNum = 3;
-			ctx.room.memory.ctx.BuilderNum = 0;
+			ctx.room.memory.ctx.workerBuilderNum = 0;
 		},
 		loop: function(ctx) {
 			return ctx.room.controller.level >= 4;

@@ -13,7 +13,8 @@ function getStorePriority(structure) {
     if(st == STRUCTURE_TOWER) return 0;
     if(st == STRUCTURE_CONTAINER) return 1;
     if(st == STRUCTURE_STORAGE) return 2;
-    return 3;
+    if(st == STRUCTURE_TERMINAL) return 3;
+    return 4;
 }
 
 function cmpByStorePriority(a, b) {
@@ -21,13 +22,18 @@ function cmpByStorePriority(a, b) {
 }
 
 function getTarget(ctx, creep) {
+    for(var i in ctx.towers) {
+        if(ctx.towers[i].store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+            return ctx.towers[i];
+        }
+    }
 	if(ctx.controllerContainer.store[RESOURCE_ENERGY] < ctx.controllerContainer.store.getCapacity(RESOURCE_ENERGY)) {
 		return ctx.controllerContainer;
 	}
 	var targets = creep.room.find(FIND_STRUCTURES, {
 		filter: (structure) => {
 			var st = structure.structureType;
-			var res = st == STRUCTURE_TOWER || st == STRUCTURE_CONTAINER || st == STRUCTURE_STORAGE;
+			var res = st == STRUCTURE_TOWER || st == STRUCTURE_CONTAINER || st == STRUCTURE_STORAGE || st == STRUCTURE_TERMINAL;
 			res = res && structure.id != ctx.sourceContainers[0].id && structure.id != ctx.sourceContainers[1].id;
 			res = res && structure.store[RESOURCE_ENERGY] < structure.store.getCapacity(RESOURCE_ENERGY);
 			if(structure.my != undefined) {
