@@ -81,9 +81,9 @@ module.exports.loop = function() {
     if(Memory.cpuUse == undefined) {
         Memory.cpuUse = Game.cpu.getUsed();
     } else {
-        Memory.cpuUse = Memory.cpuUse * 0.99 + Game.cpu.getUsed() * 0.01;
+        Memory.cpuUse = Memory.cpuUse * 0.999 + Game.cpu.getUsed() * 0.001;
     }
-    if(Game.time % 10 == 0) {
+    if(Game.time % 100 == 0) {
         console.log(Memory.cpuUse);
     }
 };

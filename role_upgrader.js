@@ -36,7 +36,10 @@ function Run(ctx, creep) {
     }
     if(err == 0) {
         // just keep level when no need to upgrade
-        if(ctx.room.memory.ctx.workerUpgraderNum == 1) {
+        if(ctx.room.controller.level >= 4 && ctx.room.memory.ctx.workerUpgraderNum == 1) {
+            creep.memory.sleep = 10;
+        }
+        if(creep.memory.keepLevel) {
             creep.memory.sleep = 10;
         }
     }

@@ -14,7 +14,7 @@ var get_positions_by_dist = function(room, start, dist) {
 };
 
 function GetDirectDistance(pos1, pos2) {
-    if(pos1.room != pos2.room) {
+    if(pos1.roomName != pos2.roomName) {
         MyAlter("Error: not in one room when get distance!");
     }
     var dx = Math.abs(pos1.x - pos2.x);
@@ -43,7 +43,7 @@ function DefaultMoveTo(creep, target) {
 }
 
 function IsSamePosition(pos1, pos2) {
-    return pos1.room == pos2.room && pos1.x == pos2.x && pos1.y == pos2.y;
+    return pos1.roomName == pos2.roomName && pos1.x == pos2.x && pos1.y == pos2.y;
 }
 
 function GetMyCreepsByRole(room, roleName) {

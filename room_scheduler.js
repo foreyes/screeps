@@ -68,6 +68,14 @@ function Run(gCtx, room) {
         creep.memory.needMove = false;
         if(creep.memory.role == undefined) continue;
 
+        if(creep.memory.role == 'mister') {
+            require('role_mister').Run(ctx, creep);
+            continue;
+        }
+        if(creep.memory.role == 'simple_outer') {
+            require('role_simple_outer').Run(ctx, creep);
+            continue;
+        }
         if(creep.room.name != room.name) {
             utils.DefaultMoveTo(creep, new RoomPosition(25, 25, room.name));
             continue;

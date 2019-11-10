@@ -33,22 +33,30 @@ function checkTarget4Build(target) {
     return target.my == true;
 }
 
+function getBuildPriority(structure) {
+    var st = structure.structureType;
+    if(st == STRUCTURE_EXTENSION) return 0;
+    if(st == STRUCTURE_ROAD) return 1;
+    if(st == STRUCTURE_CONTAINER) return 2;
+    return 3;
+}
+
 function getTarget(ctx, creep) {
+    var smallestPrio = 3;
     var targets = ctx.room.find(FIND_CONSTRUCTION_SITES, {
         filter: (site) => {
-            return site.my;
+            if(site.my) {
+                smallestPrio = Math.min(smallestPrio, getBuildPriority(site));
+                return true;
+            }
+            return false;
         }
     });
     if(targets.length == 0) {
         return null;
     }
-    var target = null;
-    var roads = targets.filter((site) => site.structureType == STRUCTURE_ROAD);
-    if(roads.length != 0) {
-        target = creep.pos.findClosestByPath(roads, {ignoreCreeps: true});
-    } else {
-        target = creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
-    }
+    targets = targets.filter((s) => getBuildPriority(s) == smallestPrio);
+    var target = creep.pos.findClosestByPath(targets);
     creep.memory.targetId = target.id;
     return target;
 }
