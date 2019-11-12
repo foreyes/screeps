@@ -17,6 +17,17 @@ function Run(ctx, tower) {
     	tower.repair(roads[0]);
     	return;
     }
+    if(ctx.room.memory.ctx.workerRepairerNum == 0) {
+        var containers = ctx.room.find(FIND_STRUCTURES, {
+            filter: (s) => {
+                return s.structureType == STRUCTURE_CONTAINER && s.hits + 800 <= s.hitsMax;
+            }
+        });
+        if(containers.length != 0) {
+            tower.repair(containers[0]);
+            return;
+        }
+    }
     // heal
     var needHeal = ctx.creeps.filter((creep) => creep.hits < creep.hitsMax);
     if(needHeal.length != 0) {

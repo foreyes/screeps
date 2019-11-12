@@ -1,22 +1,25 @@
 var utils = require('utils');
 
-function isValidTarget(target) {
-	return target && target.store && target.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+function isValidTarget(ctx, creep, target) {
+	if(!target) return false;
+	if(ctx.controllerContainer && target.id == ctx.controllerContainer.id) {
+		return target.store.getFreeCapacity(RESOURCE_ENERGY) >= Math.min(800, creep.store.getCapacity(RESOURCE_ENERGY));
+	}
+	return target.store && target.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
 }
 
 function findNewTarget(ctx, creep) {
-	// fill spawn
+	// fill spawn and extensions
+	var spwansAndEmptyExts = [];
 	if(ctx.spawns) {
 		var emptySpawns = ctx.spawns.filter((s) => s.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
-		if(emptySpawns.length > 0) {
-			return creep.pos.findClosestByPath(emptySpawns);
-		}
+		spwansAndEmptyExts = spwansAndEmptyExts.concat(emptySpawns);
 	}
-	// fill empty extensions
 	if(ctx.emptyExts) {
-		if(ctx.emptyExts.length > 0) {
-			return creep.pos.findClosestByPath(ctx.emptyExts);
-		}
+		spwansAndEmptyExts = spwansAndEmptyExts.concat(ctx.emptyExts);
+	}
+	if(spwansAndEmptyExts.length != 0) {
+		return creep.pos.findClosestByPath(spwansAndEmptyExts);
 	}
 	// fill tower
 	if(ctx.towers) {
@@ -27,7 +30,7 @@ function findNewTarget(ctx, creep) {
 	}
 	// fill controller's container
 	if(ctx.controllerContainer) {
-		if(ctx.controllerContainer.store.getFreeCapacity(RESOURCE_ENERGY) >= creep.store[RESOURCE_ENERGY]) {
+		if(ctx.controllerContainer.store.getFreeCapacity(RESOURCE_ENERGY) >= Math.min(800, creep.store.getCapacity(RESOURCE_ENERGY))) {
 			return ctx.controllerContainer;
 		}
 	}
@@ -47,35 +50,49 @@ function findNewTarget(ctx, creep) {
 
 function getValidTarget(ctx, creep) {
 	var target = Game.getObjectById(creep.memory.targetId);
-	if(!isValidTarget(target)) {
+	if(!isValidTarget(ctx, creep, target)) {
 		delete creep.memory.targetId;
 		target = findNewTarget(ctx, creep);
 	}
-	var target = findNewTarget(ctx, creep);
 	if(target != null && target != ctx.storage) {
 		creep.memory.targetId = target.id;
 	}
 	return target;
 }
 
+function isImportantTarget(ctx, target) {
+	if(ctx.storage && target.id == ctx.storage.id) return false;
+	if(ctx.centralContainers) {
+		for(var i in ctx.centralContainers) {
+			if(ctx.centralContainers[i].id == target.id) return false;
+		}
+	}
+	return true;
+}
+
 function findEnergy(ctx, creep) {
 	if(!creep.memory.FindEnergy) {
 		creep.memory.FindEnergy = true;
-		creep.say('🔄 find energy');
+		creep.say('🔄');
 		delete creep.memory.energyTargetId;
 		delete creep.memory.targetId;
 	}
-    var target = getValidTarget(ctx, creep);
-    if(target == null) return;
+	var target = getValidTarget(ctx, creep);
+	if(target == null) return;
 
-    if(utils.GetEnergy4Filler(ctx, creep, target.id)) return;
-    if(ctx.miners.length != 0 || !creep.memory.hasWorkPart) return;
+	if(isImportantTarget(ctx, target)) {
+		creep.say('hi');
+		if(utils.GetEnergy4ImportantTarget(ctx, creep)) return;
+	}
 
-    var source = ctx.sources[0];
-    var err = creep.harvest(source);
-    if(err == ERR_NOT_IN_RANGE) {
-        utils.DefaultMoveTo(creep, source);
-    }
+	if(utils.GetEnergy4Filler(ctx, creep, target.id)) return;
+	if(ctx.miners.length != 0 || !creep.memory.hasWorkPart) return;
+
+	var source = ctx.sources[0];
+	var err = creep.harvest(source);
+	if(err == ERR_NOT_IN_RANGE) {
+		utils.DefaultMoveTo(creep, source);
+	}
 }
 
 function fillStructure(ctx, creep) {
@@ -90,31 +107,31 @@ function fillStructure(ctx, creep) {
 	if(err == ERR_NOT_IN_RANGE) {
 		utils.DefaultMoveTo(creep, target);
 	} else {
-		return false;
+		return err == 0;
 	}
 	return true;
 }
 
 
 function Run(ctx, creep) {
-    if(creep.memory.FindEnergy && creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-        creep.memory.FindEnergy = false;
-        creep.say('store');
-        delete creep.memory.energyTargetId;
+	if(creep.memory.FindEnergy && creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+		creep.memory.FindEnergy = false;
+		creep.say('store');
+		delete creep.memory.energyTargetId;
 		delete creep.memory.targetId;
-    }
-    if(creep.store[RESOURCE_ENERGY] == 0 || creep.memory.FindEnergy) {
-        findEnergy(ctx, creep);
-        return;
-    }
-    if(fillStructure(ctx, creep)) {
-        return;
-    }
-    // no work to do
-    // TODO: set a rest point
-    utils.DefaultMoveTo(creep, ctx.restPos);
+	}
+	if(creep.store[RESOURCE_ENERGY] == 0 || creep.memory.FindEnergy) {
+		findEnergy(ctx, creep);
+		return;
+	}
+	if(fillStructure(ctx, creep)) {
+		return;
+	}
+	// no work to do
+	// TODO: set a rest point
+	utils.DefaultMoveTo(creep, ctx.restPos);
 }
 
 module.exports = {
-    Run
+	Run
 };

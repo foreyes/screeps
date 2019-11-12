@@ -3,15 +3,19 @@ var utils = require('utils');
 function findEnergy(ctx, creep) {
     if(!creep.memory.FindEnergy) {
         creep.memory.FindEnergy = true;
-        creep.say('🔄 find energy');
+        creep.say('🔄');
     }
     if(getTarget(ctx, creep) == null) {
         return;
     }
-    if(ctx.flagDevRole) {
-        utils.GetEnergyFromStore(ctx, creep)
+    if(Game.time % 10 == 0) {
+        delete creep.memory.energyTargetId;
+        delete creep.memory.targetId;
+    }
+    if(utils.GetEnergy4Worker(ctx, creep) || ctx.miners.length != 0) {
         return;
     }
+
     var source = ctx.sources[0];
     var err = creep.harvest(source);
     if(err == ERR_NOT_IN_RANGE) {
@@ -90,6 +94,10 @@ function Run(ctx, creep) {
     // no work to do
     // TODO: set a rest point
     utils.DefaultMoveTo(creep, ctx.restPos);
+    if(creep.memory.usefulTime == undefined) {
+        creep.memory.usefulTime = 1500;
+    }
+    creep.memory.usefulTime -= 1;
 }
 
 module.exports = {

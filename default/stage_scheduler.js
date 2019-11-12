@@ -45,6 +45,96 @@ function startStage(stageName, roomName) {
 
 // loop returning true means need terminate.
 var stages = {
+	stage2: {
+		wait: 0,
+		next: [],
+		init: defaultInit,
+		loop: function(ctx) {
+			if(ctx.room.controller.level < 2) return false;
+
+			if(ctx.room.memory.ctx.flagStarter == undefined) {
+				ctx.room.memory.ctx.flagStarter = false;
+			}
+			if(!ctx.room.memory.ctx.flagStarter) {
+				return false;
+			}
+			if(!ctx.room.memory.ctx.flagSetupNum) {
+				ctx.room.memory.ctx.workerHarvesterNum = 0;
+				ctx.room.memory.ctx.carrierNum = 2;
+				ctx.room.memory.ctx.workerUpgraderNum = 1;
+				ctx.room.memory.ctx.workerBuilderNum = 2;
+				ctx.room.memory.ctx.flagSetupNum = true;
+			}
+			var csl = ctx.room.find(FIND_CONSTRUCTION_SITES).length;
+			if(csl == 0) {
+				ctx.room.memory.ctx.workerBuilderNum = 0;
+				ctx.room.memory.ctx.workerUpgraderNum = 4;
+			}
+			return ctx.room.controller.level >= 3;
+		},
+		terminate: function(ctx, next) {
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.workerRepairerNum = 1;
+			delete ctx.room.memory.ctx.flagStarter;
+			delete ctx.room.memory.ctx.flagSetupNum;
+			defaultTerminate(ctx, next);
+		}
+	},
+	stage3: {
+		wait: 0,
+		next: [],
+		init: defaultInit,
+		loop: function(ctx) {
+			if(ctx.room.controller.level < 3) return false;
+			if(!ctx.room.memory.ctx.flagInit) {
+				var exts = ctx.room.find(FIND_STRUCTURES, {
+					filter: (structure) => {
+						return structure.my && structure.structureType == STRUCTURE_EXTENSION;
+					}
+				}).length;
+
+				var room = ctx.room, spawn = ctx.spawn, rem = 10 - exts;
+
+				for(var dist = 5; rem > 0; dist++) {
+				    var positions = utils.get_positions_by_dist(room, spawn.pos, dist);
+				    positions = positions.filter((pos) => {
+				        return room.lookAt(pos).filter((val) => {
+				            return val.type == 'structure' ||
+				                   (val.type == 'terrain' && val.terrain == 'wall');
+				        }).length == 0;
+				    });
+				    if(positions.length > rem) {
+				        positions = positions.slice(0, rem);
+				    }
+				    rem = rem - positions.length;
+				    positions.forEach(function(pos) {
+				        room.createConstructionSite(pos.x, pos.y, STRUCTURE_EXTENSION);
+				    });
+				}
+
+				room.createConstructionSite(spawn.pos.x - 1, spawn.pos.y - 1, STRUCTURE_TOWER);
+
+				ctx.room.memory.ctx.workerBuilderNum = 3;
+				ctx.room.memory.ctx.flagInit = true;
+			}
+			var constructing = ctx.room.find(FIND_CONSTRUCTION_SITES);
+			if(constructing.length == 0) {
+				ctx.room.memory.ctx.workerBuilderNum = 0;
+				ctx.room.memory.ctx.workerUpgraderNum = 3;
+			}
+			if(ctx.room.controller.level >= 4) {
+				ctx.room.createConstructionSite(ctx.spawn.pos.x - 1, ctx.spawn.pos.y - 2, STRUCTURE_STORAGE);
+				startStage('build_1', ctx.room.name);
+				startStage('build_1', ctx.room.name);
+			}
+			return ctx.room.controller.level >= 4;
+		},
+		terminate: function(ctx, next) {
+			ctx.room.memory.ctx.workerUpgraderNum = 1;
+			delete ctx.room.memory.ctx.flagInit;
+			defaultTerminate(ctx, next);
+		}
+	},
 	build_1: {
 		wait: 0,
 		next: [],

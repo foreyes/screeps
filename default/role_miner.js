@@ -1,6 +1,9 @@
 var utils = require('utils');
 
 function Run(ctx, creep) {
+	if(creep.memory.workPartsNum == undefined) {
+		creep.memory.workPartsNum = creep.getActiveBodyparts(WORK);
+	}
 	var source = ctx.sources[creep.memory.sourceIdx];
 	if(!ctx.sourceContainers || !ctx.sourceContainers[creep.memory.sourceIdx]) {
 		var err = creep.harvest(source);

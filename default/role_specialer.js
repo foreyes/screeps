@@ -8,7 +8,7 @@ var specialTypeList = {
 			}
 		});
 		if(aliveExts.length > 0 && ctx.miners.length == 0) {
-			return require('role_harvester').Run(ctx, creep);
+			return require('role_filler').Run(ctx, creep);
 		}
 		return require('role_builder').Run(ctx, creep);
 	},

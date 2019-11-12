@@ -2,9 +2,12 @@ var utils = require('utils');
 
 var workerParts = {
     300: [WORK, CARRY, CARRY, MOVE, MOVE],
+    // TODO:
     350: [WORK, WORK, CARRY, MOVE, MOVE],
-    400: [WORK, WORK, CARRY, CARRY, MOVE, MOVE],
-    500: [WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
+    400: [WORK, WORK, CARRY, CARRY, MOVE],
+    450: [WORK, WORK, WORK, CARRY, MOVE, MOVE],
+    500: [WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE],
+    550: [WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE],
     600: [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
     800: [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
     1000: [WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE],
@@ -13,10 +16,13 @@ var workerParts = {
 
 var carrierParts = {
     300: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
+    450: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
+    550: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
     750: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE],
     900: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
     1050: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-    1200: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE]
+    1200: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+    2500: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
 };
 
 function getMaxEnergyForSpawn(spawn) {
@@ -57,24 +63,29 @@ function createCreep(spawn, roleName, parts, creepMemory = {}, name = 'null') {
 var minerParts = [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE];
 
 function spawnMiner(ctx, name, sourceIdx) {
-    if(ctx.CurEnergy >= 600) {
-        createCreep(ctx.spawn, 'miner', minerParts, {'sourceIdx': sourceIdx}, name);
+    if(ctx.CurEnergy >= 750) {
+        createCreep(ctx.spawn, 'miner', [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE], {'sourceIdx': sourceIdx, workPartsNum: 6}, name);
+    } else if(ctx.CurEnergy >= 600) {
+        createCreep(ctx.spawn, 'miner', minerParts, {'sourceIdx': sourceIdx, workPartsNum: 5}, name);
     } else if(ctx.CurEnergy >= 550) {
-        createCreep(ctx.spawn, 'miner', [WORK, WORK, WORK, WORK, WORK, MOVE], {'sourceIdx': sourceIdx}, name);
+        createCreep(ctx.spawn, 'miner', [WORK, WORK, WORK, WORK, WORK, MOVE], {'sourceIdx': sourceIdx, workPartsNum: 5}, name);
     } else if(ctx.CurEnergy >= 450) {
-        createCreep(ctx.spawn, 'miner', [WORK, WORK, WORK, WORK, MOVE], {'sourceIdx': sourceIdx}, name);
+        createCreep(ctx.spawn, 'miner', [WORK, WORK, WORK, WORK, MOVE], {'sourceIdx': sourceIdx, workPartsNum: 4}, name);
     } else if(ctx.CurEnergy >= 350) {
-        createCreep(ctx.spawn, 'miner', [WORK, WORK, WORK, MOVE], {'sourceIdx': sourceIdx}, name);
+        createCreep(ctx.spawn, 'miner', [WORK, WORK, WORK, MOVE], {'sourceIdx': sourceIdx, workPartsNum: 3}, name);
     } else {
-        // createCreep(ctx.spawn, 'miner', [WORK, WORK, MOVE], {'sourceIdx': sourceIdx});
+        createCreep(ctx.spawn, 'miner', [WORK, WORK, MOVE], {'sourceIdx': sourceIdx, workPartsNum: 2}, name);
     }
 }
 
 function getCarrierPartsLevel(energy) {
+    if(energy >= 2500) return 2500;
     if(energy >= 1200) return 1200;
     if(energy >= 1050) return 1050;
     if(energy >= 900) return 900;
     if(energy >= 750) return 750;
+    if(energy >= 550) return 550;
+    if(energy >= 450) return 450;
     if(energy >= 300) return 300;
     return 0;
 }
@@ -90,7 +101,9 @@ function getWorkerPartsLevel(energy) {
     if(energy >= 1000) return 1000;
     if(energy >= 800) return 800;
     if(energy >= 600) return 600;
+    if(energy >= 550) return 550;
     if(energy >= 500) return 500;
+    if(energy >= 450) return 450;
     if(energy >= 400) return 400;
     if(energy >= 350) return 350;
     if(energy >= 300) return 300;
@@ -100,7 +113,7 @@ function getWorkerPartsLevel(energy) {
 function spawnWorker(ctx, roleName) {
     var needEnergy = getWorkerPartsLevel(ctx.MaxEnergy);
     if(roleName == 'workerRepairer') {
-        needEnergy = Math.min(needEnergy, 600);
+        needEnergy = Math.min(needEnergy, 400);
     }
     if(ctx.CurEnergy < needEnergy) return;
     createCreep(ctx.spawn, roleName, workerParts[needEnergy]);
@@ -124,9 +137,16 @@ function runAfterDevRoles(ctx, spawn) {
     // spawn miner
     for(var i in ctx.sources) {
         var name = 'miner' + ctx.sources[i].id;
-        if(!Game.creeps[name]) {
+        var creep = Game.creeps[name];
+        if(!creep) {
             spawnMiner(ctx, name, i);
             return;
+        } else {
+            if(creep.memory.workPartsNum != undefined && creep.memory.workPartsNum < 5 && ctx.CurEnergy >= 550) {
+                creep.suicide();
+                spawnMiner(ctx, name, i);
+                return;
+            }
         }
     }
     // spawn carrier
@@ -160,8 +180,23 @@ function runAfterDevRoles(ctx, spawn) {
     }
     // spawn upgrader
     if(ctx.workerUpgraders.length < ctx.room.memory.ctx.workerUpgraderNum) {
-        spawnWorker(ctx, 'workerUpgrader');
-        return;
+    	if(ctx.room.memory.ctx.workerUpgraderNum == 1) {
+    		spawnWorker(ctx, 'workerUpgrader');
+            return;
+    	}
+        if(ctx.CurEnergy >= 3500) {
+            createCreep(spawn, 'workerUpgrader', [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE]);
+            return;
+        } else if(ctx.CurEnergy >= 2300) {
+            createCreep(spawn, 'workerUpgrader', [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE]);
+            return;
+        } else if(ctx.CurEnergy >= 800) {
+            createCreep(spawn, 'workerUpgrader', [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE]);
+            return;
+        } else {
+            spawnWorker(ctx, 'workerUpgrader');
+            return;
+        }
     }
     // spawn repairer
     if(ctx.workerRepairers .length < ctx.room.memory.ctx.workerRepairerNum) {
@@ -185,6 +220,13 @@ function Run(ctx, spawn) {
         runAfterDevRoles(ctx, spawn);
         return;
     }
+    if(ctx.room.memory.ctx.flagStarter != undefined && !ctx.room.memory.ctx.flagStarter) {
+        var err = ctx.spawn.spawnCreep([WORK, WORK, CARRY, MOVE], ctx.room.name + 'starter', {memory: {role: 'specialer', specialType: 'starter'}});
+        if(err != 0) {
+            ctx.room.memory.ctx.flagStarter = true;
+        }
+        return;
+    }
 
     var workerHarvesters = utils.GetMyCreepsByRole(spawn.room, 'workerHarvester');
     var workerUpgraders = utils.GetMyCreepsByRole(spawn.room, 'workerUpgrader');
@@ -195,14 +237,16 @@ function Run(ctx, spawn) {
     var miners = utils.GetMyCreepsByRole(spawn.room, 'miner');
 
     var level = 300;
-    if(workerHarvesters.length > 0) {
-        level = getWorkerPartsLevel(ctx.MaxEnergy);
-    } else {
-        level = getWorkerPartsLevel(ctx.CurEnergy)
-        if(level >= 300) {
-            createCreep(spawn, 'workerHarvester', workerParts[level]);
+    if(ctx.room.memory.ctx.workerHarvesterNum > 0) {
+        if(workerHarvesters.length > 0) {
+            level = getWorkerPartsLevel(ctx.MaxEnergy);
+        } else {
+            level = getWorkerPartsLevel(ctx.CurEnergy)
+            if(level >= 300) {
+                createCreep(spawn, 'workerHarvester', workerParts[level]);
+            }
+            return;
         }
-        return;
     }
 
     if(ctx.CurEnergy < level) return;

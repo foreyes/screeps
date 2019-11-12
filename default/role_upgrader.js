@@ -3,10 +3,13 @@ var utils = require('utils');
 function findEnergy(ctx, creep) {
     if(!creep.memory.FindEnergy) {
         creep.memory.FindEnergy = true;
-        creep.say('🔄 find energy');
+        creep.say('🔄');
     }
-    if(ctx.flagDevRole) {
+    if(ctx.controllerContainer && ctx.controllerContainer.store[RESOURCE_ENERGY] > 0) {
         utils.GetEnergyFromControllerStore(ctx, creep)
+        return;
+    }
+    if(utils.GetEnergy4Worker(ctx, creep) || ctx.miners.length != 0) {
         return;
     }
     var source = ctx.sources[0];

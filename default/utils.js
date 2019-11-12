@@ -28,17 +28,54 @@ function CmpByObjDist2GivenPos(pos) {
     };
 }
 
-function DefaultMoveTo(creep, target) {
+function getPath2Target(creep, target, ignoreCreeps = true) {
+    if(creep.memory.path == undefined) {
+        var path = creep.room.findPath(creep.pos, target, {ignoreCreeps: ignoreCreeps});
+        creep.memory.path = Room.serializePath(path);
+        return path;
+    }
+    var path = Room.deserializePath(creep.memory.path);
+    var dest = path[path.length - 1];
+    if(target.x != dest.x || target.y != dest.y) {
+        path = creep.room.findPath(creep.pos, target, {ignoreCreeps, ignoreCreeps});
+        creep.memory.path = Room.serializePath(path);
+    }
+    return path;
+}
+
+function defaultMoveToSameRoom(creep, target) {
     creep.memory.needMove = true;
     if(creep.memory.role == 'miner') {
         creep.moveTo(target, {reusePath: 10, visualizePathStyle: {stroke: '#ffaa00'}});
         return;
     }
-    if(creep.memory.stuck < 2) {
-        creep.moveTo(target, {reusePath: 10, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
+    if(creep.memory.stuck <= 2) {
+        creep.moveTo(target, {reusePath: 50, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
     } else {
         delete creep.memory._move;
-        creep.moveTo(target, {reusePath: 10, visualizePathStyle: {stroke: '#ffaa00'}});
+        creep.moveTo(target, {reusePath: 50, visualizePathStyle: {stroke: '#ffaa00'}});
+    }
+}
+
+function DefaultMoveTo(creep, target) {
+    if(target.pos != undefined) target = target.pos;
+    if(creep.pos.roomName != target.roomName) {
+        defaultMoveToSameRoom(creep, target);
+        return;
+    }
+    creep.memory.needMove = true;
+    // if(creep.memory.role == 'miner') {
+    //     creep.moveTo(target, {reusePath: 10, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
+    //     return;
+    // }
+    if(creep.memory.stuck < 2) {
+        var path = getPath2Target(creep, target);
+        creep.moveByPath(path);
+        //creep.moveTo(target, {reusePath: 50, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
+    } else {
+        delete creep.memory.path;
+        var path = getPath2Target(creep, target, false);
+        creep.moveByPath(path);
     }
 }
 
@@ -84,15 +121,6 @@ function findNewEnergyTarget4Worker(ctx, creep) {
     if(!creep.store || creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
         return null;
     }
-    // get from hostile structures
-    var usefulHostileStructures = creep.room.find(FIND_STRUCTURES, {
-        filter: (s) => {
-            return s.my != undefined && !s.my && s.store && s.store[RESOURCE_ENERGY] > 0;
-        }
-    });
-    if(usefulHostileStructures.length != 0) {
-        return creep.pos.findClosestByPath(usefulHostileStructures);
-    }
     // get from storage
     if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] > 0) {
         return ctx.storage;
@@ -118,6 +146,15 @@ function findNewEnergyTarget4Worker(ctx, creep) {
         }
         // TODO:
         // return creep.pos.findClosestByPath(ctx.dropedEnergy);
+    }
+    // get from hostile structures
+    var usefulHostileStructures = creep.room.find(FIND_STRUCTURES, {
+        filter: (s) => {
+            return s.my != undefined && !s.my && s.store && s.store[RESOURCE_ENERGY] > 0;
+        }
+    });
+    if(usefulHostileStructures.length != 0) {
+        return creep.pos.findClosestByPath(usefulHostileStructures);
     }
     // TODO: get from tomestone
     return null;
@@ -160,15 +197,6 @@ function findNewEnergyTarget4Filler(ctx, creep, fillTargetId) {
     if(!creep.store || creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
         return null;
     }
-    // get from hostile structures
-    var usefulHostileStructures = creep.room.find(FIND_STRUCTURES, {
-        filter: (s) => {
-            return s.my != undefined && !s.my && s.store && s.store[RESOURCE_ENERGY] > 0;
-        }
-    });
-    if(usefulHostileStructures.length != 0) {
-        return creep.pos.findClosestByPath(usefulHostileStructures);
-    }
     // get from dropped energy
     if(ctx.dropedEnergy) {
         var largeEnergy = ctx.dropedEnergy.filter((de) => de.amount >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
@@ -177,6 +205,15 @@ function findNewEnergyTarget4Filler(ctx, creep, fillTargetId) {
         }
         // TODO:
         // return creep.pos.findClosestByPath(ctx.dropedEnergy);
+    }
+    // get from hostile structures
+    var usefulHostileStructures = creep.room.find(FIND_STRUCTURES, {
+        filter: (s) => {
+            return s.my != undefined && !s.my && s.store && s.store[RESOURCE_ENERGY] > 0;
+        }
+    });
+    if(usefulHostileStructures.length != 0) {
+        return creep.pos.findClosestByPath(usefulHostileStructures);
     }
     // get from source's container
     if(ctx.sourceContainers) {
@@ -236,6 +273,63 @@ function GetEnergy4Filler(ctx, creep, fillTargetId) {
     }
 
     return true;
+}
+
+function findNewEnergyTarget4ImportantTarget(ctx, creep) {
+    // return null if can not carry more
+    if(!creep.store || creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+        return null;
+    }
+    // get from central containers
+    if(ctx.centralContainers) {
+        var containers = _.filter(ctx.centralContainers, (c) => {
+            return c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500);
+        });
+        if(containers.length > 0) {
+            return creep.pos.findClosestByPath(containers);
+        }
+    }
+    // get from storage
+    if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] > 0) {
+        return ctx.storage;
+    }
+    // TODO: get from tomestone
+    return null;
+}
+
+function isStorageOrCentralContainer(ctx, target) {
+    if(!target) return false;
+    if(ctx.storage && target.id == ctx.storage.id) return true;
+    if(ctx.centralContainers) {
+        for(var i in ctx.centralContainers) {
+            if(target.id == ctx.centralContainers[i].id) return true;
+        }
+    }
+    return false;
+}
+
+function getValidEnergyTarget4ImportantTarget(ctx, creep) {
+    var target = Game.getObjectById(creep.memory.importantEnergyTargetId);
+    if(!isStorageOrCentralContainer(ctx, target) || target.store[RESOURCE_ENERGY] == 0) {
+        delete creep.memory.importantEnergyTargetId;
+        target = findNewEnergyTarget4ImportantTarget(ctx, creep);
+    }
+    if(target != null) {
+        creep.memory.importantEnergyTargetId = target.id;
+    }
+    return target;
+}
+
+function GetEnergy4ImportantTarget(ctx, creep) {
+    var target = getValidEnergyTarget4ImportantTarget(ctx, creep);
+    if(target == null) return false;
+
+    var err = creep.withdraw(target, RESOURCE_ENERGY);
+    if(err == ERR_NOT_IN_RANGE) {
+        DefaultMoveTo(creep, target);
+        return true;
+    }
+    return err == 0;
 }
 
 function GetEnergyFromStore(ctx, creep) {
@@ -322,7 +416,7 @@ function InitSourceAndContainerInfo4Room(roomName) {
             if(pos != null){
                 room.memory.ctx.sourceContainerPos[i] = pos;
             }
-            pos = getContainerPosByFlag('cc1', roomName);
+            pos = getContainerPosByFlag('cc' + i, roomName);
             if(pos != null) {
                 room.memory.ctx.centralContainerPos[i] = pos;
             }
@@ -340,6 +434,23 @@ function ObjMap(obj, func) {
     return res;
 }
 
+function IsEmptyObj(obj) {
+    for(var i in obj) {
+        return false;
+    }
+    return true;
+}
+
+function TraceError(err, msg = '') {
+    if(err) {
+        if(err.stack != undefined) {
+            console.log(msg + err.stack);
+        } else {
+            console.log(msg + err);
+        }
+    }
+}
+
 module.exports = {
     get_positions_by_dist,
     GetDirectDistance,
@@ -354,4 +465,7 @@ module.exports = {
     GetEnergy4Filler,
     InitSourceAndContainerInfo4Room,
     ObjMap,
+    IsEmptyObj,
+    GetEnergy4ImportantTarget,
+    TraceError,
 };

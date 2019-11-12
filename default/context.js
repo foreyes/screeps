@@ -124,6 +124,7 @@ function FetchRoomCtx(gCtx, room) {
 		spawners: spawners,
 		carriers: carriers,
 		miners: miners,
+		controllerContainerFillerCnt: 0,
 	};
 
 	// set container info
@@ -134,7 +135,7 @@ function FetchRoomCtx(gCtx, room) {
 			return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 		});
 		if(containers.length != 0) {
-			room.memory.controllerContainerId = containers[0].id;
+			room.memory.ctx.controllerContainerId = containers[0].structure.id;
 			delete room.memory.ctx.controllerContainerPos;
 		}
 	}
@@ -146,12 +147,12 @@ function FetchRoomCtx(gCtx, room) {
 				return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 			});
 			if(containers.length != 0) {
-				if(room.memory.sourceContainerIds == undefined) {
-					room.memory.sourceContainerIds = {};
-				}
-				room.memory.sourceContainerIds[i] = containers[0].id;
+				room.memory.ctx.sourceContainerIds[i] = containers[0].structure.id;
 				delete room.memory.ctx.sourceContainerPos[i];
 			}
+		}
+		if(utils.IsEmptyObj(room.memory.ctx.sourceContainerPos)) {
+			delete room.memory.ctx.sourceContainerPos;
 		}
 	}
 	if(room.memory.ctx.centralContainerPos != undefined) {
@@ -162,9 +163,12 @@ function FetchRoomCtx(gCtx, room) {
 				return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 			});
 			if(containers.length != 0) {
-				room.memory.centralContainerIds[i] = containers[0].id;
+				room.memory.ctx.centralContainerIds[i] = containers[0].structure.id;
 				delete room.memory.ctx.centralContainerPos[i];
 			}
+		}
+		if(utils.IsEmptyObj(room.memory.ctx.centralContainerPos)) {
+			delete room.memory.ctx.centralContainerPos;
 		}
 	}
 	// get container
@@ -178,6 +182,7 @@ function FetchRoomCtx(gCtx, room) {
 		ctx.centralContainers = utils.ObjMap(room.memory.ctx.centralContainerIds, Game.getObjectById);
 	}
 
+	room.ctx = ctx;
 	return ctx;
 }
 

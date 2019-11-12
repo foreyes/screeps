@@ -15,6 +15,9 @@ module.exports.loop = function() {
     // clear memory
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
+            if(Memory.creeps[name] && Memory.creeps[name].usefulTime != undefined) {
+                console.log('Repairer useful time: ' + Memory.creeps[name].usefulTime);
+            }
             delete Memory.creeps[name];
             console.log('Clearing non-existing creep memory:', name);
         }
@@ -28,53 +31,62 @@ module.exports.loop = function() {
 
     // run room scheduler
     for(var i in Game.rooms) {
-        var room = Game.rooms[i];
-        require('room_scheduler').Run(gCtx, room);
+        try {
+            var room = Game.rooms[i];
+            require('room_scheduler').Run(gCtx, room);
+        } catch(err) {
+            var errMsg = 'room ' + i + ' error: ';
+            utils.TraceError(err, errMsg);
+        }
     }
 
     // extra
-    if(Memory.ExtraWork && Memory.ExtraWork.length > 0) {
-        var newExt = [];
-        for(var i in Memory.ExtraWork) {
-            var workPair = Memory.ExtraWork[i];
-            var creep = Game.getObjectById(workPair.id);
-            if(!creep) continue;
+    try {
+        if(Memory.ExtraWork && Memory.ExtraWork.length > 0) {
+            var newExt = [];
+            for(var i in Memory.ExtraWork) {
+                var workPair = Memory.ExtraWork[i];
+                var creep = Game.getObjectById(workPair.id);
+                if(!creep) continue;
 
-            if(workPair.type == 'walk') {
-                var target = new RoomPosition(workPair.target.x, workPair.target.y, workPair.target.roomName);
-                if(!target) continue;
-                if(!utils.IsSamePosition(creep.pos, target)) {
-                    utils.DefaultMoveTo(creep, target);
+                if(workPair.type == 'walk') {
+                    var target = new RoomPosition(workPair.target.x, workPair.target.y, workPair.target.roomName);
+                    if(!target) continue;
+                    if(!utils.IsSamePosition(creep.pos, target)) {
+                        utils.DefaultMoveTo(creep, target);
+                        newExt.push(workPair);
+                    }
+                } else if(workPair.type == 'attack') {
+                    var target = Game.getObjectById(workPair.target);
+                    if(!target) continue;
+                    var err = creep.attack(target);
+                    if(err == ERR_NOT_IN_RANGE) {
+                        utils.DefaultMoveTo(creep, target);
+                    }
+                    newExt.push(workPair);
+                } else if(workPair.type == 'heal') {
+                    var target = Game.getObjectById(workPair.target);
+                    if(!target) continue;
+                    var err = creep.heal(target);
+                    if(err == ERR_NOT_IN_RANGE) {
+                        utils.DefaultMoveTo(creep, target);
+                    }
+                    newExt.push(workPair);
+                } else if(workPair.type == 'dismantle') {
+                    var target = Game.getObjectById(workPair.target);
+                    if(!target) continue;
+                    var err = creep.dismantle(target);
+                    if(err == ERR_NOT_IN_RANGE) {
+                        utils.DefaultMoveTo(creep, target);
+                    }
                     newExt.push(workPair);
                 }
-            } else if(workPair.type == 'attack') {
-                var target = Game.getObjectById(workPair.target);
-                if(!target) continue;
-                var err = creep.attack(target);
-                if(err == ERR_NOT_IN_RANGE) {
-                    utils.DefaultMoveTo(creep, target);
-                }
-                newExt.push(workPair);
-            } else if(workPair.type == 'heal') {
-                var target = Game.getObjectById(workPair.target);
-                if(!target) continue;
-                var err = creep.heal(target);
-                if(err == ERR_NOT_IN_RANGE) {
-                    utils.DefaultMoveTo(creep, target);
-                }
-                newExt.push(workPair);
-            } else if(workPair.type == 'dismantle') {
-                var target = Game.getObjectById(workPair.target);
-                if(!target) continue;
-                var err = creep.dismantle(target);
-                if(err == ERR_NOT_IN_RANGE) {
-                    utils.DefaultMoveTo(creep, target);
-                }
-                newExt.push(workPair);
+                
             }
-            
+            Memory.ExtraWork = newExt;
         }
-        Memory.ExtraWork = newExt;
+    } catch(err) {
+        utils.TraceError(err, 'Extra work error: ');
     }
 
     // cpu use stats

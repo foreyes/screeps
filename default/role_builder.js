@@ -3,10 +3,14 @@ var utils = require('utils');
 function findEnergy(ctx, creep) {
     if(!creep.memory.FindEnergy) {
         creep.memory.FindEnergy = true;
-        creep.say('🔄 find energy');
+        creep.say('🔄');
     }
     if(getTarget(ctx, creep) == null) {
         return;
+    }
+    if(Game.time % 10 == 0) {
+        delete creep.memory.energyTargetId;
+        delete creep.memory.targetId;
     }
     if(utils.GetEnergy4Worker(ctx, creep) || ctx.miners.length != 0) {
         return;
@@ -35,6 +39,7 @@ function checkTarget4Build(target) {
 
 function getBuildPriority(structure) {
     var st = structure.structureType;
+    if(st == STRUCTURE_TOWER) return -1;
     if(st == STRUCTURE_EXTENSION) return 0;
     if(st == STRUCTURE_ROAD) return 1;
     if(st == STRUCTURE_CONTAINER) return 2;
