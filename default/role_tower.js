@@ -17,7 +17,7 @@ function Run(ctx, tower) {
     	tower.repair(roads[0]);
     	return;
     }
-    if(ctx.room.memory.ctx.workerRepairerNum == 0) {
+    if(ctx.room.memory.ctx.repairerNum && ctx.room.memory.ctx.repairerNum == 0) {
         var containers = ctx.room.find(FIND_STRUCTURES, {
             filter: (s) => {
                 return s.structureType == STRUCTURE_CONTAINER && s.hits + 800 <= s.hitsMax;

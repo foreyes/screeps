@@ -140,14 +140,14 @@ var stages = {
 		next: [],
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
-			ctx.room.memory.ctx.workerBuilderNum += 1;
+			ctx.room.memory.ctx.builderNum += 1;
 		},
 		loop: function(ctx) {
 			var constructing = ctx.room.find(FIND_CONSTRUCTION_SITES);
 			return constructing.length == 0;
 		},
 		terminate: function(ctx, next) {
-			ctx.room.memory.ctx.workerBuilderNum -= 1;
+			ctx.room.memory.ctx.builderNum -= 1;
 			defaultTerminate(ctx, next);
 		}
 	},

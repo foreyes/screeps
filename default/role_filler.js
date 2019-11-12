@@ -1,5 +1,35 @@
 var utils = require('utils');
 
+var roleParts = {
+	0: [],
+    300: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
+    450: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
+    550: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
+    750: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE],
+    900: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+    1050: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+    1200: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+    2500: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+};
+
+function getCost(energy) {
+	if(energy >= 2500) return 2500;
+	if(energy >= 1200) return 1200;
+	if(energy >= 1050) return 1050;
+	if(energy >= 900) return 900;
+	if(energy >= 750) return 750;
+	if(energy >= 550) return 550;
+	if(energy >= 450) return 450;
+	if(energy >= 300) return 300;
+	return 0;
+}
+
+function GetPartsAndCost(energy) {
+	var cost = getCost(energy);
+	var parts = roleParts[cost];
+	return {cost: cost, parts: parts};
+}
+
 function isValidTarget(ctx, creep, target) {
 	if(!target) return false;
 	if(ctx.controllerContainer && target.id == ctx.controllerContainer.id) {
@@ -133,5 +163,6 @@ function Run(ctx, creep) {
 }
 
 module.exports = {
+	GetPartsAndCost,
 	Run
 };

@@ -451,6 +451,24 @@ function TraceError(err, msg = '') {
     }
 }
 
+function GetMaxEnergyForSpawn(spawn) {
+    var res = spawn.store.getCapacity(RESOURCE_ENERGY);
+    var extensions = spawn.room.find(FIND_STRUCTURES, {filter: (structure) => structure.structureType == 'extension' && structure.isActive()});
+    for(var i in extensions) {
+        res += extensions[i].store.getCapacity(RESOURCE_ENERGY);
+    }
+    return res;
+}
+
+function GetCurEnergyForSpawn(spawn) {
+    var res = spawn.store[RESOURCE_ENERGY];
+    var extensions = spawn.room.find(FIND_STRUCTURES, {filter: (structure) => structure.structureType == 'extension' && structure.isActive()});
+    for(var i in extensions) {
+        res += extensions[i].store[RESOURCE_ENERGY];
+    }
+    return res;
+}
+
 module.exports = {
     get_positions_by_dist,
     GetDirectDistance,
@@ -468,4 +486,6 @@ module.exports = {
     IsEmptyObj,
     GetEnergy4ImportantTarget,
     TraceError,
+    GetMaxEnergyForSpawn,
+    GetCurEnergyForSpawn,
 };

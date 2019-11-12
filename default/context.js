@@ -79,25 +79,11 @@ function FetchRoomCtx(gCtx, room) {
 		}
 	});
 	// creeps by role
-	var workerHarvesters = utils.GetMyCreepsByRole(room, 'workerHarvester');
-	var workerUpgraders = utils.GetMyCreepsByRole(room, 'workerUpgrader');
-	var workerBuilders = utils.GetMyCreepsByRole(room, 'workerBuilder');
-	var workerRepairers = utils.GetMyCreepsByRole(room, 'workerRepairer');
+	var upgraders = utils.GetMyCreepsByRole(room, 'upgrader');
+	var builders = utils.GetMyCreepsByRole(room, 'builder');
+	var repairers = utils.GetMyCreepsByRole(room, 'repairer');
 	var miners = utils.GetMyCreepsByRole(room, 'miner');
-	var workerCarriers = utils.GetMyCreepsByRole(room, 'spawner').concat(utils.GetMyCreepsByRole(room, 'carrier'));
-	var spawners = [], carriers = [];
-	// carrier role change
-	if(emptyExts.length > 0) {
-		for(var i in workerCarriers) {
-			workerCarriers[i].memory.role = 'spawner';
-		}
-		spawners = workerCarriers;
-	} else {
-		for(var i in workerCarriers) {
-			workerCarriers[i].memory.role = 'carrier';
-		}
-		carriers = workerCarriers;
-	}
+	var fillers = utils.GetMyCreepsByRole(room, 'filler');
 
 	var ctx = {
 		room: room,
@@ -117,14 +103,12 @@ function FetchRoomCtx(gCtx, room) {
 		storage: storage,
 		constructing: constructing,
 		emptyExts: emptyExts,
-		workerHarvesters: workerHarvesters,
-		workerUpgraders: workerUpgraders,
-		workerBuilders: workerBuilders,
-		workerRepairers: workerRepairers,
-		spawners: spawners,
-		carriers: carriers,
+		upgraders: upgraders,
+		builders: builders,
+		repairers: repairers,
 		miners: miners,
-		controllerContainerFillerCnt: 0,
+		fillers: fillers,
+		keepLevel: room.memory.ctx.keepLevel == true,
 	};
 
 	// set container info

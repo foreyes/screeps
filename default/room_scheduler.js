@@ -10,12 +10,10 @@ function fetchRoomCtx(gCtx, room) {
 
 var roleMap = {
     spawn: require('role_spawn'),
-    workerHarvester: require('role_filler'),
-    workerUpgrader: require('role_upgrader'),
-    workerRepairer: require('role_repairer'),
-    workerBuilder: require('role_builder'),
-    spawner: require('role_filler'),
-    carrier: require('role_filler'),
+    upgrader: require('role_upgrader'),
+    repairer: require('role_repairer'),
+    builder: require('role_builder'),
+    filler: require('role_filler'),
     miner: require('role_miner'),
     tower: require('role_tower'),
     specialer: require('role_specialer'),
@@ -125,6 +123,7 @@ function Run(gCtx, room) {
             }
             creep.memory.lastPos = creep.pos;
         } catch(err) {
+            console.log(creep.memory.role);
             var errMsg = 'Creep ' + name + ' in ' + room.name + ": ";
             utils.TraceError(err, errMsg);
         }

@@ -1,5 +1,25 @@
 var utils = require('utils');
 
+var roleParts = {
+    0: [],
+    200: [WORK, CARRY, MOVE],
+    400: [WORK, WORK, CARRY, CARRY, MOVE, MOVE],
+    600: [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
+};
+
+function getCost(energy) {
+    if(energy >= 600) return 600;
+    if(energy >= 400) return 400;
+    if(energy >= 200) return 200;
+    return 0;
+}
+
+function GetPartsAndCost(energy) {
+    var cost = getCost(energy);
+    var parts = roleParts[cost];
+    return {cost: cost, parts: parts};
+}
+
 function findEnergy(ctx, creep) {
     if(!creep.memory.FindEnergy) {
         creep.memory.FindEnergy = true;
@@ -101,5 +121,6 @@ function Run(ctx, creep) {
 }
 
 module.exports = {
+    GetPartsAndCost,
     Run
 };

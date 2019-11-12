@@ -1,5 +1,40 @@
 var utils = require('utils');
 
+var roleParts = {
+    0: [],
+    200: [WORK, CARRY, MOVE],
+    300: [WORK, CARRY, CARRY, MOVE, MOVE],
+    400: [WORK, WORK, CARRY, CARRY, MOVE, MOVE],
+    550: [WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE],
+    800: [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE],
+    1300: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
+    1800: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
+    2300: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
+    3500: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+};
+
+function getCost(energy) {
+    if(energy >= 3500) return 3500;
+    if(energy >= 2300) return 2300;
+    if(energy >= 1800) return 1800;
+    if(energy >= 1300) return 1300;
+    if(energy >= 800) return 800;
+    if(energy >= 550) return 550;
+    if(energy >= 400) return 400;
+    if(energy >= 300) return 300;
+    if(energy >= 200) return 200;
+    return 0;
+}
+
+function GetPartsAndCost(energy, ctx = {}) {
+    var cost = getCost(energy);
+    if(ctx.keepLevel) {
+        cost = Math.min(cost, 200);
+    }
+    var parts = roleParts[cost];
+    return {cost: cost, parts: parts};
+}
+
 function findEnergy(ctx, creep) {
     if(!creep.memory.FindEnergy) {
         creep.memory.FindEnergy = true;
@@ -39,7 +74,7 @@ function Run(ctx, creep) {
     }
     if(err == 0) {
         // just keep level when no need to upgrade
-        if(ctx.room.controller.level >= 4 && ctx.room.memory.ctx.workerUpgraderNum == 1) {
+        if(ctx.room.controller.level >= 4 && ctx.room.memory.ctx.upgraderNum == 1) {
             creep.memory.sleep = 10;
         }
         if(creep.memory.keepLevel) {
@@ -49,5 +84,6 @@ function Run(ctx, creep) {
 }
 
 module.exports = {
+    GetPartsAndCost,
     Run
 };
