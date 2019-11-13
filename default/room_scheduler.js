@@ -21,6 +21,7 @@ var roleMap = {
 
 function Run(gCtx, room) {
     var ctx = fetchRoomCtx(gCtx, room);
+    room.ctx = ctx;
 
     try {
         if(ctx.storage) {
@@ -95,7 +96,7 @@ function Run(gCtx, room) {
         try {
             var creep = ctx.creeps[name];
             creep.memory.needMove = false;
-            if(creep.memory.role == undefined) continue;
+            if(creep.memory.role == undefined || creep.memory.role == null) continue;
 
             if(creep.memory.role == 'mister') {
                 require('mister').Run(ctx, creep);

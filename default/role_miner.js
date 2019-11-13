@@ -9,11 +9,11 @@ var roleParts = {
 	600: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE],
 	650: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE],
 	750: [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE],
-	1050: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE],
+	// 1050: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE],
 };
 
 function getCost(energy) {
-	if(energy >= 1050) return 1050;
+	// if(energy >= 1050) return 1050;
 	if(energy >= 750) return 750;
 	if(energy >= 650) return 650;
 	if(energy >= 550) return 550;

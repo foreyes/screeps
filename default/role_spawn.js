@@ -6,6 +6,7 @@ var roleMap = {
     repairer: require('role_repairer'),
     builder: require('role_builder'),
     miner: require('role_miner'),
+    simple_outer: require('role_simple_outer'),
     specialer: require('role_specialer'),
 };
 
@@ -50,7 +51,13 @@ function spawnCreep(ctx, spawn, roleName, opt = {}) {
     if(creepMemory.ownRoom == undefined) {
         creepMemory.ownRoom = spawn.room.name;
     }
-    spawn.spawnCreep(parts, name, {memory: creepMemory});
+    if(opt.directions == undefined) {
+        var err = spawn.spawnCreep(parts, name, {memory: creepMemory});
+        return err == 0;
+    } else {
+        var err = spawn.spawnCreep(parts, name, {memory: creepMemory, directions: opt.directions});
+        return err == 0;
+    }
 }
 
 function runStart(ctx, spawn) {
@@ -117,26 +124,21 @@ function Run(ctx, spawn) {
     }
     // TODO: develop this part
     // spawn simple outer
-    if(spawn.room.name == 'E33N36'){
-        ['out1', 'out2', 'out3', 'out4'].forEach((flag) => {
+    var outList = {
+        E33N36: ['out1', 'out2', 'out3', 'out4'],
+        E29N34: ['E29N35_1'],
+    };
+    for(var roomName in outList) {
+        if(spawn.room.name != roomName) continue;
+        outList[roomName].forEach((flag) => {
             if(ctx.room.memory.tmp == undefined) {
                 ctx.room.memory.tmp = {};
             }
             var creep = Game.getObjectById(ctx.room.memory.tmp[flag]);
             if(!creep) {
-                if(ctx.CurEnergy > 3000) {
-                    spawnCreep(ctx, spawn, 'simple_outer', {
-                        parts: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-                        memory: {
-                            flagName: flag
-                        }
-                    });
-                    if(ctx.room.memory.tmp.cnt == undefined) {
-                        ctx.room.memory.tmp.cnt = 0;
-                    }
-                    ctx.room.memory.tmp.cnt -= 3000;
+                if(spawnCreep(ctx, spawn, 'simple_outer', {memory: {flagName: flag}})) {
+                    return true;
                 }
-                return;
             }
         });
     }
@@ -155,6 +157,13 @@ function Run(ctx, spawn) {
     return false;
 }
 
+function SpawnCreep(spawnId, roleName, opt = {}) {
+    var spawn = Game.getObjectById(spawnId);
+    return spawnCreep(spawn.room.ctx, spawn, roleName, opt);
+}
+
 module.exports = {
+    SpawnCreep,
+    spawnCreep,
     Run
 };

@@ -63,7 +63,7 @@ function getTarget(ctx, creep) {
     var targets = creep.room.find(FIND_STRUCTURES, {
         filter: (structure) => {
             var res = structure.hits != undefined;
-            res = res && structure.hits < structure.hitsMax && structure.structureType != 'constructedWall';
+            res = res && structure.hits < structure.hitsMax && structure.structureType == 'container';
             if(structure.my != undefined) {
                 res = res && structure.my;
             }

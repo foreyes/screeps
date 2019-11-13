@@ -15,8 +15,16 @@ module.exports.loop = function() {
     // clear memory
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
-            if(Memory.creeps[name] && Memory.creeps[name].usefulTime != undefined) {
-                console.log('Repairer useful time: ' + Memory.creeps[name].usefulTime);
+            if(Memory.creeps[name].role == 'simple_outer') {
+                var room = Game.rooms[Memory.creeps[name].ctrlRoom];
+                if(room.memory.simple_outer_his == undefined) {
+                    room.memory.simple_outer_his = [];
+                }
+                var diff = 0 - Memory.creeps[name].cost;
+                if(Memory.creeps[name].cnt != undefined) {
+                    diff += Memory.creeps[name].cnt;
+                }
+                room.memory.simple_outer_his.push(diff);
             }
             delete Memory.creeps[name];
             console.log('Clearing non-existing creep memory:', name);

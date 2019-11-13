@@ -44,6 +44,10 @@ function findEnergy(ctx, creep) {
         utils.GetEnergyFromControllerStore(ctx, creep)
         return;
     }
+    if(Game.time % 10 == 0) {
+        delete creep.memory.energyTargetId;
+        delete creep.memory.targetId;
+    }
     if(utils.GetEnergy4Worker(ctx, creep) || ctx.miners.length != 0) {
         return;
     }
@@ -74,10 +78,7 @@ function Run(ctx, creep) {
     }
     if(err == 0) {
         // just keep level when no need to upgrade
-        if(ctx.room.controller.level >= 4 && ctx.room.memory.ctx.upgraderNum == 1) {
-            creep.memory.sleep = 10;
-        }
-        if(creep.memory.keepLevel) {
+        if(ctx.keepLevel) {
             creep.memory.sleep = 10;
         }
     }

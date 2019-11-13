@@ -28,22 +28,25 @@ function CmpByObjDist2GivenPos(pos) {
     };
 }
 
+function findNewPath2Target(creep, target, ignoreCreeps) {
+    var path = creep.room.findPath(creep.pos, target, {ignoreCreeps: ignoreCreeps});
+    creep.memory.path = Room.serializePath(path);
+    return path;
+}
+
 function getPath2Target(creep, target, ignoreCreeps = true) {
     if(creep.memory.path == undefined) {
-        var path = creep.room.findPath(creep.pos, target, {ignoreCreeps: ignoreCreeps});
-        creep.memory.path = Room.serializePath(path);
-        return path;
+        return findNewPath2Target(creep, target, ignoreCreeps);
     }
     var path = Room.deserializePath(creep.memory.path);
     var dest = path[path.length - 1];
-    if(target.x != dest.x || target.y != dest.y) {
-        path = creep.room.findPath(creep.pos, target, {ignoreCreeps, ignoreCreeps});
-        creep.memory.path = Room.serializePath(path);
+    if(!dest || target.x != dest.x || target.y != dest.y) {
+        return findNewPath2Target(creep, target, ignoreCreeps);
     }
     return path;
 }
 
-function defaultMoveToSameRoom(creep, target) {
+function defaultMoveToOtherRoom(creep, target) {
     creep.memory.needMove = true;
     if(creep.memory.role == 'miner') {
         creep.moveTo(target, {reusePath: 10, visualizePathStyle: {stroke: '#ffaa00'}});
@@ -60,7 +63,7 @@ function defaultMoveToSameRoom(creep, target) {
 function DefaultMoveTo(creep, target) {
     if(target.pos != undefined) target = target.pos;
     if(creep.pos.roomName != target.roomName) {
-        defaultMoveToSameRoom(creep, target);
+        defaultMoveToOtherRoom(creep, target);
         return;
     }
     creep.memory.needMove = true;
@@ -469,6 +472,17 @@ function GetCurEnergyForSpawn(spawn) {
     return res;
 }
 
+function GetPartsByArray(partsArray) {
+    var parts = [];
+    for(var i in partsArray) {
+        var item = partsArray[i];
+        for(var j = 0; j < item[1]; j++) {
+            parts.push(item[0]);
+        }
+    }
+    return parts;
+}
+
 module.exports = {
     get_positions_by_dist,
     GetDirectDistance,
@@ -488,4 +502,5 @@ module.exports = {
     TraceError,
     GetMaxEnergyForSpawn,
     GetCurEnergyForSpawn,
+    GetPartsByArray,
 };

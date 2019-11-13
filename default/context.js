@@ -59,8 +59,6 @@ function FetchRoomCtx(gCtx, room) {
             return !creep.my && creep.owner != 'zkl2333';
         }
     });
-    // restPos
-    var restPos = spawn;
     // droped energy > 300
     var dropedEnergy = room.find(FIND_DROPPED_RESOURCES, {
 		filter: (resource) => {
@@ -78,12 +76,24 @@ function FetchRoomCtx(gCtx, room) {
 			return res && struct.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
 		}
 	});
+	// walls and ramparts
+	var wallsAndRamparts = room.find(FIND_STRUCTURES, {
+		filter: (s) => {
+			return s.structureType == STRUCTURE_WALL || s.structureType == STRUCTURE_RAMPART;
+		}
+	});
 	// creeps by role
 	var upgraders = utils.GetMyCreepsByRole(room, 'upgrader');
 	var builders = utils.GetMyCreepsByRole(room, 'builder');
 	var repairers = utils.GetMyCreepsByRole(room, 'repairer');
 	var miners = utils.GetMyCreepsByRole(room, 'miner');
 	var fillers = utils.GetMyCreepsByRole(room, 'filler');
+	// setup restPos
+	var restPos = spawn;
+	if(room.memory.ctx.restPos != undefined) {
+		var pos = room.memory.ctx.restPos;
+		restPos = new RoomPosition(pos.x, pos.y, pos.roomName);
+	}
 
 	var ctx = {
 		room: room,
@@ -101,14 +111,17 @@ function FetchRoomCtx(gCtx, room) {
 		restPos: restPos,
 		dropedEnergy: dropedEnergy,
 		storage: storage,
+		terminal: room.terminal,
 		constructing: constructing,
 		emptyExts: emptyExts,
+		wallsAndRamparts: wallsAndRamparts,
 		upgraders: upgraders,
 		builders: builders,
 		repairers: repairers,
 		miners: miners,
 		fillers: fillers,
 		keepLevel: room.memory.ctx.keepLevel == true,
+		restPos: restPos,
 	};
 
 	// set container info

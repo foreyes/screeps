@@ -28,6 +28,16 @@ function Run(ctx, tower) {
             return;
         }
     }
+    // repair rampart
+    var ramparts = ctx.room.find(FIND_STRUCTURES, {
+        filter: (s) => {
+            return s.structureType == 'rampart' && s.hits < 1000;
+        }
+    });
+    if(ramparts.length != 0) {
+        tower.repair(ramparts[0]);
+        return;
+    }
     // heal
     var needHeal = ctx.creeps.filter((creep) => creep.hits < creep.hitsMax);
     if(needHeal.length != 0) {
