@@ -62,7 +62,7 @@ function Run(ctx, creep) {
 	if(err == ERR_NOT_IN_RANGE) {
 		creep.moveTo(Game.rooms['E33N36'].storage, {reusePath: 100, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}})
 	} else if(err == 0) {
-		if(creep.ticksToLive < creep.memory.remTime) {
+		if(creep.ticksToLive < creep.memory.remTime * 2) {
 			creep.memory.flagS = true;
 		} else {
 			creep.memory = {role: 'mister', remTime: creep.memory.remTime};

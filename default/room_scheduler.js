@@ -17,6 +17,7 @@ var roleMap = {
     miner: require('role_miner'),
     tower: require('role_tower'),
     specialer: require('role_specialer'),
+    mineraler: require('role_mineraler'),
 };
 
 function Run(gCtx, room) {
@@ -137,7 +138,13 @@ function Run(gCtx, room) {
         var errMsg = 'Spawn in ' + room.name + ": ";
         utils.TraceError(err, errMsg);
     }
-    
+
+    if(ctx.factory) {
+        ctx.factory.produce(RESOURCE_LEMERGIUM_BAR);
+        ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
+        ctx.factory.produce(RESOURCE_KEANIUM_BAR);
+        ctx.factory.produce(RESOURCE_CONDENSATE);
+    }
 }
 
 module.exports = {

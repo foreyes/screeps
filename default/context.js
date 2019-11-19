@@ -94,6 +94,37 @@ function FetchRoomCtx(gCtx, room) {
 		var pos = room.memory.ctx.restPos;
 		restPos = new RoomPosition(pos.x, pos.y, pos.roomName);
 	}
+	// mineral
+	var mineral = undefined;
+	var minerals = room.find(FIND_MINERALS);
+	if(minerals.length > 0 && minerals[0].mineralAmount > 0) {
+		mineral = minerals[0];
+	}
+	var mineralCanHarvest = undefined;
+	if(mineral != undefined) {
+		var extractor = room.lookAt(mineral.pos).filter((item) => {
+			return item.type == 'structure' && item.structure.structureType == STRUCTURE_EXTRACTOR && item.structure.my;
+		});
+		if(extractor.length > 0) {
+			mineralCanHarvest = mineral;
+		}
+	}
+	// factory
+	var factory = undefined;
+	var factories = room.find(FIND_STRUCTURES, {
+		filter: (s) => {
+			return s.structureType == STRUCTURE_FACTORY && s.my;
+		}
+	});
+	if(factories.length > 0) {
+		factory = factories[0];
+	}
+	// factorier
+	var factoriers = room.find(FIND_CREEPS, {
+		filter: (creep) => {
+			return creep.my && creep.memory.role && creep.memory.role == 'specialer' && creep.memory.specialType == 'factorier';
+		}
+	});
 
 	var ctx = {
 		room: room,
@@ -122,6 +153,10 @@ function FetchRoomCtx(gCtx, room) {
 		fillers: fillers,
 		keepLevel: room.memory.ctx.keepLevel == true,
 		restPos: restPos,
+		mineral: mineral,
+		mineralCanHarvest: mineralCanHarvest,
+		factory: factory,
+		factoriers: factoriers,
 	};
 
 	// set container info
@@ -170,13 +205,16 @@ function FetchRoomCtx(gCtx, room) {
 	}
 	// get container
 	if(room.memory.ctx.controllerContainerId) {
-		ctx.controllerContainer = Game.getObjectById(room.memory.ctx.controllerContainerId);
+		var obj = Game.getObjectById(room.memory.ctx.controllerContainerId);
+		if(obj) {
+			ctx.controllerContainer = obj;
+		}
 	}
 	if(room.memory.ctx.sourceContainerIds) {
 		ctx.sourceContainers = utils.ObjMap(room.memory.ctx.sourceContainerIds, Game.getObjectById);
 	}
 	if(room.memory.ctx.centralContainerIds) {
-		ctx.centralContainers = utils.ObjMap(room.memory.ctx.centralContainerIds, Game.getObjectById);
+		// ctx.centralContainers = utils.ObjMap(room.memory.ctx.centralContainerIds, Game.getObjectById);
 	}
 
 	room.ctx = ctx;

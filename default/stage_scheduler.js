@@ -151,6 +151,31 @@ var stages = {
 			defaultTerminate(ctx, next);
 		}
 	},
+	upgrading: {
+		wait: 0,
+		next: [],
+		init: function(ctx, next) {
+			defaultInit(ctx, next);
+			ctx.room.memory.ctx.fillerNum = 3;
+			ctx.room.memory.ctx.upgraderNum = 3;
+			ctx.room.memory.ctx.keepLevel = false;
+		},
+		loop: function(ctx) {
+			if(!ctx.storage) return true;
+			if(ctx.storage.store[RESOURCE_ENERGY] >= 800000) {
+				ctx.room.memory.ctx.fillerNum = 3;
+				ctx.room.memory.ctx.upgraderNum = 3;
+				ctx.room.memory.ctx.keepLevel = false;
+			}
+			if(ctx.storage.store[RESOURCE_ENERGY] < 200000) {
+				ctx.room.memory.ctx.fillerNum = 2;
+				ctx.room.memory.ctx.upgraderNum = 1;
+				ctx.room.memory.ctx.keepLevel = true;
+			}
+			return false;
+		},
+		terminate: defaultTerminate
+	},
 	road1: {
 		wait: 0,
 		next: ['upgrade2'],
