@@ -48,7 +48,7 @@ var specialTypeList = {
 			}
 			return false;
 		}
-		if(creep.store.getUsedCapacity() == 0) {
+		if(creep.store.getUsedCapacity() == 0 && creep.ticksToLive > 10) {
 			if(ctx.factory.store[RESOURCE_ENERGY] < 10000 || ctx.terminal.store[RESOURCE_ENERGY] < 10000) {
 				creep.say('creeper!');
 				creep.withdraw(ctx.storage, RESOURCE_ENERGY);
