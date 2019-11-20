@@ -74,6 +74,7 @@ function Run(ctx, creep) {
 
     var err = creep.upgradeController(ctx.room.controller);
     if(err == ERR_NOT_IN_RANGE) {
+        creep.say('coming');
         utils.DefaultMoveTo(creep, ctx.room.controller);
     }
     if(err == 0) {

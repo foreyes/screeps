@@ -116,7 +116,7 @@ function findEnergy(ctx, creep) {
 	}
 
 	if(utils.GetEnergy4Filler(ctx, creep, target.id)) return;
-	if(ctx.miners.length != 0 || !creep.memory.hasWorkPart) return;
+	if(ctx.miners.length != 0 || creep.getActiveBodyparts(WORK) == 0) return;
 
 	var source = ctx.sources[0];
 	var err = creep.harvest(source);

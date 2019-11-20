@@ -122,9 +122,20 @@ function FetchRoomCtx(gCtx, room) {
 	// factorier
 	var factoriers = room.find(FIND_CREEPS, {
 		filter: (creep) => {
-			return creep.my && creep.memory.role && creep.memory.role == 'specialer' && creep.memory.specialType == 'factorier';
+			return creep.my && creep.memory.role == 'specialer' && creep.memory.specialType == 'factorier';
 		}
 	});
+	// labs
+	var labs = undefined;
+	if(room.memory.ctx.labIds) {
+		labs = room.memory.ctx.labIds.map(Game.getObjectById);
+	}
+	// labers
+	var labers = room.find(FIND_CREEPS, {
+    	filter: (creep) => {
+        	return creep.my && creep.memory.role == 'specialer' && creep.memory.specialType == 'laber';
+    	}
+   	});
 
 	var ctx = {
 		room: room,
@@ -157,6 +168,8 @@ function FetchRoomCtx(gCtx, room) {
 		mineralCanHarvest: mineralCanHarvest,
 		factory: factory,
 		factoriers: factoriers,
+		labs: labs,
+		labers: labers,
 	};
 
 	// set container info
@@ -214,7 +227,8 @@ function FetchRoomCtx(gCtx, room) {
 		ctx.sourceContainers = utils.ObjMap(room.memory.ctx.sourceContainerIds, Game.getObjectById);
 	}
 	if(room.memory.ctx.centralContainerIds) {
-		// ctx.centralContainers = utils.ObjMap(room.memory.ctx.centralContainerIds, Game.getObjectById);
+		var centralContainerIds = _.filter(room.memory.ctx.centralContainerIds, (id) => Game.getObjectById(id) != null);
+		ctx.centralContainers = centralContainerIds.map(Game.getObjectById);
 	}
 
 	room.ctx = ctx;

@@ -8,6 +8,7 @@ var roleMap = {
     miner: require('role_miner'),
     simple_outer: require('role_simple_outer'),
     specialer: require('role_specialer'),
+    mineraler: require('role_mineraler'),
 };
 
 // opt: parts, must, givenName, memory
@@ -62,12 +63,10 @@ function spawnCreep(ctx, spawn, roleName, opt = {}) {
 
 function runStart(ctx, spawn) {
     // level 1
-    if(ctx.room.controller.level == 1) {
-        if(ctx.upgraders.length < 2) {
-            return spawnCreep(ctx, spawn, 'upgrader');
-        }
-        return true;
+    if(ctx.upgraders.length < 1) {
+        return spawnCreep(ctx, spawn, 'upgrader');
     }
+    if(ctx.room.controller.level == 1) return true;
 
     // level 2
     if(ctx.upgraders.length < 1) {
@@ -122,6 +121,22 @@ function Run(ctx, spawn) {
     if(ctx.fillers.length < ctx.room.memory.ctx.fillerNum) {
         return spawnCreep(ctx, spawn, 'filler')
     }
+    // spawn mineraler
+    if(ctx.mineralCanHarvest != undefined) {
+        var name = 'mineraler' + ctx.mineralCanHarvest.id;
+        var creep = Game.creeps[name];
+        if(!creep) {
+            return spawnCreep(ctx, spawn, 'mineraler', {givenName: name});
+        }
+    }
+    // spawn factorier
+    if(ctx.terminal && ctx.factoriers.length == 0) {
+        return spawnCreep(ctx, spawn, 'specialer', {
+            directions: [TOP],
+            parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY],
+            memory: {specialType: 'factorier'}
+        });
+    }
     // TODO: develop this part
     // spawn simple outer
     var outList = {
@@ -157,6 +172,8 @@ function Run(ctx, spawn) {
     return false;
 }
 
+// require('role_spawn').SpawnCreep('5dc6e9c47f70d61ce9453a80', 'builder', {memory: {ctrlRoom: 'E29N33', ownRoom: 'E29N33'}});
+// require('role_spawn').SpawnCreep('5dc6e9c47f70d61ce9453a80', 'miner', {givenName: 'miner5bbcaea19099fc012e63958d',parts: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE],memory: {ctrlRoom: 'E29N33', ownRoom: 'E29N33', sourceIdx: 1}});
 function SpawnCreep(spawnId, roleName, opt = {}) {
     var spawn = Game.getObjectById(spawnId);
     return spawnCreep(spawn.room.ctx, spawn, roleName, opt);

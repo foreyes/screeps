@@ -52,30 +52,22 @@ var stages = {
 		loop: function(ctx) {
 			if(ctx.room.controller.level < 2) return false;
 
-			if(ctx.room.memory.ctx.flagStarter == undefined) {
-				ctx.room.memory.ctx.flagStarter = false;
-			}
-			if(!ctx.room.memory.ctx.flagStarter) {
-				return false;
-			}
 			if(!ctx.room.memory.ctx.flagSetupNum) {
-				ctx.room.memory.ctx.workerHarvesterNum = 0;
-				ctx.room.memory.ctx.carrierNum = 2;
-				ctx.room.memory.ctx.workerUpgraderNum = 1;
-				ctx.room.memory.ctx.workerBuilderNum = 2;
+				ctx.room.memory.ctx.fillerNum = 2;
+				ctx.room.memory.ctx.upgraderNum = 1;
+				ctx.room.memory.ctx.builderNum = 2;
 				ctx.room.memory.ctx.flagSetupNum = true;
 			}
 			var csl = ctx.room.find(FIND_CONSTRUCTION_SITES).length;
 			if(csl == 0) {
-				ctx.room.memory.ctx.workerBuilderNum = 0;
-				ctx.room.memory.ctx.workerUpgraderNum = 4;
+				ctx.room.memory.ctx.builderNum = 0;
+				ctx.room.memory.ctx.upgraderNum = 4;
 			}
 			return ctx.room.controller.level >= 3;
 		},
 		terminate: function(ctx, next) {
-			ctx.room.memory.ctx.workerUpgraderNum = 1;
-			ctx.room.memory.ctx.workerRepairerNum = 1;
-			delete ctx.room.memory.ctx.flagStarter;
+			ctx.room.memory.ctx.upgraderNum = 1;
+			ctx.room.memory.ctx.repairerNum = 1;
 			delete ctx.room.memory.ctx.flagSetupNum;
 			defaultTerminate(ctx, next);
 		}
@@ -114,13 +106,13 @@ var stages = {
 
 				room.createConstructionSite(spawn.pos.x - 1, spawn.pos.y - 1, STRUCTURE_TOWER);
 
-				ctx.room.memory.ctx.workerBuilderNum = 3;
+				ctx.room.memory.ctx.builderNum = 3;
 				ctx.room.memory.ctx.flagInit = true;
 			}
 			var constructing = ctx.room.find(FIND_CONSTRUCTION_SITES);
 			if(constructing.length == 0) {
-				ctx.room.memory.ctx.workerBuilderNum = 0;
-				ctx.room.memory.ctx.workerUpgraderNum = 3;
+				ctx.room.memory.ctx.builderNum = 0;
+				ctx.room.memory.ctx.upgraderNum = 3;
 			}
 			if(ctx.room.controller.level >= 4) {
 				ctx.room.createConstructionSite(ctx.spawn.pos.x - 1, ctx.spawn.pos.y - 2, STRUCTURE_STORAGE);
@@ -130,7 +122,8 @@ var stages = {
 			return ctx.room.controller.level >= 4;
 		},
 		terminate: function(ctx, next) {
-			ctx.room.memory.ctx.workerUpgraderNum = 1;
+			ctx.room.memory.ctx.upgraderNum = 1;
+			ctx.room.memory.ctx.keepLevel = true;
 			delete ctx.room.memory.ctx.flagInit;
 			defaultTerminate(ctx, next);
 		}

@@ -96,15 +96,40 @@ function Run(gCtx, room) {
     for(var name in ctx.creeps) {
         try {
             var creep = ctx.creeps[name];
-            creep.memory.needMove = false;
             if(creep.memory.role == undefined || creep.memory.role == null) continue;
 
             if(creep.memory.role == 'mister') {
                 require('mister').Run(ctx, creep);
+                if(creep.memory.lastPos == undefined) {
+                    creep.memory.lastPos = creep.pos;
+                    creep.memory.stuck = 0;
+                }
+                if(!creep.memory.needMove || creep.pos.x != creep.memory.lastPos.x || creep.pos.y != creep.memory.lastPos.y) {
+                    creep.memory.stuck = 0;
+                } else {
+                    if(creep.fatigue == 0){
+                        creep.memory.stuck += 1;
+                    }
+                }
+                creep.memory.lastPos = creep.pos;
+                creep.memory.needMove = false;
                 continue;
             }
             if(creep.memory.role == 'simple_outer') {
                 require('role_simple_outer').Run(ctx, creep);
+                if(creep.memory.lastPos == undefined) {
+                    creep.memory.lastPos = creep.pos;
+                    creep.memory.stuck = 0;
+                }
+                if(!creep.memory.needMove || creep.pos.x != creep.memory.lastPos.x || creep.pos.y != creep.memory.lastPos.y) {
+                    creep.memory.stuck = 0;
+                } else {
+                    if(creep.fatigue == 0){
+                        creep.memory.stuck += 1;
+                    }
+                }
+                creep.memory.lastPos = creep.pos;
+                creep.memory.needMove = false;
                 continue;
             }
             if(creep.room.name != room.name) {
@@ -124,6 +149,7 @@ function Run(gCtx, room) {
                 }
             }
             creep.memory.lastPos = creep.pos;
+            creep.memory.needMove = false;
         } catch(err) {
             console.log(creep.memory.role);
             var errMsg = 'Creep ' + name + ' in ' + room.name + ": ";
@@ -140,10 +166,18 @@ function Run(gCtx, room) {
     }
 
     if(ctx.factory) {
-        ctx.factory.produce(RESOURCE_LEMERGIUM_BAR);
-        ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
-        ctx.factory.produce(RESOURCE_KEANIUM_BAR);
+        // ctx.factory.produce(RESOURCE_LEMERGIUM_BAR);
+        // ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
+        // ctx.factory.produce(RESOURCE_KEANIUM_BAR);
         ctx.factory.produce(RESOURCE_CONDENSATE);
+        ctx.factory.produce(RESOURCE_OXIDANT);
+    }
+    if(ctx.labs) {
+        if(ctx.labers.length == 0) {
+            require('role_spawn').SpawnCreep('5dc6d24401ce096f94fc8ea6', 'specialer', {parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], memory: {specialType: 'laber'}});
+        }
+        ctx.labs[2].runReaction(ctx.labs[0], ctx.labs[1]);
+        ctx.labs[3].runReaction(ctx.labs[0], ctx.labs[1]);
     }
 }
 

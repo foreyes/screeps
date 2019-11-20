@@ -61,25 +61,21 @@ function defaultMoveToOtherRoom(creep, target) {
 }
 
 function DefaultMoveTo(creep, target) {
+    creep.memory.needMove = true;
     if(target.pos != undefined) target = target.pos;
     if(creep.pos.roomName != target.roomName) {
-        defaultMoveToOtherRoom(creep, target);
-        return;
+        return defaultMoveToOtherRoom(creep, target)
     }
-    creep.memory.needMove = true;
-    // if(creep.memory.role == 'miner') {
-    //     creep.moveTo(target, {reusePath: 10, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
-    //     return;
-    // }
-    if(creep.memory.stuck < 2) {
-        var path = getPath2Target(creep, target);
-        creep.moveByPath(path);
-        //creep.moveTo(target, {reusePath: 50, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
-    } else {
+
+    creep.say(creep.memory.stuck);
+    var path = null;
+    if(creep.memory.stuck >= 2) {
         delete creep.memory.path;
-        var path = getPath2Target(creep, target, false);
-        creep.moveByPath(path);
+        path = getPath2Target(creep, target, false);
+    } else {
+        path = getPath2Target(creep, target, true);
     }
+    creep.moveByPath(path);
 }
 
 function IsSamePosition(pos1, pos2) {
@@ -263,19 +259,20 @@ function GetEnergy4Filler(ctx, creep, fillTargetId) {
     if(target == null) return false;
 
     // get energy
+    var err = -1;
     if(target.resourceType != undefined) {
-        var err = creep.pickup(target);
+        err = creep.pickup(target);
         if(err == ERR_NOT_IN_RANGE) {
             DefaultMoveTo(creep, target);
         }
     } else {
-        var err = creep.withdraw(target, RESOURCE_ENERGY);
+        err = creep.withdraw(target, RESOURCE_ENERGY);
         if(err == ERR_NOT_IN_RANGE) {
             DefaultMoveTo(creep, target);
         }
     }
 
-    return true;
+    return err == 0;
 }
 
 function findNewEnergyTarget4ImportantTarget(ctx, creep) {
@@ -483,6 +480,23 @@ function GetPartsByArray(partsArray) {
     return parts;
 }
 
+function GetResourceFromStorageAndTerminal(ctx, creep, resourceType = RESOURCE_ENERGY) {
+    var target = null;
+    if(ctx.storage && ctx.storage.store[resourceType] > 0) {
+        target = ctx.storage;
+    } else if(ctx.terminal && ctx.terminal.store[resourceType] > 0) {
+        target = ctx.terminal;
+    }
+    if(target == null) return false;
+
+    var err = creep.withdraw(target, resourceType);
+    if(err == ERR_NOT_IN_RANGE) {
+        DefaultMoveTo(creep, target);
+        return true;
+    }
+    return err == 0;
+}
+
 module.exports = {
     get_positions_by_dist,
     GetDirectDistance,
@@ -503,4 +517,5 @@ module.exports = {
     GetMaxEnergyForSpawn,
     GetCurEnergyForSpawn,
     GetPartsByArray,
+    GetResourceFromStorageAndTerminal,
 };
