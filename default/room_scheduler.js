@@ -179,6 +179,14 @@ function Run(gCtx, room) {
         ctx.labs[2].runReaction(ctx.labs[0], ctx.labs[1]);
         ctx.labs[3].runReaction(ctx.labs[0], ctx.labs[1]);
     }
+    if(ctx.sourceLinks && ctx.centralLink) {
+        for(var i in ctx.sourceLinks) {
+            var link = ctx.sourceLinks[i];
+            if(link.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                link.transferEnergy(ctx.centralLink);
+            }
+        }
+    }
 }
 
 module.exports = {

@@ -9,11 +9,11 @@ var roleParts = {
 	600: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE],
 	650: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE],
 	750: [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE],
-	// 1050: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE],
+	1150: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE],
 };
 
 function getCost(energy) {
-	// if(energy >= 1050) return 1050;
+	if(energy >= 1150) return 1150;
 	if(energy >= 750) return 750;
 	if(energy >= 650) return 650;
 	if(energy >= 550) return 550;
@@ -47,7 +47,16 @@ function Run(ctx, creep) {
 		utils.DefaultMoveTo(creep, target);
 		return;
 	}
-	creep.harvest(source);
+	if(ctx.centralLink && ctx.sourceLinks && ctx.sourceLinks[creep.memory.sourceIdx] && ctx.sourceLinks[creep.memory.sourceIdx].store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.getActiveBodyparts(CARRY) > 0) {
+		var works = creep.getActiveBodyparts(WORK);
+		if(creep.store.getFreeCapacity(RESOURCE_ENERGY) >= works * 2) {
+			creep.harvest(source);
+		} else {
+			creep.transfer(ctx.sourceLinks[creep.memory.sourceIdx], RESOURCE_ENERGY);
+		}
+	} else {
+		creep.harvest(source);
+	}
 }
 
 module.exports = {

@@ -136,6 +136,12 @@ function FetchRoomCtx(gCtx, room) {
         	return creep.my && creep.memory.role == 'specialer' && creep.memory.specialType == 'laber';
     	}
    	});
+	// stealers
+	// var stealers = room.find(FIND_CREEPS, {
+ //    	filter: (creep) => {
+ //        	return creep.my && creep.memory.role == 'specialer' && creep.memory.specialType == 'stealer';
+ //    	}
+ //   	});
 
 	var ctx = {
 		room: room,
@@ -170,6 +176,7 @@ function FetchRoomCtx(gCtx, room) {
 		factoriers: factoriers,
 		labs: labs,
 		labers: labers,
+		// stealers: stealers,
 	};
 
 	// set container info
@@ -229,6 +236,13 @@ function FetchRoomCtx(gCtx, room) {
 	if(room.memory.ctx.centralContainerIds) {
 		var centralContainerIds = _.filter(room.memory.ctx.centralContainerIds, (id) => Game.getObjectById(id) != null);
 		ctx.centralContainers = centralContainerIds.map(Game.getObjectById);
+	}
+	// get link
+	if(room.memory.ctx.sourceLinkIds) {
+		ctx.sourceLinks = utils.ObjMap(room.memory.ctx.sourceLinkIds, Game.getObjectById);
+	}
+	if(room.memory.ctx.centralLinkId) {
+		ctx.centralLink = Game.getObjectById(room.memory.ctx.centralLinkId);
 	}
 
 	room.ctx = ctx;

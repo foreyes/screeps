@@ -10,14 +10,14 @@ var roleParts = {
 	healer: [HEAL, MOVE, HEAL, MOVE, HEAL, MOVE, HEAL, MOVE, HEAL, MOVE],
 	// 1200
 	crasher: [WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE, WORK, MOVE],
-	// 850
-	claimer: [CLAIM, MOVE, MOVE, MOVE, MOVE, MOVE],
+	// 650
+	claimer: [CLAIM, MOVE],
 	// 1250
 	outerWorker: [WORK, WORK, WORK, WORK, WORK,CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
 	// 3200
 	outerWorker2: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-	//
-	wdnmd: [ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE],
+	// 1080
+	wdnmd: [ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL],
 }
 
 // require('role_looker').createLooker('soilder', 's1');
@@ -30,7 +30,7 @@ function createLooker(type, name, spawnName = 'Spawn1') {
 	// TODO
 	var spawn = Game.spawns[spawnName];
 	var parts = roleParts[type];
-	spawn.spawnCreep(parts, name);
+	return spawn.spawnCreep(parts, name);
 }
 
 function creepMoveTo(creepName, x, y, roomName) {

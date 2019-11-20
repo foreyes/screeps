@@ -35,6 +35,10 @@ var specialTypeList = {
 	},
 	// require('role_spawn').SpawnCreep('5da936cbff916207b35bb3b4', 'specialer', {directions: [TOP], parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], memory: {specialType: 'factorier'}});
 	factorier: function(ctx, creep) {
+		if(ctx.centralLink && ctx.centralLink.store[RESOURCE_ENERGY] > 0 && creep.store.getFreeCapacity() > 0) {
+			return creep.withdraw(ctx.centralLink, RESOURCE_ENERGY);
+		}
+
 		if(!ctx.factory) {
 			if(creep.store.getUsedCapacity() == 0) {
 				if(ctx.terminal.store[RESOURCE_ENERGY] < 10000) {
@@ -44,6 +48,8 @@ var specialTypeList = {
 			} else {
 				if(ctx.terminal.store[RESOURCE_ENERGY] < 10000) {
 					creep.transfer(ctx.terminal, RESOURCE_ENERGY);
+				} else {
+					creep.transfer(ctx.storage, RESOURCE_ENERGY);
 				}
 			}
 			return false;
@@ -86,6 +92,9 @@ var specialTypeList = {
 			}
 			if(ctx.terminal.store[RESOURCE_ENERGY] < 10000) {
 				creep.transfer(ctx.terminal, RESOURCE_ENERGY);
+			}
+			if(ctx.factory.store[RESOURCE_ENERGY] >= 10000 && ctx.factory.store[RESOURCE_ENERGY] >= 10000) {
+				creep.transfer(ctx.storage, RESOURCE_ENERGY);
 			}
 			creep.transfer(ctx.factory, RESOURCE_LEMERGIUM);
 			creep.transfer(ctx.factory, RESOURCE_ZYNTHIUM);
@@ -135,7 +144,6 @@ var specialTypeList = {
 			break;
 		}
 		}
-
 
 		switch(creep.memory.status) {
 		case 'fill': {
@@ -210,6 +218,29 @@ var specialTypeList = {
 			}
 			break;
 		}
+		}
+	},
+	stealer: function(ctx, creep) {
+		if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+			if(!Game.flags['stealFlag']) return false;
+			var flag = Game.flags['stealFlag'];
+			if(creep.room.name != flag.room.name) {
+				utils.DefaultMoveTo(creep, flag);
+				return true;
+			}
+			if(creep.withdraw(flag.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+				utils.DefaultMoveTo(creep, flag.room.storage);
+				return true;
+			}
+		} else {
+			if(creep.room.name != ctx.room.name) {
+				utils.DefaultMoveTo(creep, ctx.storage);
+				return true;
+			}
+			if(creep.transfer(ctx.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+				utils.DefaultMoveTo(creep, ctx.storage);
+				return true;
+			}
 		}
 	},
 };

@@ -426,6 +426,29 @@ function InitSourceAndContainerInfo4Room(roomName) {
     }
 }
 
+function InitLinkInfo4Room(roomName) {
+    var room  = Game.rooms[roomName];
+
+    room.memory.ctx.sourceLinkIds = {};
+    for(var i in [0, 0]) {
+        var flagName = 'sl' + i;
+        var flag = Game.flags[flagName];
+        if(flag && flag.room.name == roomName) {
+            var links = room.lookAt(flag.pos).filter((item) => item.type == 'structure' && item.structure.structureType == STRUCTURE_LINK);
+            var link = links[0].structure;
+            room.memory.ctx.sourceLinkIds[i] = link.id;
+        }
+    }
+
+    var flagName = 'centrall';
+    var flag = Game.flags[flagName];
+    if(flag && flag.room.name == roomName) {
+        var links = room.lookAt(flag.pos).filter((item) => item.type == 'structure' && item.structure.structureType == STRUCTURE_LINK);
+        var link = links[0].structure;
+        room.memory.ctx.centralLinkId = link.id;
+    }
+}
+
 function ObjMap(obj, func) {
     var res = {};
     for(var i in obj) {
@@ -518,4 +541,5 @@ module.exports = {
     GetCurEnergyForSpawn,
     GetPartsByArray,
     GetResourceFromStorageAndTerminal,
+    InitLinkInfo4Room,
 };

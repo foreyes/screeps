@@ -133,10 +133,19 @@ function Run(ctx, spawn) {
     if(ctx.terminal && ctx.factoriers.length == 0) {
         return spawnCreep(ctx, spawn, 'specialer', {
             directions: [TOP],
-            parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY],
+            parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY],
             memory: {specialType: 'factorier'}
         });
     }
+    // // spawn stealer
+    // if(Game.flags['stealFlag'] && ctx.stealers.length < 5) {
+    //     var x = spawnCreep(ctx, spawn, 'specialer', {
+    //         parts: utils.GetPartsByArray([[CARRY, 13], [MOVE, 13]]),
+    //         memory: {specialType: 'stealer'}
+    //     });
+    //     console.log(x);
+    //     return x;
+    // }
     // TODO: develop this part
     // spawn simple outer
     var outList = {
