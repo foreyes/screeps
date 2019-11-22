@@ -30,6 +30,15 @@ module.exports.loop = function() {
             console.log('Clearing non-existing creep memory:', name);
         }
     }
+    // cancel unactive orders
+    if(Game.tick % 20 == 0) {
+        var unactiveOrder = _.filter(Game.market.orders, (order) => {
+            return !order.active && Game.time - order.created > 10;
+        });
+        for(var i in unactiveOrder) {
+            Game.market.cancelOrder(unactiveOrder[i].id);
+        }
+    }
     // fetch global context
     var gCtx = fetchGlobalCtx();
 

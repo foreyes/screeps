@@ -53,7 +53,7 @@ function spawnCreep(ctx, spawn, roleName, opt = {}) {
         creepMemory.ownRoom = spawn.room.name;
     }
     if(opt.directions == undefined) {
-        var err = spawn.spawnCreep(parts, name, {memory: creepMemory});
+        var err = spawn.spawnCreep(parts, name, {memory: creepMemory, directions: [TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT]});
         return err == 0;
     } else {
         var err = spawn.spawnCreep(parts, name, {memory: creepMemory, directions: opt.directions});
@@ -69,9 +69,6 @@ function runStart(ctx, spawn) {
     if(ctx.room.controller.level == 1) return true;
 
     // level 2
-    if(ctx.upgraders.length < 1) {
-        return spawnCreep(ctx, spawn, 'upgrader');
-    }
     var starters = ctx.room.find(FIND_CREEPS, {
         filler: (creep) => {
             return creep.my && creep.memory.role == 'specialer' && creep.memory.specialType == 'starter';
@@ -98,7 +95,6 @@ function Run(ctx, spawn) {
     if(ctx.MaxEnergy < 350) {
         return runStart(ctx, spawn);
     }
-
     // TODO: check if need emergency miner
     var needEmergencyMiner = false;
     // spawn the first filler
@@ -110,10 +106,12 @@ function Run(ctx, spawn) {
         var name = 'miner' + ctx.sources[i].id;
         var creep = Game.creeps[name];
         // update miner
+        var flag = true;
         if(creep && creep.memory.workPartsNum != undefined && creep.memory.workPartsNum < 5 && ctx.CurEnergy >= 550) {
             creep.suicide();
+            flag = false;
         }
-        if(!creep) {
+        if(!creep || !flag) {
             return spawnCreep(ctx, spawn, 'miner', {must: true, givenName: name, memory: {sourceIdx: i}});
         }
     }
@@ -149,8 +147,8 @@ function Run(ctx, spawn) {
     // TODO: develop this part
     // spawn simple outer
     var outList = {
-        E33N36: ['out1', 'out2', 'out3', 'out4'],
-        E29N34: ['E29N35_1'],
+        // E33N36: ['out1', 'out2', 'out3', 'out4'],
+        // E29N34: ['E29N35_1'],
     };
     for(var roomName in outList) {
         if(spawn.room.name != roomName) continue;
@@ -182,6 +180,7 @@ function Run(ctx, spawn) {
 }
 
 // require('role_spawn').SpawnCreep('5dc6e9c47f70d61ce9453a80', 'builder', {memory: {ctrlRoom: 'E29N33', ownRoom: 'E29N33'}});
+// require('role_spawn').SpawnCreep('5dc6e9c47f70d61ce9453a80', 'miner', {givenName: 'miner5bbcaea19099fc012e63958c',parts: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE],memory: {ctrlRoom: 'E29N33', ownRoom: 'E29N33', sourceIdx: 0}});
 // require('role_spawn').SpawnCreep('5dc6e9c47f70d61ce9453a80', 'miner', {givenName: 'miner5bbcaea19099fc012e63958d',parts: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE],memory: {ctrlRoom: 'E29N33', ownRoom: 'E29N33', sourceIdx: 1}});
 function SpawnCreep(spawnId, roleName, opt = {}) {
     var spawn = Game.getObjectById(spawnId);

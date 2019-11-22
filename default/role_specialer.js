@@ -75,14 +75,19 @@ var specialTypeList = {
 				creep.withdraw(ctx.storage, RESOURCE_MIST);
 				creep.withdraw(ctx.terminal, RESOURCE_MIST);
 			}
-			if(ctx.factory.store[RESOURCE_OXYGEN] < 1000) {
+			if(ctx.factory.store[RESOURCE_OXYGEN] < 1000 && ctx.terminal.store[RESOURCE_OXYGEN] + ctx.storage.store[RESOURCE_OXYGEN] > 10000) {
 				creep.withdraw(ctx.storage, RESOURCE_OXYGEN);
 				creep.withdraw(ctx.terminal, RESOURCE_OXYGEN);
+			}
+			if(ctx.factory.store[RESOURCE_CATALYST] < 1000) {
+				creep.withdraw(ctx.storage, RESOURCE_CATALYST);
+				creep.withdraw(ctx.terminal, RESOURCE_CATALYST);
 			}
 			creep.withdraw(ctx.factory, RESOURCE_LEMERGIUM_BAR);
 			creep.withdraw(ctx.factory, RESOURCE_ZYNTHIUM_BAR);
 			creep.withdraw(ctx.factory, RESOURCE_CONDENSATE);
 			creep.withdraw(ctx.factory, RESOURCE_OXIDANT);
+			creep.withdraw(ctx.factory, RESOURCE_PURIFIER);
 			if(ctx.factory.store[RESOURCE_KEANIUM_BAR] > 10000) {
 				creep.withdraw(ctx.factory, RESOURCE_KEANIUM_BAR);
 			}
@@ -93,7 +98,7 @@ var specialTypeList = {
 			if(ctx.terminal.store[RESOURCE_ENERGY] < 10000) {
 				creep.transfer(ctx.terminal, RESOURCE_ENERGY);
 			}
-			if(ctx.factory.store[RESOURCE_ENERGY] >= 10000 && ctx.factory.store[RESOURCE_ENERGY] >= 10000) {
+			if(ctx.factory.store[RESOURCE_ENERGY] >= 10000 && ctx.terminal.store[RESOURCE_ENERGY] >= 10000) {
 				creep.transfer(ctx.storage, RESOURCE_ENERGY);
 			}
 			creep.transfer(ctx.factory, RESOURCE_LEMERGIUM);
@@ -101,11 +106,13 @@ var specialTypeList = {
 			creep.transfer(ctx.factory, RESOURCE_KEANIUM);
 			creep.transfer(ctx.factory, RESOURCE_MIST);
 			creep.transfer(ctx.factory, RESOURCE_OXYGEN);
+			creep.transfer(ctx.factory, RESOURCE_CATALYST);
 			creep.transfer(ctx.terminal, RESOURCE_LEMERGIUM_BAR);
 			creep.transfer(ctx.terminal, RESOURCE_ZYNTHIUM_BAR);
 			creep.transfer(ctx.terminal, RESOURCE_CONDENSATE);
 			creep.transfer(ctx.terminal, RESOURCE_OXIDANT);
 			creep.transfer(ctx.terminal, RESOURCE_KEANIUM_BAR);
+			creep.transfer(ctx.terminal, RESOURCE_PURIFIER);
 			return true;
 		}
 	},

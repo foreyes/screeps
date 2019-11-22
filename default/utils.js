@@ -29,7 +29,18 @@ function CmpByObjDist2GivenPos(pos) {
 }
 
 function findNewPath2Target(creep, target, ignoreCreeps) {
-    var path = creep.room.findPath(creep.pos, target, {ignoreCreeps: ignoreCreeps});
+    var costCallback = undefined;
+    if(creep.room.ctx && creep.room.ctx.roomIgnore) {
+        costCallback = function(roomName, costMatrix) {
+            if(roomName == creep.room.name) {
+                for(var i in creep.room.ctx.roomIgnore) {
+                    var pos = creep.room.ctx.roomIgnore[i];
+                    costMatrix.set(pos.x, pos.y, 255);
+                }
+            }
+        }
+    }
+    var path = creep.room.findPath(creep.pos, target, {ignoreCreeps: ignoreCreeps, costCallback: costCallback});
     creep.memory.path = Room.serializePath(path);
     return path;
 }

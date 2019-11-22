@@ -12,11 +12,13 @@ var roleParts = {
     800: [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
     1000: [WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE],
     1200: [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+    2200: utils.GetPartsByArray([[WORK, 11], [CARRY, 11], [MOVE, 11]]),
     3300: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
 };
 
 function getCost(energy) {
     if(energy >= 3300) return 3300;
+    if(energy >= 2200) return 2200;
     if(energy >= 1200) return 1200;
     if(energy >= 1000) return 1000;
     if(energy >= 800) return 800;
@@ -76,6 +78,7 @@ function checkTarget4Build(target) {
 
 function getBuildPriority(structure) {
     var st = structure.structureType;
+    if(st == STRUCTURE_SPAWN) return -2;
     if(st == STRUCTURE_TOWER) return -1;
     if(st == STRUCTURE_EXTENSION) return 0;
     if(st == STRUCTURE_ROAD) return 1;

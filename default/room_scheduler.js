@@ -96,6 +96,7 @@ function Run(gCtx, room) {
     for(var name in ctx.creeps) {
         try {
             var creep = ctx.creeps[name];
+            if(creep.spawning) continue;
             if(creep.memory.role == undefined || creep.memory.role == null) continue;
 
             if(creep.memory.role == 'mister') {
@@ -169,8 +170,9 @@ function Run(gCtx, room) {
         // ctx.factory.produce(RESOURCE_LEMERGIUM_BAR);
         // ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
         // ctx.factory.produce(RESOURCE_KEANIUM_BAR);
-        ctx.factory.produce(RESOURCE_CONDENSATE);
         ctx.factory.produce(RESOURCE_OXIDANT);
+        ctx.factory.produce(RESOURCE_CONDENSATE);
+        ctx.factory.produce(RESOURCE_PURIFIER);
     }
     if(ctx.labs) {
         if(ctx.labers.length == 0) {
@@ -184,6 +186,53 @@ function Run(gCtx, room) {
             var link = ctx.sourceLinks[i];
             if(link.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                 link.transferEnergy(ctx.centralLink);
+            }
+        }
+    }
+    if(ctx.room.name == 'E33N36' && ctx.terminal.store[RESOURCE_ENERGY] >= 10000 && ctx.terminal.cooldown == 0) {
+        var xs = ctx.terminal.store[RESOURCE_CATALYST];
+        var xbars = ctx.terminal.store[RESOURCE_PURIFIER];
+        var myOrders = Game.market.getAllOrders((order) => {
+            return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST;
+        });
+        if(xs < 100000 && xbars < 10000) {
+            var buyx = myOrders.filter((order) => {
+                return order.resourceType == RESOURCE_CATALYST && order.type == ORDER_SELL && order.price <= 0.14 && order.active;
+            });
+            if(buyx.length > 0) {
+                buyx = buyx.sort((a, b) => {
+                    return a.price > b.price;
+                });
+                var order = buyx[0];
+                Game.market.deal(order.id, Math.min(8000, order.amount), 'E33N36');
+            }
+            if(Game.time % 20 == 1) {
+                var activeBuyX = _.filter(Game.market.orders, (order) => {
+                    return  order.type == ORDER_BUY &&
+                            order.resourceType == RESOURCE_CATALYST &&
+                            order.active;
+                });
+                if(activeBuyX.length == 0) {
+                    Game.market.createOrder({
+                        type: ORDER_BUY,
+                        resourceType: RESOURCE_CATALYST,
+                        price: 0.13,
+                        totalAmount: 10000,
+                        roomName: "E33N36"   
+                    });
+                }
+            }
+        }
+        if(xbars > 1000) {
+            var sells = myOrders.filter((order) => {
+                return order.resourceType == RESOURCE_PURIFIER && order.type == ORDER_BUY && order.price >= 0.96 && order.active;
+            });
+            if(sells.length > 0) {
+                sells = sells.sort((a, b) => {
+                    return a.price < b.price;
+                });
+                var order = sells[0];
+                Game.market.deal(order.id, Math.min(8000, xbars, order.amount), 'E33N36');
             }
         }
     }

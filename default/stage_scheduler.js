@@ -113,6 +113,8 @@ var stages = {
 			if(constructing.length == 0) {
 				ctx.room.memory.ctx.builderNum = 0;
 				ctx.room.memory.ctx.upgraderNum = 3;
+				ctx.room.memory.ctx.keepLevel = false;
+				ctx.keepLevel = false;
 			}
 			if(ctx.room.controller.level >= 4) {
 				ctx.room.createConstructionSite(ctx.spawn.pos.x - 1, ctx.spawn.pos.y - 2, STRUCTURE_STORAGE);

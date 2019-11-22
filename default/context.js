@@ -22,28 +22,20 @@ function InitRoomCtx(gCtx, room) {
 }
 
 function FetchRoomCtx(gCtx, room) {
-	// ownership
-	var my = room.controller != undefined && room.controller.my;
-	var neutral = room.controller == undefined || room.controller.owner == 'None';
-	var hostile = !my && !neutral
+	// // ownership
+	// var my = room.controller != undefined && room.controller.my;
+	// var neutral = room.controller == undefined || room.controller.owner == 'None';
+	// var hostile = !my && !neutral
+
 	// spawns
-	var spawns = room.memory.ctx.spawnIds.map(Game.getObjectById);
 	var spawn = undefined;
+	var spawns = _.map(room.memory.ctx.spawnIds, Game.getObjectById);
 	if(spawns.length > 0) {
 		spawn = spawns[0];
 	}
 	// sources
-	var sources = {};
-	for(var i in room.memory.ctx.sourceIds) {
-		sources[i] = Game.getObjectById(room.memory.ctx.sourceIds[i]);
-	}
+	var sources =  _.map(room.memory.ctx.sourceIds, Game.getObjectById);
 	// creeps
-	var outCreeps = _.filter(Game.creeps, (creep) => {
-		return creep.memory.ctrlRoom == room.name && creep.room.name != room.name;
-	});
-	var ownCreeps = _.filter(Game.creeps, (creep) => {
-		return creep.memory.ownRoom == room.name;
-	});
 	var creeps = _.filter(Game.creeps, (creep) => {
 		return (!creep.memory.ctrlRoom && creep.room.name == room.name) || creep.memory.ctrlRoom == room.name;
 	});
@@ -145,14 +137,14 @@ function FetchRoomCtx(gCtx, room) {
 
 	var ctx = {
 		room: room,
-		my: my,
-		neutral: neutral,
-		hostile: hostile,
+		// my: my,
+		// neutral: neutral,
+		// hostile: hostile,
 		spawns: spawns,
 		spawn: spawn,
 		sources: sources,
-		outCreeps: outCreeps,
-		ownCreeps: ownCreeps,
+		// outCreeps: outCreeps,
+		// ownCreeps: ownCreeps,
 		creeps: creeps,
 		towers: towers,
 		enemies: enemies,
@@ -178,6 +170,10 @@ function FetchRoomCtx(gCtx, room) {
 		labers: labers,
 		// stealers: stealers,
 	};
+	// set room ignore
+	if(ctx.spawn) {
+		ctx.roomIgnore = [new RoomPosition(ctx.spawn.pos.x, ctx.spawn.pos.y-1, room.name)];
+	}
 
 	// set container info
 	if(room.memory.ctx.controllerContainerPos != undefined) {
