@@ -7,6 +7,13 @@ function fetchGlobalCtx() {
     return {cpu: Game.cpu.getUsed(), roomCpu: {}, creepCpu: {}};
 }
 
+function fetchRoomCtx(gCtx, room) {
+    if(room.memory.ctx == undefined) {
+        require('context').InitRoomCtx(gCtx, room);
+    }
+    return require('context').FetchRoomCtx(gCtx, room);
+}
+
 // make sure spawn's adjusted 4 cells are not wall when respawn.
 // spawn should not near by sources.
 // sort from small to big
@@ -47,6 +54,14 @@ module.exports.loop = function() {
     // global action end
 
     // run room scheduler
+    for(var i in Game.rooms) {
+        try {
+            Game.rooms[i].ctx = fetchRoomCtx(gCtx, Game.rooms[i]);
+        } catch(err) {
+            var errMsg = 'fetch room ' + i + ' error: ';
+            utils.TraceError(err, errMsg);
+        }
+    }
     for(var i in Game.rooms) {
         try {
             var room = Game.rooms[i];

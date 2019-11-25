@@ -157,6 +157,7 @@ function Run(ctx, creep) {
 }
 
 module.exports = {
+    Try2Build: try2Build,
     GetPartsAndCost,
     Run
 };

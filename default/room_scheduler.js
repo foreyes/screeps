@@ -1,13 +1,6 @@
 var utils = require('utils');
 var stages = require('stage_scheduler').stages;
 
-function fetchRoomCtx(gCtx, room) {
-    if(room.memory.ctx == undefined) {
-        require('context').InitRoomCtx(gCtx, room);
-    }
-    return require('context').FetchRoomCtx(gCtx, room);
-}
-
 var roleMap = {
     spawn: require('role_spawn'),
     upgrader: require('role_upgrader'),
@@ -18,14 +11,10 @@ var roleMap = {
     tower: require('role_tower'),
     specialer: require('role_specialer'),
     mineraler: require('role_mineraler'),
-
 };
 
 function Run(gCtx, room) {
-    gCtx.cpu = Game.cpu.getUsed();
-    var ctx = fetchRoomCtx(gCtx, room);
-    room.ctx = ctx;
-    gCtx.roomCpu[room.name] = Game.cpu.getUsed() - gCtx.cpu;
+    var ctx = room.ctx;
 
     try {
         if(ctx.storage) {
@@ -120,6 +109,10 @@ function Run(gCtx, room) {
             }
             if(creep.memory.role == 'simple_outer') {
                 require('role_simple_outer').Run(ctx, creep);
+                continue;
+            }
+            if(creep.memory.role == 'outMiner') {
+                require('role_outMiner').Run(ctx, creep);
                 continue;
             }
             // normal role

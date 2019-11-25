@@ -62,15 +62,9 @@ function checkTarget4Repair(target) {
 function getTarget(ctx, creep) {
     var targets = creep.room.find(FIND_STRUCTURES, {
         filter: (structure) => {
-            var res = structure.hits != undefined;
-            res = res && structure.hits < structure.hitsMax && structure.structureType == 'container';
-            if(structure.my != undefined) {
-                res = res && structure.my;
-            }
-            if(ctx.towers.length != 0) {
-                res = res && structure.structureType != STRUCTURE_ROAD;
-            }
-            return res;
+            var cond1 = structure.structureType == STRUCTURE_CONTAINER;
+            var cond2 = structure.structureType == STRUCTURE_ROAD && ctx.towers.length == 0 && ctx.room.controller && ctx.room.controller.my;
+            return (cond1 || cond2) && structure.hits < structure.hitsMax;
         }
     });
     if(targets.length == 0) {
@@ -121,6 +115,7 @@ function Run(ctx, creep) {
 }
 
 module.exports = {
+    Try2Repair: try2Repair,
     GetPartsAndCost,
     Run
 };

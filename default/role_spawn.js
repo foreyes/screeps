@@ -9,6 +9,7 @@ var roleMap = {
     simple_outer: require('role_simple_outer'),
     specialer: require('role_specialer'),
     mineraler: require('role_mineraler'),
+    outMiner: require('role_outMiner'),
 };
 
 // opt: parts, must, givenName, memory

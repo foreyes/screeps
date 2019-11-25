@@ -60,7 +60,11 @@ function FetchRoomCtx(gCtx, room) {
 	// storage
 	var storage = room.storage;
 	// constructing
-	var constructing = room.find(FIND_CONSTRUCTION_SITES);
+	var constructing = room.find(FIND_CONSTRUCTION_SITES, {
+		filter: (site) => {
+			return site.my;
+		}
+	});
 	// empty extension
 	var emptyExts = room.find(FIND_STRUCTURES, {
 		filter: (struct) => {

@@ -1,5 +1,5 @@
 var RoomConfig = {
-	'E33N36': {
+	'E29N34': {
 		// TODO: maintain room infomations here
 		// *********************************
 		// sources: [],
@@ -13,14 +13,14 @@ var RoomConfig = {
 		// **********************************
 		// out sources
 		outSources: {
-			'ExxNxx': {
+			'E29N35': {
 				needReserve: true,
 				needClearInvader: false,
-				sources: [],
-				workPos: [{x: , y: , roomName: }, {}],
+				sources: ['5bbcaea19099fc012e639584'],
+				workPos: [{x: 6, y: 4, roomName: 'E29N35'}],
 			},
 		}
-	}
+	},
 };
 
 module.exports = RoomConfig;
