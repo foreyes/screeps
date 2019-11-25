@@ -18,6 +18,7 @@ var roleMap = {
     tower: require('role_tower'),
     specialer: require('role_specialer'),
     mineraler: require('role_mineraler'),
+
 };
 
 function Run(gCtx, room) {
@@ -97,60 +98,34 @@ function Run(gCtx, room) {
         try {
             var creep = ctx.creeps[name];
             if(creep.spawning) continue;
-            if(creep.memory.role == undefined || creep.memory.role == null) continue;
 
+            // update stuck count
+            if(creep.memory.needMove && utils.IsSamePosition(creep.memory.lastPos, creep.pos)) {
+                creep.memory.stuck += 1;
+            } else {
+                creep.memory.stuck = 0;
+            }
+            creep.memory.needMove = false;
+            creep.memory.lastPos = creep.pos;
+            // run role logic
+
+            // no role
+            if(!creep.memory.role) continue;
+            // special roles
             if(creep.memory.role == 'mister') {
                 require('mister').Run(ctx, creep);
-                if(creep.memory.lastPos == undefined) {
-                    creep.memory.lastPos = creep.pos;
-                    creep.memory.stuck = 0;
-                }
-                if(!creep.memory.needMove || creep.pos.x != creep.memory.lastPos.x || creep.pos.y != creep.memory.lastPos.y) {
-                    creep.memory.stuck = 0;
-                } else {
-                    if(creep.fatigue == 0){
-                        creep.memory.stuck += 1;
-                    }
-                }
-                creep.memory.lastPos = creep.pos;
-                creep.memory.needMove = false;
                 continue;
             }
             if(creep.memory.role == 'simple_outer') {
                 require('role_simple_outer').Run(ctx, creep);
-                if(creep.memory.lastPos == undefined) {
-                    creep.memory.lastPos = creep.pos;
-                    creep.memory.stuck = 0;
-                }
-                if(!creep.memory.needMove || creep.pos.x != creep.memory.lastPos.x || creep.pos.y != creep.memory.lastPos.y) {
-                    creep.memory.stuck = 0;
-                } else {
-                    if(creep.fatigue == 0){
-                        creep.memory.stuck += 1;
-                    }
-                }
-                creep.memory.lastPos = creep.pos;
-                creep.memory.needMove = false;
                 continue;
             }
+            // normal role
             if(creep.room.name != room.name) {
                 utils.DefaultMoveTo(creep, new RoomPosition(25, 25, room.name));
-                continue;
-            }
-            roleMap[creep.memory.role].Run(ctx, creep);
-            if(creep.memory.lastPos == undefined) {
-                creep.memory.lastPos = creep.pos;
-                creep.memory.stuck = 0;
-            }
-            if(!creep.memory.needMove || creep.pos.x != creep.memory.lastPos.x || creep.pos.y != creep.memory.lastPos.y) {
-                creep.memory.stuck = 0;
             } else {
-                if(creep.fatigue == 0){
-                    creep.memory.stuck += 1;
-                }
+                roleMap[creep.memory.role].Run(ctx, creep);
             }
-            creep.memory.lastPos = creep.pos;
-            creep.memory.needMove = false;
         } catch(err) {
             console.log(creep.memory.role);
             var errMsg = 'Creep ' + name + ' in ' + room.name + ": ";
@@ -166,13 +141,17 @@ function Run(gCtx, room) {
         utils.TraceError(err, errMsg);
     }
 
-    if(ctx.factory) {
+    if(ctx.factory && ctx.room.name == 'E33N36') {
         // ctx.factory.produce(RESOURCE_LEMERGIUM_BAR);
-        // ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
+        ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
         // ctx.factory.produce(RESOURCE_KEANIUM_BAR);
         ctx.factory.produce(RESOURCE_OXIDANT);
         ctx.factory.produce(RESOURCE_CONDENSATE);
         ctx.factory.produce(RESOURCE_PURIFIER);
+    }
+    if(ctx.factory && ctx.room.name == 'E35N38') {
+        ctx.factory.produce(RESOURCE_LEMERGIUM_BAR);
+        ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
     }
     if(ctx.labs) {
         if(ctx.labers.length == 0) {
@@ -197,7 +176,7 @@ function Run(gCtx, room) {
         });
         if(xs < 100000 && xbars < 10000) {
             var buyx = myOrders.filter((order) => {
-                return order.resourceType == RESOURCE_CATALYST && order.type == ORDER_SELL && order.price <= 0.14 && order.active;
+                return order.resourceType == RESOURCE_CATALYST && order.type == ORDER_SELL && order.price <= 0.14 && order.amount > 0;
             });
             if(buyx.length > 0) {
                 buyx = buyx.sort((a, b) => {
@@ -210,7 +189,7 @@ function Run(gCtx, room) {
                 var activeBuyX = _.filter(Game.market.orders, (order) => {
                     return  order.type == ORDER_BUY &&
                             order.resourceType == RESOURCE_CATALYST &&
-                            order.active;
+                            order.amount > 0;
                 });
                 if(activeBuyX.length == 0) {
                     Game.market.createOrder({
@@ -218,16 +197,15 @@ function Run(gCtx, room) {
                         resourceType: RESOURCE_CATALYST,
                         price: 0.13,
                         totalAmount: 10000,
-                        roomName: "E33N36"   
+                        roomName: "E33N36"
                     });
                 }
             }
         }
         if(xbars > 1000) {
             var sells = myOrders.filter((order) => {
-                return order.resourceType == RESOURCE_PURIFIER && order.type == ORDER_BUY && order.price >= 0.96 && order.active;
-            });
-            if(sells.length > 0) {
+                return order.resourceType == RESOURCE_PURIFIER && order.type == ORDER_BUY && order.price >= 0.96 && order.amount > 0;
+            });            if(sells.length > 0) {
                 sells = sells.sort((a, b) => {
                     return a.price < b.price;
                 });

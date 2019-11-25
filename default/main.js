@@ -31,9 +31,9 @@ module.exports.loop = function() {
         }
     }
     // cancel unactive orders
-    if(Game.tick % 20 == 0) {
+    if(Game.time % 1000 == 0) {
         var unactiveOrder = _.filter(Game.market.orders, (order) => {
-            return !order.active && Game.time - order.created > 10;
+            return order.amount == 0;
         });
         for(var i in unactiveOrder) {
             Game.market.cancelOrder(unactiveOrder[i].id);

@@ -60,22 +60,24 @@ function getPath2Target(creep, target, ignoreCreeps = true) {
 function defaultMoveToOtherRoom(creep, target) {
     creep.memory.needMove = true;
     if(creep.memory.role == 'miner') {
-        creep.moveTo(target, {reusePath: 10, visualizePathStyle: {stroke: '#ffaa00'}});
-        return;
+        return creep.moveTo(target, {reusePath: 10, visualizePathStyle: {stroke: '#ffaa00'}});
     }
     if(creep.memory.stuck <= 2) {
-        creep.moveTo(target, {reusePath: 50, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
+        return creep.moveTo(target, {reusePath: 50, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
     } else {
         delete creep.memory._move;
-        creep.moveTo(target, {reusePath: 50, visualizePathStyle: {stroke: '#ffaa00'}});
+        return creep.moveTo(target, {reusePath: 50, visualizePathStyle: {stroke: '#ffaa00'}});
     }
 }
 
 function DefaultMoveTo(creep, target) {
-    creep.memory.needMove = true;
     if(target.pos != undefined) target = target.pos;
     if(creep.pos.roomName != target.roomName) {
-        return defaultMoveToOtherRoom(creep, target)
+        var err = defaultMoveToOtherRoom(creep, target)
+        if(err == 0) {
+            creep.memory.needMove = true;
+        }
+        return err; 
     }
 
     creep.say(creep.memory.stuck);
@@ -86,10 +88,17 @@ function DefaultMoveTo(creep, target) {
     } else {
         path = getPath2Target(creep, target, true);
     }
-    creep.moveByPath(path);
+    var err = creep.moveByPath(path);
+    if(err == 0) {
+        creep.memory.needMove = true;
+    }
+    return err;
 }
 
 function IsSamePosition(pos1, pos2) {
+    if(pos1 == undefined || pos2 == undefined) {
+        return false;
+    }
     return pos1.roomName == pos2.roomName && pos1.x == pos2.x && pos1.y == pos2.y;
 }
 
