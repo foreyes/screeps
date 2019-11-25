@@ -4,7 +4,7 @@
 var utils = require('utils');
 
 function fetchGlobalCtx() {
-    return {};
+    return {cpu: Game.cpu.getUsed(), roomCpu: {}, creepCpu: {}};
 }
 
 // make sure spawn's adjusted 4 cells are not wall when respawn.
@@ -56,6 +56,9 @@ module.exports.loop = function() {
             utils.TraceError(err, errMsg);
         }
     }
+
+    // console.log(JSON.stringify(gCtx.roomCpu));
+    // console.log(JSON.stringify(gCtx.creepCpu));
 
     // extra
     try {

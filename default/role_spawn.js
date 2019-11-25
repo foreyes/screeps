@@ -88,8 +88,8 @@ function runStart(ctx, spawn) {
 function Run(ctx, spawn) {
     if(spawn.spawning) return true;
 
-    ctx.MaxEnergy = utils.GetMaxEnergyForSpawn(spawn);
-    ctx.CurEnergy = utils.GetCurEnergyForSpawn(spawn);
+    ctx.MaxEnergy = ctx.room.energyAvailable;
+    ctx.CurEnergy = ctx.room.energyCapacityAvailable;
 
     // in stage 1
     if(ctx.MaxEnergy < 350) {

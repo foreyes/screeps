@@ -22,8 +22,10 @@ var roleMap = {
 };
 
 function Run(gCtx, room) {
+    gCtx.cpu = Game.cpu.getUsed();
     var ctx = fetchRoomCtx(gCtx, room);
     room.ctx = ctx;
+    gCtx.roomCpu[room.name] = Game.cpu.getUsed() - gCtx.cpu;
 
     try {
         if(ctx.storage) {
@@ -89,7 +91,6 @@ function Run(gCtx, room) {
         var errMsg = 'Tower in ' + room.name + ": ";
         utils.TraceError(err, errMsg);
     }
-    
 
     // run role logic.
     var spawn = ctx.spawn, room = ctx.room;
@@ -98,6 +99,7 @@ function Run(gCtx, room) {
         try {
             var creep = ctx.creeps[name];
             if(creep.spawning) continue;
+            var start = Game.cpu.getUsed();
 
             // update stuck count
             if(creep.memory.needMove && utils.IsSamePosition(creep.memory.lastPos, creep.pos)) {
@@ -126,6 +128,7 @@ function Run(gCtx, room) {
             } else {
                 roleMap[creep.memory.role].Run(ctx, creep);
             }
+            gCtx.creepCpu[creep.name] = Game.cpu.getUsed() - start;
         } catch(err) {
             console.log(creep.memory.role);
             var errMsg = 'Creep ' + name + ' in ' + room.name + ": ";
@@ -150,7 +153,7 @@ function Run(gCtx, room) {
         ctx.factory.produce(RESOURCE_PURIFIER);
     }
     if(ctx.factory && ctx.room.name == 'E35N38') {
-        ctx.factory.produce(RESOURCE_LEMERGIUM_BAR);
+        ctx.factory.produce(RESOURCE_KEANIUM_BAR);
         ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
     }
     if(ctx.labs) {

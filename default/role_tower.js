@@ -2,6 +2,11 @@ var utils = require('utils');
 
 function Run(ctx, tower) {
 	// attack
+    if(ctx.room.name == 'E35N38') {
+        ctx.enemies = ctx.enemies.filter((creep) => {
+            return !creep.my && creep.owner.username != 'Divitto';
+        });
+    }
     if(ctx.enemies.length != 0) {
         var target = tower.pos.findClosestByRange(ctx.enemies);
         tower.attack(target);
