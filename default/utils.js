@@ -545,9 +545,17 @@ function GetRoomPosition(pos) {
 }
 
 function FindPath(origin, goal, opt = {}) {
+    var roadCost = 1;
+    var plainCost = 2;
+    var swampCost = 10;
+    if(opt.buildRoad) {
+        roadCost = 10;
+        plainCost = 11;
+        swampCost = 12;
+    }
     return PathFinder.search(origin, goal, {
-        plainCost: 2,
-        swampCost: 10,
+        plainCost: plainCost,
+        swampCost: swampCost,
         roomCallback: function(roomName) {
             var room = Game.rooms[roomName];
             if(!room) return;
@@ -555,7 +563,7 @@ function FindPath(origin, goal, opt = {}) {
 
             room.find(FIND_STRUCTURES).forEach((struct) => {
                 if(struct.structureType == STRUCTURE_ROAD) {
-                    costs.set(struct.pos.x, struct.pos.y, 1);
+                    costs.set(struct.pos.x, struct.pos.y, roadCost);
                 } else if(struct.structureType != STRUCTURE_CONTAINER &&
                             (struct.structureType != STRUCTURE_RAMPART ||
                             !struct.my)) {
@@ -565,7 +573,7 @@ function FindPath(origin, goal, opt = {}) {
             if(opt.buildRoad) {
                 room.find(FIND_CONSTRUCTION_SITES).forEach((struct) => {
                     if(struct.structureType == STRUCTURE_ROAD && struct.my) {
-                        costs.set(struct.pos.x, struct.pos.y, 1);
+                        costs.set(struct.pos.x, struct.pos.y, roadCost);
                     }
                 });
             }
