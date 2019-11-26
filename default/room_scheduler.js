@@ -115,6 +115,14 @@ function Run(gCtx, room) {
                 require('role_outMiner').Run(ctx, creep);
                 continue;
             }
+            if(creep.memory.role == 'outReserver') {
+                require('role_outReserver').Run(ctx, creep);
+                continue;
+            }
+            if(creep.memory.role == 'outCarrier') {
+                require('role_outCarrier').Run(ctx, creep);
+                continue;
+            }
             // normal role
             if(creep.room.name != room.name) {
                 utils.DefaultMoveTo(creep, new RoomPosition(25, 25, room.name));
@@ -170,7 +178,7 @@ function Run(gCtx, room) {
         var myOrders = Game.market.getAllOrders((order) => {
             return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST;
         });
-        if(xs < 100000 && xbars < 10000) {
+        if(xs < 100000 && xbars < 20000) {
             var buyx = myOrders.filter((order) => {
                 return order.resourceType == RESOURCE_CATALYST && order.type == ORDER_SELL && order.price <= 0.14 && order.amount > 0;
             });

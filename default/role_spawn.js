@@ -10,11 +10,14 @@ var roleMap = {
     specialer: require('role_specialer'),
     mineraler: require('role_mineraler'),
     outMiner: require('role_outMiner'),
+    outReserver: require('role_outReserver'),
+    outCarrier: require('role_outCarrier'),
 };
 
 // opt: parts, must, givenName, memory
 function spawnCreep(ctx, spawn, roleName, opt = {}) {
     // fetch parts
+    var cost = 0;
     var parts = opt.parts;
     if(parts == undefined) {
         var res = null;
@@ -32,6 +35,7 @@ function spawnCreep(ctx, spawn, roleName, opt = {}) {
             }
         }
         if(res.cost == 0 || res.cost > ctx.CurEnergy) return false;
+        cost = res.cost;
         parts = res.parts;
     }
     // setup name
@@ -53,13 +57,19 @@ function spawnCreep(ctx, spawn, roleName, opt = {}) {
     if(creepMemory.ownRoom == undefined) {
         creepMemory.ownRoom = spawn.room.name;
     }
+    var err = -233;
     if(opt.directions == undefined) {
-        var err = spawn.spawnCreep(parts, name, {memory: creepMemory, directions: [TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT]});
-        return err == 0;
+        err = spawn.spawnCreep(parts, name, {memory: creepMemory, directions: [TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT]});
     } else {
-        var err = spawn.spawnCreep(parts, name, {memory: creepMemory, directions: opt.directions});
-        return err == 0;
+        err = spawn.spawnCreep(parts, name, {memory: creepMemory, directions: opt.directions});
     }
+    if(err == 0 && (creepMemory.role == 'outMiner' || creepMemory.role == 'outCarrier' || creepMemory.role == 'outReserver')) {
+        if(Memory.statOutMiner == undefined) {
+            Memory.statOutMiner = 0;
+        }
+        Memory.statOutMiner -= cost;
+    }
+    return err;
 }
 
 function runStart(ctx, spawn) {
@@ -177,6 +187,29 @@ function Run(ctx, spawn) {
     if(ctx.builders .length < ctx.room.memory.ctx.builderNum) {
         return spawnCreep(ctx, spawn, 'builder');
     }
+
+    if(ctx.room.name == 'E29N34') {
+        if(!Game.creeps['outMiner5bbcaea19099fc012e639584']) {
+            return spawnCreep(ctx, spawn, 'outMiner', {givenName: 'outMiner5bbcaea19099fc012e639584', memory: {
+                sourceIdx: 0,
+                workRoom: 'E29N35'
+            }});
+        }
+        if(!Game.creeps['outCarrier5bbcaea19099fc012e639584']) {
+            return spawnCreep(ctx, spawn, 'outCarrier', {givenName: 'outCarrier5bbcaea19099fc012e639584', memory: {
+                sourceIdx: 0,
+                workRoom: 'E29N35'
+            }});
+        }
+        if(Game.rooms.E29N35 && Game.rooms.E29N35.controller.reservation.ticksToEnd < 2000) {
+            if(!Game.creeps['outReserver5bbcaea19099fc012e639585']) {
+                return spawnCreep(ctx, spawn, 'outReserver', {givenName: 'outReserver5bbcaea19099fc012e639585', memory: {
+                    workRoom: 'E29N35'
+                }});
+            }
+        }
+    }
+
     return false;
 }
 

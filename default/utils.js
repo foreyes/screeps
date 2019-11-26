@@ -544,7 +544,7 @@ function GetRoomPosition(pos) {
     return new RoomPosition(pos.x, pos.y, pos.roomName);
 }
 
-function FindPath(origin, goal) {
+function FindPath(origin, goal, opt = {}) {
     return PathFinder.search(origin, goal, {
         plainCost: 2,
         swampCost: 10,
@@ -562,10 +562,18 @@ function FindPath(origin, goal) {
                     costs.set(struct.pos.x, struct.pos.y, 0xff);
                 }
             });
-            room.find(FIND_CREEPS).forEach((creep) => {
-                costs.set(creep.pos.x, creep.pos.y, 0xff);
-            });
-
+            if(opt.buildRoad) {
+                room.find(FIND_CONSTRUCTION_SITES).forEach((struct) => {
+                    if(struct.structureType == STRUCTURE_ROAD && struct.my) {
+                        costs.set(struct.pos.x, struct.pos.y, 1);
+                    }
+                });
+            }
+            if(!opt.buildRoad) {
+                room.find(FIND_CREEPS).forEach((creep) => {
+                    costs.set(creep.pos.x, creep.pos.y, 0xff);
+                });
+            }
             return costs;
         },
     });

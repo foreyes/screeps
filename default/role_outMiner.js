@@ -59,8 +59,8 @@ function Run(ctx, creep) {
 	// create road if not exist
 	var flag = false;
 	var path = buffer[creep.id];
-	if(path == undefined) {
-		path = utils.FindPath(creep.pos, {pos: Game.rooms[creep.memory.ctrlRoom].storage.pos, range: 1}).path;
+	if(path == undefined && Game.rooms[creep.memory.workRoom].ctx.constructing.length == 0) {
+		path = utils.FindPath(creep.pos, {pos: Game.rooms[creep.memory.ctrlRoom].storage.pos, range: 1}, {buildRoad: true}).path;
 		path = path.filter((pos) => pos.roomName == creep.memory.workRoom);
 		buffer[creep.id] = path;
 		flag = true;
@@ -80,12 +80,14 @@ function Run(ctx, creep) {
 	}
 	// build or harvest
 	if(creep.memory.work && creep.store[RESOURCE_ENERGY] > 0) {
-		return require('role_repairer').Try2Repair(Game.rooms[creep.memory.workRoom].ctx, creep);
+		if(require('role_repairer').Try2Repair(Game.rooms[creep.memory.workRoom].ctx, creep)){
+			return 0;
+		}
 	} else {
 		creep.memory.work = false;
 	}
 
-	if(source.amount == 0) return -233;
+	if(source.energy == 0) return -233;
 	return creep.harvest(source);
 }
 

@@ -16,6 +16,8 @@ var RoomConfig = {
 			'E29N35': {
 				needReserve: true,
 				needClearInvader: false,
+				controller: '5bbcaea19099fc012e639585',
+				reservePos: {x: 38, y: 45, roomName: 'E29N35'},
 				sources: ['5bbcaea19099fc012e639584'],
 				workPos: [{x: 6, y: 4, roomName: 'E29N35'}],
 			},

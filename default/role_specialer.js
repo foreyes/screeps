@@ -79,7 +79,7 @@ var specialTypeList = {
 				creep.withdraw(ctx.storage, RESOURCE_OXYGEN);
 				creep.withdraw(ctx.terminal, RESOURCE_OXYGEN);
 			}
-			if(ctx.factory.store[RESOURCE_CATALYST] < 1000) {
+			if(ctx.factory.store[RESOURCE_CATALYST] < 1000 && ctx.terminal.store[RESOURCE_CATALYST] + ctx.storage.store[RESOURCE_CATALYST] > 10000) {
 				creep.withdraw(ctx.storage, RESOURCE_CATALYST);
 				creep.withdraw(ctx.terminal, RESOURCE_CATALYST);
 			}
