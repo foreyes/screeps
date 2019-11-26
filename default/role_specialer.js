@@ -202,27 +202,26 @@ var specialTypeList = {
 					    if(err == 0) return true;
 					}
 				}
-				return false;
-			} else {
-				var target = null;
-				var targetResourceType = null;
-				for(var i in [0, 0, 0, 0]) {
-					var resourceType = ctx.room.memory.ctx.labPlan[i];
-					if(creep.store[resourceType] > 0) {
-						target = ctx.terminal;
-						targetResourceType = resourceType;
-						break;
-					}
-				}
-				if(!target) return false;
-				
-				var err = creep.transfer(target, targetResourceType);
-				if(err == ERR_NOT_IN_RANGE) {
-					utils.DefaultMoveTo(creep, target);
-					return true;
-				}
-				return err == 0;
 			}
+			var target = null;
+			var targetResourceType = null;
+			for(var i in [0, 0, 0, 0]) {
+				var resourceType = ctx.room.memory.ctx.labPlan[i];
+				if(creep.store[resourceType] > 0) {
+					target = ctx.terminal;
+					targetResourceType = resourceType;
+					break;
+				}
+			}
+			if(!target) return false;
+			
+			var err = creep.transfer(target, targetResourceType);
+			if(err == ERR_NOT_IN_RANGE) {
+				utils.DefaultMoveTo(creep, target);
+				return true;
+			}
+			return err == 0;
+
 			break;
 		}
 		}

@@ -19,7 +19,7 @@ function GetPartsAndCost(energy) {
 var bufferPath = {};
 
 function Run(ctx, creep) {
-	var outSources = require('room_config').E29N34.outSources;
+	var outSources = require('room_config')[creep.memory.ctrlRoom].outSources;
 	// been attacked
 	if(creep.hits < creep.hitsMax) {
 		creep.memory.sleep = 100;

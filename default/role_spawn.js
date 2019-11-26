@@ -188,24 +188,36 @@ function Run(ctx, spawn) {
         return spawnCreep(ctx, spawn, 'builder');
     }
 
-    if(ctx.room.name == 'E29N34') {
-        if(!Game.creeps['outMiner5bbcaea19099fc012e639584']) {
-            return spawnCreep(ctx, spawn, 'outMiner', {givenName: 'outMiner5bbcaea19099fc012e639584', memory: {
-                sourceIdx: 0,
-                workRoom: 'E29N35'
-            }});
-        }
-        if(!Game.creeps['outCarrier5bbcaea19099fc012e639584']) {
-            return spawnCreep(ctx, spawn, 'outCarrier', {givenName: 'outCarrier5bbcaea19099fc012e639584', memory: {
-                sourceIdx: 0,
-                workRoom: 'E29N35'
-            }});
-        }
-        if(Game.rooms.E29N35 && Game.rooms.E29N35.controller.reservation.ticksToEnd < 2000) {
-            if(!Game.creeps['outReserver5bbcaea19099fc012e639585']) {
-                return spawnCreep(ctx, spawn, 'outReserver', {givenName: 'outReserver5bbcaea19099fc012e639585', memory: {
-                    workRoom: 'E29N35'
-                }});
+    var roomConfig = require('room_config')[ctx.room.name];
+    if(roomConfig != undefined) {
+        for(var roomName in roomConfig.outSources) {
+            var outSource = roomConfig.outSources[roomName];
+            for(var i in outSource.sources) {
+                // outMiner
+                var creepName = 'outMiner' + outSource.sources[i];
+                if(!Game.creeps[creepName]) {
+                    return spawnCreep(ctx, spawn, 'outMiner', {givenName: creepName, memory: {
+                        sourceIdx: i,
+                        workRoom: roomName,
+                    }});
+                }
+                // outCarrier
+                creepName = 'outCarrier' + outSource.sources[i];
+                if(!Game.creeps[creepName]) {
+                    return spawnCreep(ctx, spawn, 'outCarrier', {givenName: creepName, memory: {
+                        sourceIdx: i,
+                        workRoom: roomName,
+                    }});
+                }
+            }
+            // outReserver
+            if(Game.rooms[roomName] && (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.ticksToEnd < 2000)) {
+                var creepName = 'outReserver' + outSource.controller;
+                if(!Game.creeps[creepName]) {
+                    return spawnCreep(ctx, spawn, 'outReserver', {givenName: creepName, memory: {
+                        workRoom: roomName,
+                    }});
+                }
             }
         }
     }

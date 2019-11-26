@@ -19,7 +19,7 @@ function GetPartsAndCost(energy) {
 var buffer = {};
 
 function Run(ctx, creep) {
-	var outSources = require('room_config').E29N34.outSources;
+	var outSources = require('room_config')[creep.memory.ctrlRoom].outSources;
 	// been attacked
 	if(creep.hits < creep.hitsMax) {
 		creep.memory.sleep = 100;
@@ -59,11 +59,16 @@ function Run(ctx, creep) {
 	// create road if not exist
 	var flag = false;
 	var path = buffer[creep.id];
-	if(path == undefined && Game.rooms[creep.memory.workRoom].ctx.constructing.length == 0) {
-		path = utils.FindPath(creep.pos, {pos: Game.rooms[creep.memory.ctrlRoom].storage.pos, range: 1}, {buildRoad: true}).path;
-		path = path.filter((pos) => pos.roomName == creep.memory.workRoom);
-		buffer[creep.id] = path;
-		flag = true;
+	if(path == undefined) {
+		var constructing = Game.rooms[creep.memory.workRoom].ctx.constructing;
+		if(constructing == undefined || constructing.filter((site) => {
+			return site.structureType == STRUCTURE_ROAD;
+		}).length == 0) {
+			path = utils.FindPath(creep.pos, {pos: Game.rooms[creep.memory.ctrlRoom].storage.pos, range: 1}, {buildRoad: true}).path;
+			path = path.filter((pos) => pos.roomName == creep.memory.workRoom);
+			buffer[creep.id] = path;
+			flag = true;
+		}
 	}
 	if(flag) {
 		for(var i in path) {
@@ -80,8 +85,13 @@ function Run(ctx, creep) {
 	}
 	// build or harvest
 	if(creep.memory.work && creep.store[RESOURCE_ENERGY] > 0) {
-		if(require('role_repairer').Try2Repair(Game.rooms[creep.memory.workRoom].ctx, creep)){
-			return 0;
+		var repaires = creep.room.lookAt(creep.pos).filter((item) => {
+			return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER &&
+					item.structure.hits < item.structure.hitsMax;
+		});
+		if(repaires.length > 0) {
+			var target = repaires[0].structure;
+			return creep.repair(target);
 		}
 	} else {
 		creep.memory.work = false;

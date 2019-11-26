@@ -203,6 +203,10 @@ function Run(gCtx, room) {
                         totalAmount: 10000,
                         roomName: "E33N36"
                     });
+                } else {
+                    if(activeBuyX[0].remainingAmount < 10000) {
+                        Game.market.extendOrder(activeBuyX[0].id, 10000 - activeBuyX[0].remainingAmount);
+                    }
                 }
             }
         }

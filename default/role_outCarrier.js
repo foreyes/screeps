@@ -28,7 +28,7 @@ function Run(ctx, creep) {
 				if(repaires.length > 0) {
 					var target = repaires[0].structure;
 					var err = creep.repair(target);
-					if(err == 0 && target.hitsMax - target.hits > 100) {
+					if(err == 0 && target.hitsMax - target.hits > 100 && !creep.memory.goBack) {
 						return 0;
 					}
 				}
@@ -50,8 +50,16 @@ function Run(ctx, creep) {
 			creep.memory.store = false;
 		}
 	}
+	if(creep.ticksToLive < 100) {
+		creep.memory.store = true;
+		creep.memory.goBack = true;
+		if(creep.store[RESOURCE_ENERGY] == 0) {
+			creep.suicide();
+		}
+		return true;
+	}
 
-	var outSources = require('room_config').E29N34.outSources;
+	var outSources = require('room_config')[creep.memory.ctrlRoom].outSources;
 	// been attacked
 	if(creep.hits < creep.hitsMax) {
 		creep.memory.sleep = 100;
@@ -71,8 +79,8 @@ function Run(ctx, creep) {
 	}
 	// collect energy
 	if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-		var err = -1;
 		// pick up energy
+		var err = -233;
 		var droppedEnergy = creep.room.lookAt(workPos).filter((item) => {
 			return item.type == 'resource' && item.resource.resourceType == RESOURCE_ENERGY && item.resource.amount > 100;
 		});
@@ -84,6 +92,7 @@ function Run(ctx, creep) {
 			return 0;
 		}
 		// withdraw container
+		err = -233;
 		var containers = creep.room.lookAt(workPos).filter((item) => {
 			return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 		});
@@ -91,15 +100,11 @@ function Run(ctx, creep) {
 			var target = containers[0].structure;
 			err = creep.withdraw(target, RESOURCE_ENERGY);
 		}
+		if(err == ERR_NOT_IN_RANGE) {
+			return utils.DefaultMoveTo(creep, workPos);
+		}
 		if(err == 0) {
 			return 0;
-		}
-		// go to miner
-		var minerCreep = Game.creeps['outMiner' + outSources[creep.memory.workRoom].sources[idx]];
-		if(minerCreep) {
-			return utils.DefaultMoveTo(creep, minerCreep);
-		} else {
-			return utils.DefaultMoveTo(creep, workPos);
 		}
 	} else {
 		creep.memory.store = true;
