@@ -123,6 +123,10 @@ function Run(gCtx, room) {
                 require('role_outCarrier').Run(ctx, creep);
                 continue;
             }
+            if(creep.memory.role == 'defender') {
+                require('role_defender').Run(ctx, creep);
+                continue;
+            }
             // normal role
             if(creep.room.name != room.name) {
                 utils.DefaultMoveTo(creep, new RoomPosition(25, 25, room.name));
@@ -137,8 +141,19 @@ function Run(gCtx, room) {
         }
     }
     try {
-        if(spawn != undefined && spawn.my) {
-            roleMap['spawn'].Run(ctx, spawn);
+        // run main spawn first, and at most spawn one creep pre tick.
+        if(spawn != undefined) {
+            var err = roleMap['spawn'].Run(ctx, spawn);
+            if(err != 0) {
+                for(var i in ctx.spawns) {
+                    if(ctx.spawns[i].name != spawn.name) {
+                        var err = roleMap['spawn'].Run(ctx, ctx.spawns[i], false);
+                        if(err == 0) {
+                            break;
+                        }
+                    }
+                }
+            }
         }
     } catch(err) {
         var errMsg = 'Spawn in ' + room.name + ": ";

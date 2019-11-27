@@ -33,6 +33,9 @@ function FetchRoomCtx(gCtx, room) {
 	if(spawns.length > 0) {
 		spawn = spawns[0];
 	}
+	spawns = room.find(FIND_MY_SPAWNS).filter((s) => {
+		return s.isActive();
+	});
 	// sources
 	var sources =  _.map(room.memory.ctx.sourceIds, Game.getObjectById);
 	// creeps

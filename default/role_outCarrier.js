@@ -22,7 +22,7 @@ function Run(ctx, creep) {
 			// repair road
 			if(creep.getActiveBodyparts(WORK) > 0) {
 				var repaires = creep.room.lookAt(creep.pos).filter((item) => {
-						return item.type == 'structure' && item.structure.hits < item.structure.hitsMax;
+						return item.type == 'structure' && item.structure.hits < item.structure.hitsMax && item.structure.structureType == STRUCTURE_ROAD;
 					}
 				);
 				if(repaires.length > 0) {
@@ -59,9 +59,13 @@ function Run(ctx, creep) {
 		return true;
 	}
 
-	var outSources = require('room_config')[creep.memory.ctrlRoom].outSources;
+	var outSource = require('room_config')[creep.memory.ctrlRoom].outSources[creep.memory.workRoom];
 	// been attacked
 	if(creep.hits < creep.hitsMax) {
+		var defender = Game.creeps['defender' + creep.memory.workRoom];
+		if(!defender) {
+			outSource.needDefender = true;
+		}
 		creep.memory.sleep = 100;
 		var pos = new RoomPosition(25, 25, creep.memory.ctrlRoom);
 		return utils.DefaultMoveTo(creep, pos);
@@ -73,7 +77,7 @@ function Run(ctx, creep) {
 	}
 	// go to work room
 	var idx = creep.memory.sourceIdx;
-	var workPos = utils.GetRoomPosition(outSources[creep.memory.workRoom].workPos[idx]);
+	var workPos = utils.GetRoomPosition(outSource.workPos[idx]);
 	if(creep.room.name != creep.memory.workRoom) {
 		return utils.DefaultMoveTo(creep, workPos);
 	}

@@ -1,3 +1,4 @@
+// 7级之前每个基地最多三个外矿点（三个miner）
 var RoomConfig = {
 	'E29N34': {
 		// TODO: maintain room infomations here
@@ -40,7 +41,7 @@ var RoomConfig = {
 				reservePos: {x: 34, y: 17, roomName: 'E33N35'},
 				sources: ['5bbcaedb9099fc012e639a89'],
 				workPos: [{x: 15, y: 10, roomName: 'E33N35'}],
-			}
+			},
 		},
 	},
 	'E35N38': {
@@ -50,11 +51,39 @@ var RoomConfig = {
 				needClearInvader: false,
 				controller: '5bbcaef99099fc012e639e6d',
 				reservePos: {x: 18, y: 20, roomName: 'E35N37'},
-				sources: ['5bbcaef99099fc012e639e6c'],
-				workPos: [{x: 41, y: 6, roomName: 'E35N37'}],
-			}
+				sources: ['5bbcaef99099fc012e639e6c', '5bbcaef99099fc012e639e6e'],
+				workPos: [{x: 41, y: 6, roomName: 'E35N37'}, {x: 19, y: 41, roomName: 'E35N37'}],
+			},
+			'E36N38': {
+				needReserve: true,
+				needClearInvader: false,
+				controller: '5bbcaf0b9099fc012e63a095',
+				reservePos: {x: 12, y: 43, roomName: 'E36N38'},
+				sources: ['5bbcaf0b9099fc012e63a094'],
+				workPos: [{x: 33, y: 40, roomName: 'E36N38'}],
+			},
 		},
-	}
+	},
+	'E29N33': {
+		outSources: {
+			'E29N32': {
+				needReserve: true,
+				needClearInvader: false,
+				controller: '5bbcaea29099fc012e63958f',
+				reservePos: {x: 11, y: 10, roomName: 'E29N32'},
+				sources: ['5bbcaea29099fc012e639590', '5bbcaea29099fc012e639591'],
+				workPos: [{x: 36, y: 37, roomName: 'E29N32'}, {x: 39, y: 42, roomName: 'E29N32'}],
+			},
+			'E28N33': {
+				needReserve: true,
+				needClearInvader: false,
+				controller: '5bbcae939099fc012e639400',
+				reservePos: {x: 24, y: 10, roomName: 'E28N33'},
+				sources: ['5bbcae939099fc012e639401'],
+				workPos: [{x: 33, y: 23, roomName: 'E28N33'}],
+			},
+		},
+	},
 };
 
 module.exports = RoomConfig;

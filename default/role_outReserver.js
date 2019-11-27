@@ -19,9 +19,13 @@ function GetPartsAndCost(energy) {
 var bufferPath = {};
 
 function Run(ctx, creep) {
-	var outSources = require('room_config')[creep.memory.ctrlRoom].outSources;
+	var outSource = require('room_config')[creep.memory.ctrlRoom].outSources[creep.memory.workRoom];
 	// been attacked
 	if(creep.hits < creep.hitsMax) {
+		var defender = Game.creeps['defender' + creep.memory.workRoom];
+		if(!defender) {
+			outSource.needDefender = true;
+		}
 		creep.memory.sleep = 100;
 		var pos = new RoomPosition(25, 25, creep.memory.ctrlRoom);
 		return utils.DefaultMoveTo(creep, pos);
@@ -32,22 +36,12 @@ function Run(ctx, creep) {
 		return -555;
 	}
 	// go to reserve pos
-	if(creep.memory.startPosStr == undefined) {
-		creep.memory.startPosStr = creep.pos.roomName + creep.pos.x + creep.pos.y;
-	}
-	var reservePos = utils.GetRoomPosition(outSources[creep.memory.workRoom].reservePos);
+	var reservePos = utils.GetRoomPosition(outSource.reservePos);
 	if(!utils.IsSamePosition(creep.pos, reservePos)) {
-		if(creep.room.name != creep.memory.workRoom) {
-			if(bufferPath[creep.memory.startPosStr] == undefined) {
-				bufferPath[creep.memory.startPosStr] = utils.FindPath(creep.pos, reservePos).path;
-			}
-			return creep.moveByPath(bufferPath[creep.memory.startPosStr]);
-		} else {
-			return utils.DefaultMoveTo(creep, reservePos);
-		}
+		return utils.DefaultMoveTo(creep, reservePos);
 	}
 	// reserve
-	var controller = Game.getObjectById(outSources[creep.memory.workRoom].controller);
+	var controller = Game.getObjectById(outSource.controller);
 	return creep.reserveController(controller);
 }
 

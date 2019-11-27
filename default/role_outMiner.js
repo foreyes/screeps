@@ -19,9 +19,13 @@ function GetPartsAndCost(energy) {
 var buffer = {};
 
 function Run(ctx, creep) {
-	var outSources = require('room_config')[creep.memory.ctrlRoom].outSources;
+	var outSource = require('room_config')[creep.memory.ctrlRoom].outSources[creep.memory.workRoom];
 	// been attacked
 	if(creep.hits < creep.hitsMax) {
+		var defender = Game.creeps['defender' + creep.memory.workRoom];
+		if(!defender) {
+			outSource.needDefender = true;
+		}
 		creep.memory.sleep = 100;
 		var pos = new RoomPosition(25, 25, creep.memory.ctrlRoom);
 		return utils.DefaultMoveTo(creep, pos);
@@ -33,7 +37,7 @@ function Run(ctx, creep) {
 	}
 	// go to work room
 	var idx = creep.memory.sourceIdx;
-	var workPos = utils.GetRoomPosition(outSources[creep.memory.workRoom].workPos[idx]);
+	var workPos = utils.GetRoomPosition(outSource.workPos[idx]);
 	if(creep.room.name != creep.memory.workRoom) {
 		return utils.DefaultMoveTo(creep, workPos);
 	}
@@ -60,15 +64,10 @@ function Run(ctx, creep) {
 	var flag = false;
 	var path = buffer[creep.id];
 	if(path == undefined) {
-		var constructing = Game.rooms[creep.memory.workRoom].ctx.constructing;
-		if(constructing == undefined || constructing.filter((site) => {
-			return site.structureType == STRUCTURE_ROAD;
-		}).length == 0) {
-			path = utils.FindPath(creep.pos, {pos: Game.rooms[creep.memory.ctrlRoom].storage.pos, range: 1}, {buildRoad: true}).path;
-			path = path.filter((pos) => pos.roomName == creep.memory.workRoom);
-			buffer[creep.id] = path;
-			flag = true;
-		}
+		path = utils.FindPath(creep.pos, {pos: Game.rooms[creep.memory.ctrlRoom].storage.pos, range: 1}, {buildRoad: true}).path;
+		// path = path.filter((pos) => pos.roomName == creep.memory.workRoom);
+		buffer[creep.id] = path;
+		flag = true;
 	}
 	if(flag) {
 		for(var i in path) {
@@ -76,7 +75,7 @@ function Run(ctx, creep) {
 		}
 	}
 	// harvest
-	var source = Game.getObjectById(outSources[creep.memory.workRoom].sources[idx]);
+	var source = Game.getObjectById(outSource.sources[idx]);
 	if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 16 && source.energy > 0) {
 		creep.memory.work = false;
 		return creep.harvest(source);

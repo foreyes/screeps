@@ -19,6 +19,8 @@ function fetchRoomCtx(gCtx, room) {
 // sort from small to big
 // set a restPos Flag
 module.exports.loop = function() {
+    // statOutMiner
+    Memory.outSpeed = Memory.statOutMiner / (Game.time - Memory.statStart);
     // clear memory
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
@@ -37,6 +39,8 @@ module.exports.loop = function() {
             console.log('Clearing non-existing creep memory:', name);
         }
     }
+    // fetch creep cache
+    require('cache').FetchCreepCache();
     // cancel unactive orders
     if(Game.time % 1000 == 0) {
         var unactiveOrder = _.filter(Game.market.orders, (order) => {
