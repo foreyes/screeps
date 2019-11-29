@@ -23,13 +23,13 @@ function spawnCreep(ctx, spawn, roleName, opt = {}) {
     if(parts == undefined) {
         var res = null;
         if(opt.must) {
-            if(roleName == 'upgrader') {
+            if(roleName == 'upgrader' || roleName == 'filler') {
                 res = roleMap[roleName].GetPartsAndCost(ctx.CurEnergy, ctx);
             } else {
                 res = roleMap[roleName].GetPartsAndCost(ctx.CurEnergy);
             }
         } else {
-            if(roleName == 'upgrader') {
+            if(roleName == 'upgrader' || roleName == 'filler') {
                 res = roleMap[roleName].GetPartsAndCost(ctx.MaxEnergy, ctx);
             } else {
                 res = roleMap[roleName].GetPartsAndCost(ctx.MaxEnergy);

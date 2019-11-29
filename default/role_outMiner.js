@@ -19,6 +19,7 @@ function GetPartsAndCost(energy) {
 var buffer = {};
 
 function Run(ctx, creep) {
+	if(Game.cpu.bucket < 2000) return -233;
 	var outSource = require('room_config')[creep.memory.ctrlRoom].outSources[creep.memory.workRoom];
 	// been attacked
 	if(creep.hits < creep.hitsMax) {

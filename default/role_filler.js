@@ -9,11 +9,11 @@ var roleParts = {
     900: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
     1050: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
     1200: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-    // 2500: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+    2500: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
 };
 
-function getCost(energy) {
-	// if(energy >= 2500) return 2500;
+function getCost(energy, flag = false) {
+	if(energy >= 2500 && flag) return 2500;
 	if(energy >= 1200) return 1200;
 	if(energy >= 1050) return 1050;
 	if(energy >= 900) return 900;
@@ -24,8 +24,8 @@ function getCost(energy) {
 	return 0;
 }
 
-function GetPartsAndCost(energy) {
-	var cost = getCost(energy);
+function GetPartsAndCost(energy, ctx = {}) {
+	var cost = getCost(energy, ctx.upgrading);
 	var parts = roleParts[cost];
 	return {cost: cost, parts: parts};
 }
@@ -60,7 +60,9 @@ function findNewTarget(ctx, creep) {
 	}
 	// fill controller's container
 	if(ctx.controllerContainer) {
-		if(ctx.controllerContainer.store.getFreeCapacity(RESOURCE_ENERGY) >= Math.min(800, creep.store.getCapacity(RESOURCE_ENERGY))) {
+		if(ctx.upgrading) {
+			return ctx.controllerContainer;
+		} else if(ctx.controllerContainer.store.getFreeCapacity(RESOURCE_ENERGY) >= Math.min(800, creep.store.getCapacity(RESOURCE_ENERGY))) {
 			return ctx.controllerContainer;
 		}
 	}
@@ -132,6 +134,12 @@ function fillStructure(ctx, creep) {
 	}
 	var target = getValidTarget(ctx, creep);
 	if(target == null) return false;
+
+	if(ctx.upgrading && ctx.controllerContainer && target.id == ctx.controllerContainer.id && creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+		creep.memory.FindEnergy = true;
+		findEnergy(ctx, creep);
+		return false;
+	}
 
 	var err = creep.transfer(target, RESOURCE_ENERGY);
 	if(err == ERR_NOT_IN_RANGE) {

@@ -40,6 +40,17 @@ function findEnergy(ctx, creep) {
         creep.memory.FindEnergy = true;
         creep.say('🔄');
     }
+    if(ctx.controllerLink) {
+        if(ctx.controllerLink.store[RESOURCE_ENERGY] <= 200 && ctx.controllerContainer) {
+            var err = creep.withdraw(ctx.controllerContainer, RESOURCE_ENERGY);
+            if(err == 0) return true;
+        }
+        var err = creep.withdraw(ctx.controllerLink, RESOURCE_ENERGY);
+        if(err == ERR_NOT_IN_RANGE) {
+            return utils.DefaultMoveTo(creep, ctx.controllerLink);
+        }
+        return err;
+    }
     if(ctx.controllerContainer && ctx.controllerContainer.store[RESOURCE_ENERGY] > 0) {
         utils.GetEnergyFromControllerStore(ctx, creep)
         return;
@@ -76,6 +87,9 @@ function Run(ctx, creep) {
     if(err == ERR_NOT_IN_RANGE) {
         creep.say('coming');
         utils.DefaultMoveTo(creep, ctx.room.controller);
+    }
+    if(!ctx.creepOnContainer) {
+        utils.DefaultMoveTo(creep, ctx.controllerContainer);
     }
     if(err == 0) {
         // just keep level when no need to upgrade

@@ -17,6 +17,7 @@ function GetPartsAndCost(energy) {
 }
 
 function Run(ctx, creep) {
+	if(Game.cpu.bucket < 2000) return -233;
 	if(creep.memory.store) {
 		if(creep.store[RESOURCE_ENERGY] > 0) {
 			// repair road

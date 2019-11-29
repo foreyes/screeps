@@ -70,7 +70,33 @@ function defaultMoveToOtherRoom(creep, target) {
     }
 }
 
+function moveToTest(creep, target) {
+    if(target.pos != undefined) target = target.pos;
+    creep.say('' + creep.memory.stuck + ',' + creep.cache.moveRate);
+    if(creep.memory.stuck >= 2) {
+        creep.cache.dest = target;
+        creep.cache.path = FindPath(creep.pos, target, {moveRate: creep.cache.moveRate}).path;
+    }
+    if(creep.cache.dest == undefined || !IsSamePosition(target, creep.cache.dest)) {
+        creep.cache.dest = target;
+        creep.cache.path = FindPath(creep.pos, target, {moveRate: creep.cache.moveRate, ignoreCreeps: true}).path;
+    }
+    if(creep.cache.path.length > 0 && !IsSamePosition(target, creep.cache.path[creep.cache.path.length - 1])) {
+        if(Memory.holyCreep == undefined) Memory.holyCreep = [];
+        Memory.holyCreep.push(creep.memory.role);
+        creep.cache.dest = target;
+        creep.cache.path = FindPath(creep.pos, target, {moveRate: creep.cache.moveRate}).path;
+    }
+    var err = creep.moveByPath(creep.cache.path);
+    if(err == 0) {
+        creep.memory.needMove = true;
+    }
+    return err;
+}
+
 function DefaultMoveTo(creep, target) {
+    // return moveToTest(creep, target);
+
     if(target.pos != undefined) target = target.pos;
     if(creep.pos.roomName != target.roomName) {
         var err = defaultMoveToOtherRoom(creep, target)
@@ -548,6 +574,10 @@ function FindPath(origin, goal, opt = {}) {
     var roadCost = 1;
     var plainCost = 2;
     var swampCost = 10;
+    if(opt.moveRate != undefined) {
+        plainCost = Math.max(Math.ceil(plainCost / opt.moveRate), 1);
+        swampCost = Math.max(Math.ceil(swampCost / opt.moveRate), 1);
+    }
     if(opt.buildRoad) {
         roadCost = 10;
         plainCost = 11;
@@ -577,7 +607,7 @@ function FindPath(origin, goal, opt = {}) {
                     }
                 });
             }
-            if(!opt.buildRoad) {
+            if(!opt.buildRoad && !opt.ignoreCreeps) {
                 room.find(FIND_CREEPS).forEach((creep) => {
                     costs.set(creep.pos.x, creep.pos.y, 0xff);
                 });

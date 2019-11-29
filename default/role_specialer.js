@@ -35,8 +35,38 @@ var specialTypeList = {
 	},
 	// require('role_spawn').SpawnCreep('5da936cbff916207b35bb3b4', 'specialer', {directions: [TOP], parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], memory: {specialType: 'factorier'}});
 	factorier: function(ctx, creep) {
-		if(ctx.centralLink && ctx.centralLink.store[RESOURCE_ENERGY] > 0 && creep.store.getFreeCapacity() > 0) {
+		if(ctx.upgrading && ctx.controllerLink && ctx.centralLink) {
+			if(ctx.centralLink.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+				creep.say('link!');
+				if(creep.store.getFreeCapacity() > 0) {
+					return creep.withdraw(ctx.storage, RESOURCE_ENERGY);
+				} else {
+					return creep.transfer(ctx.centralLink, RESOURCE_ENERGY);
+				}
+			}
+		} else if(ctx.centralLink && ctx.centralLink.store[RESOURCE_ENERGY] > 0 && creep.store.getFreeCapacity() > 0) {
 			return creep.withdraw(ctx.centralLink, RESOURCE_ENERGY);
+		}
+
+		if(Game.time % 100 < 50) {
+			if(ctx.room.name == 'E33N36') {
+				if(creep.store.getUsedCapacity() == 0) {
+					if(ctx.terminal.store[RESOURCE_ENERGY] >= 12000) {
+						creep.withdraw(ctx.terminal, RESOURCE_ENERGY);
+					}
+				} else {
+					creep.transfer(ctx.storage, RESOURCE_ENERGY);
+				}
+			} else {
+				if(creep.store.getUsedCapacity() == 0) {
+					if(ctx.storage.store[RESOURCE_ENERGY] >= 300000) {
+						creep.withdraw(ctx.storage, RESOURCE_ENERGY);
+					}
+				} else {
+					creep.transfer(ctx.terminal, RESOURCE_ENERGY);
+				}
+			}
+			return false;
 		}
 
 		if(!ctx.factory) {

@@ -82,11 +82,11 @@ function FetchRoomCtx(gCtx, room) {
 		}
 	});
 	// creeps by role
-	var upgraders = utils.GetMyCreepsByRole(room, 'upgrader');
-	var builders = utils.GetMyCreepsByRole(room, 'builder');
-	var repairers = utils.GetMyCreepsByRole(room, 'repairer');
-	var miners = utils.GetMyCreepsByRole(room, 'miner');
-	var fillers = utils.GetMyCreepsByRole(room, 'filler');
+	var upgraders = creeps.filter((creep) => creep.memory.role == 'upgrader');
+	var builders = creeps.filter((creep) => creep.memory.role == 'builder');
+	var repairers = creeps.filter((creep) => creep.memory.role == 'repairer');
+	var miners = creeps.filter((creep) => creep.memory.role == 'miner');
+	var fillers = creeps.filter((creep) => creep.memory.role == 'filler');
 	// setup restPos
 	var restPos = spawn;
 	if(room.memory.ctx.restPos != undefined) {
@@ -119,22 +119,14 @@ function FetchRoomCtx(gCtx, room) {
 		factory = factories[0];
 	}
 	// factorier
-	var factoriers = room.find(FIND_CREEPS, {
-		filter: (creep) => {
-			return creep.my && creep.memory.role == 'specialer' && creep.memory.specialType == 'factorier';
-		}
-	});
+	var factoriers = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'factorier');
 	// labs
 	var labs = undefined;
 	if(room.memory.ctx.labIds) {
 		labs = room.memory.ctx.labIds.map(Game.getObjectById);
 	}
 	// labers
-	var labers = room.find(FIND_CREEPS, {
-    	filter: (creep) => {
-        	return creep.my && creep.memory.role == 'specialer' && creep.memory.specialType == 'laber';
-    	}
-   	});
+	var labers = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'laber');
 	// stealers
 	// var stealers = room.find(FIND_CREEPS, {
  //    	filter: (creep) => {
@@ -168,6 +160,7 @@ function FetchRoomCtx(gCtx, room) {
 		miners: miners,
 		fillers: fillers,
 		keepLevel: room.memory.ctx.keepLevel == true,
+		upgrading: room.memory.ctx.upgrading == true,
 		restPos: restPos,
 		mineral: mineral,
 		mineralCanHarvest: mineralCanHarvest,
@@ -247,6 +240,14 @@ function FetchRoomCtx(gCtx, room) {
 	if(room.memory.ctx.centralLinkId) {
 		ctx.centralLink = Game.getObjectById(room.memory.ctx.centralLinkId);
 	}
+	if(room.memory.ctx.controllerLinkId) {
+		ctx.controllerLink = Game.getObjectById(room.memory.ctx.controllerLinkId);
+	}
+
+	ctx.creepOnContainer = ctx.controllerContainer && 
+							ctx.room.lookAt(ctx.controllerContainer.pos).filter((item) => {
+								return item.type == 'creep';
+							}).length > 0;
 
 	room.ctx = ctx;
 	return ctx;

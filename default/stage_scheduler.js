@@ -152,20 +152,23 @@ var stages = {
 		init: function(ctx, next) {
 			defaultInit(ctx, next);
 			ctx.room.memory.ctx.fillerNum = 3;
-			ctx.room.memory.ctx.upgraderNum = 3;
+			ctx.room.memory.ctx.upgraderNum = 4;
 			ctx.room.memory.ctx.keepLevel = false;
+			ctx.room.memory.ctx.upgrading = true;
 		},
 		loop: function(ctx) {
 			if(!ctx.storage) return true;
 			if(ctx.storage.store[RESOURCE_ENERGY] >= 800000) {
 				ctx.room.memory.ctx.fillerNum = 3;
-				ctx.room.memory.ctx.upgraderNum = 3;
+				ctx.room.memory.ctx.upgraderNum = 4;
 				ctx.room.memory.ctx.keepLevel = false;
+				ctx.room.memory.ctx.upgrading = true;
 			}
 			if(ctx.storage.store[RESOURCE_ENERGY] < 200000) {
 				ctx.room.memory.ctx.fillerNum = 2;
 				ctx.room.memory.ctx.upgraderNum = 1;
 				ctx.room.memory.ctx.keepLevel = true;
+				ctx.room.memory.ctx.upgrading = false;
 			}
 			return false;
 		},

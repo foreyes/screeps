@@ -16,6 +16,15 @@ var roleMap = {
 function Run(gCtx, room) {
     var ctx = room.ctx;
 
+    if(room.name == 'E33N36') {
+        if(room.memory.statController == undefined || Game.time % 1000 == 2) {
+            if(room.memory.statController == undefined) {
+                room.memory.statController = [room.controller.progress];
+            }
+            room.memory.statController.push(room.controller.progress - room.memory.statController[0]);
+        }
+    }
+
     try {
         if(ctx.storage) {
             if(ctx.room.memory.storageStat == undefined) {
@@ -172,6 +181,9 @@ function Run(gCtx, room) {
         ctx.factory.produce(RESOURCE_KEANIUM_BAR);
         ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
     }
+    if(ctx.factory && ctx.room.name == 'E29N34' && ctx.terminal && ctx.terminal.store['O'] >= 10000) {
+        ctx.factory.produce(RESOURCE_OXIDANT);
+    }
     if(ctx.labs) {
         if(ctx.labers.length == 0) {
             require('role_spawn').SpawnCreep('5dc6d24401ce096f94fc8ea6', 'specialer', {parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], memory: {specialType: 'laber'}});
@@ -179,7 +191,19 @@ function Run(gCtx, room) {
         ctx.labs[2].runReaction(ctx.labs[0], ctx.labs[1]);
         ctx.labs[3].runReaction(ctx.labs[0], ctx.labs[1]);
     }
-    if(ctx.sourceLinks && ctx.centralLink) {
+    if(ctx.upgrading && ctx.controllerLink) {
+        if(ctx.controllerLink.store[RESOURCE_ENERGY] < 400) {
+            for(var i in ctx.sourceLinks) {
+                var link = ctx.sourceLinks[i];
+                if(link.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    link.transferEnergy(ctx.controllerLink);
+                }
+            }
+            if(ctx.centralLink && ctx.centralLink.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                ctx.centralLink.transferEnergy(ctx.controllerLink);
+            }
+        }
+    } else if(ctx.sourceLinks && ctx.centralLink) {
         for(var i in ctx.sourceLinks) {
             var link = ctx.sourceLinks[i];
             if(link.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
@@ -235,6 +259,11 @@ function Run(gCtx, room) {
                 var order = sells[0];
                 Game.market.deal(order.id, Math.min(8000, xbars, order.amount), 'E33N36');
             }
+        }
+    }
+    if(Game.rooms.E33N36.storage.store[RESOURCE_ENERGY] + Game.rooms.E33N36.terminal.store[RESOURCE_ENERGY] < 900000) {
+        if(ctx.room.name != 'E33N36' && ctx.terminal && ctx.terminal.store[RESOURCE_ENERGY] >= 50000) {
+            ctx.terminal.send(RESOURCE_ENERGY, 40000, 'E33N36');
         }
     }
 }
