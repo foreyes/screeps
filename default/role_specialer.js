@@ -35,7 +35,7 @@ var specialTypeList = {
 	},
 	// require('role_spawn').SpawnCreep('5da936cbff916207b35bb3b4', 'specialer', {directions: [TOP], parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], memory: {specialType: 'factorier'}});
 	factorier: function(ctx, creep) {
-		if(ctx.upgrading && ctx.controllerLink && ctx.centralLink) {
+		if(ctx.upgrading && ctx.controllerLink && ctx.centralLink && (creep.store.getFreeCapacity() > 0 || creep.store[RESOURCE_ENERGY] > 0)) {
 			if(ctx.centralLink.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
 				creep.say('link!');
 				if(creep.store.getFreeCapacity() > 0) {
@@ -48,10 +48,10 @@ var specialTypeList = {
 			return creep.withdraw(ctx.centralLink, RESOURCE_ENERGY);
 		}
 
-		if(Game.time % 100 < 50) {
-			if(ctx.room.name == 'E33N36') {
+		if(Game.time % 100 < 50 && creep.store.getUsedCapacity() == creep.store[RESOURCE_ENERGY]) {
+			if(ctx.room.name == 'E29N34') {
 				if(creep.store.getUsedCapacity() == 0) {
-					if(ctx.terminal.store[RESOURCE_ENERGY] >= 12000) {
+					if(ctx.terminal.store[RESOURCE_ENERGY] >= 20000) {
 						creep.withdraw(ctx.terminal, RESOURCE_ENERGY);
 					}
 				} else {
@@ -101,6 +101,10 @@ var specialTypeList = {
 				creep.withdraw(ctx.storage, RESOURCE_KEANIUM);
 				creep.withdraw(ctx.terminal, RESOURCE_KEANIUM);
 			}
+			if(ctx.factory.store[RESOURCE_UTRIUM] < 1000) {
+				creep.withdraw(ctx.storage, RESOURCE_UTRIUM);
+				creep.withdraw(ctx.terminal, RESOURCE_UTRIUM);
+			}
 			if(ctx.factory.store[RESOURCE_MIST] < 1000) {
 				creep.withdraw(ctx.storage, RESOURCE_MIST);
 				creep.withdraw(ctx.terminal, RESOURCE_MIST);
@@ -113,6 +117,7 @@ var specialTypeList = {
 				creep.withdraw(ctx.storage, RESOURCE_CATALYST);
 				creep.withdraw(ctx.terminal, RESOURCE_CATALYST);
 			}
+			creep.withdraw(ctx.factory, RESOURCE_UTRIUM_BAR);
 			creep.withdraw(ctx.factory, RESOURCE_LEMERGIUM_BAR);
 			creep.withdraw(ctx.factory, RESOURCE_ZYNTHIUM_BAR);
 			creep.withdraw(ctx.factory, RESOURCE_CONDENSATE);
@@ -131,12 +136,14 @@ var specialTypeList = {
 			if(ctx.factory.store[RESOURCE_ENERGY] >= 10000 && ctx.terminal.store[RESOURCE_ENERGY] >= 10000) {
 				creep.transfer(ctx.storage, RESOURCE_ENERGY);
 			}
+			creep.transfer(ctx.factory, RESOURCE_UTRIUM);
 			creep.transfer(ctx.factory, RESOURCE_LEMERGIUM);
 			creep.transfer(ctx.factory, RESOURCE_ZYNTHIUM);
 			creep.transfer(ctx.factory, RESOURCE_KEANIUM);
 			creep.transfer(ctx.factory, RESOURCE_MIST);
 			creep.transfer(ctx.factory, RESOURCE_OXYGEN);
 			creep.transfer(ctx.factory, RESOURCE_CATALYST);
+			creep.transfer(ctx.terminal, RESOURCE_UTRIUM_BAR);
 			creep.transfer(ctx.terminal, RESOURCE_LEMERGIUM_BAR);
 			creep.transfer(ctx.terminal, RESOURCE_ZYNTHIUM_BAR);
 			creep.transfer(ctx.terminal, RESOURCE_CONDENSATE);
@@ -277,6 +284,44 @@ var specialTypeList = {
 				utils.DefaultMoveTo(creep, ctx.storage);
 				return true;
 			}
+		}
+	},
+	powerSpawner: function(ctx, creep) {
+		if(!ctx.powerSpawn) return;
+
+		if(creep.store[RESOURCE_POWER] > 0 && ctx.powerSpawn.store.getFreeCapacity(RESOURCE_POWER) > 0) {
+			var err = creep.transfer(ctx.powerSpawn, RESOURCE_POWER);
+			if(err == 0) return;
+			if(err == ERR_NOT_IN_RANGE) {
+				utils.DefaultMoveTo(creep, ctx.powerSpawn);
+			}
+		}
+		if(creep.store[RESOURCE_ENERGY] > 0 &&ctx.powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+			var err = creep.transfer(ctx.powerSpawn, RESOURCE_ENERGY);
+			if(err == 0) return;
+			if(err == ERR_NOT_IN_RANGE) {
+				utils.DefaultMoveTo(creep, ctx.powerSpawn);
+			}
+		}
+
+		if(creep.ticksToLive >= 100) {
+			var limit = creep.store.getCapacity();
+			if(creep.store[RESOURCE_POWER] < 100 && ctx.powerSpawn.store.getFreeCapacity(RESOURCE_POWER) > 0) {
+				var err = creep.withdraw(ctx.terminal, RESOURCE_POWER, 100 - creep.store[RESOURCE_POWER]);
+				if(err == 0) return;
+				if(err == ERR_NOT_IN_RANGE) {
+					utils.DefaultMoveTo(creep, ctx.terminal);
+				}
+			}
+			if(creep.store[RESOURCE_ENERGY] < limit - 100 && ctx.powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+				var err = creep.withdraw(ctx.terminal, RESOURCE_ENERGY, limit - 100 - creep.store[RESOURCE_ENERGY]);
+				if(err == 0) return;
+				if(err == ERR_NOT_IN_RANGE) {
+					utils.DefaultMoveTo(creep, ctx.terminal);
+				}
+			}
+		} else if(creep.store.getUsedCapacity() == 0) {
+			return creep.suicide();
 		}
 	},
 };

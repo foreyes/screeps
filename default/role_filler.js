@@ -39,14 +39,23 @@ function isValidTarget(ctx, creep, target) {
 }
 
 function findNewTarget(ctx, creep) {
+	if(ctx.upgrading && ctx.controllerContainer && ctx.fillers.length > 0 && ctx.fillers[0].id != creep.id) {
+		return ctx.controllerContainer;
+	}
+	if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] >= 2000 && ctx.towers) {
+		var emptyTowers = ctx.towers.filter((t) => t.store[RESOURCE_ENERGY] < 500);
+		if(emptyTowers.length > 0) {
+			return creep.pos.findClosestByPath(emptyTowers);
+		}
+	}
 	// fill spawn and extensions
 	var spwansAndEmptyExts = [];
+	if(ctx.emptyExts) {
+		spwansAndEmptyExts = spwansAndEmptyExts.concat(ctx.emptyExts);
+	}
 	if(ctx.spawns) {
 		var emptySpawns = ctx.spawns.filter((s) => s.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
 		spwansAndEmptyExts = spwansAndEmptyExts.concat(emptySpawns);
-	}
-	if(ctx.emptyExts) {
-		spwansAndEmptyExts = spwansAndEmptyExts.concat(ctx.emptyExts);
 	}
 	if(spwansAndEmptyExts.length != 0) {
 		return creep.pos.findClosestByPath(spwansAndEmptyExts);
@@ -89,6 +98,7 @@ function getValidTarget(ctx, creep) {
 	if(target != null && target != ctx.storage) {
 		creep.memory.targetId = target.id;
 	}
+	creep.target = target;
 	return target;
 }
 
@@ -135,7 +145,7 @@ function fillStructure(ctx, creep) {
 	var target = getValidTarget(ctx, creep);
 	if(target == null) return false;
 
-	if(ctx.upgrading && ctx.controllerContainer && target.id == ctx.controllerContainer.id && creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+	if(ctx.upgrading && ctx.controllerContainer && target.id == ctx.controllerContainer.id && creep.store.getUsedCapacity(RESOURCE_ENERGY) < creep.store.getFreeCapacity(RESOURCE_ENERGY)) {
 		creep.memory.FindEnergy = true;
 		findEnergy(ctx, creep);
 		return false;
@@ -152,6 +162,15 @@ function fillStructure(ctx, creep) {
 
 
 function Run(ctx, creep) {
+	creep.st = Game.cpu.getUsed();
+	if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+		var energy = creep.room.lookAt(creep.pos).filter((item) => {
+			return item.type == 'resource' && item.resource.amount > 0 && item.resource.resourceType == RESOURCE_ENERGY;
+		});
+		if(energy.length > 0) {
+			creep.pickup(energy[0].resource);
+		}
+	}
 	if(creep.memory.FindEnergy && creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
 		creep.memory.FindEnergy = false;
 		creep.say('store');

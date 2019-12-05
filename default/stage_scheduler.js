@@ -172,7 +172,13 @@ var stages = {
 			}
 			return false;
 		},
-		terminate: defaultTerminate
+		terminate: function(ctx, next) {
+			ctx.room.memory.ctx.fillerNum = 2;
+			ctx.room.memory.ctx.upgraderNum = 1;
+			ctx.room.memory.ctx.keepLevel = true;
+			ctx.room.memory.ctx.upgrading = false;
+			defaultTerminate(ctx, next);
+		}
 	},
 	road1: {
 		wait: 0,

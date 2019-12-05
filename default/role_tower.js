@@ -12,6 +12,7 @@ function Run(ctx, tower) {
         tower.attack(target);
         return;
     }
+    if(tower.id != ctx.towers[0].id) return;
     // repair
     var roads = ctx.room.find(FIND_STRUCTURES, {
     	filter: (structure) => {

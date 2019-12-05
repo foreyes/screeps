@@ -4,7 +4,7 @@
 var utils = require('utils');
 
 function fetchGlobalCtx() {
-    return {cpu: Game.cpu.getUsed(), roomCpu: {}, creepCpu: {}};
+    return {cpu: Game.cpu.getUsed(), normalCreepCpu: 0, outCreepCpu: 0};
 }
 
 function fetchRoomCtx(gCtx, room) {
@@ -18,23 +18,20 @@ function fetchRoomCtx(gCtx, room) {
 // spawn should not near by sources.
 // sort from small to big
 // set a restPos Flag
+// require('prototype.Creep.move')
 module.exports.loop = function() {
+    if(Memory.profilingflag == 1 || Memory.profileRems == 1) {
+        Memory.memoryFetchTime = Game.cpu.getUsed();
+        console.log('Parse memory: ' + Memory.memoryFetchTime);
+    }
+    Memory.moveCpuUseCur = 0;
+
+    utils.ProfileUpdate();
     // statOutMiner
     Memory.outSpeed = Memory.statOutMiner / (Game.time - Memory.statStart);
     // clear memory
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
-            if(Memory.creeps[name].role == 'simple_outer') {
-                var room = Game.rooms[Memory.creeps[name].ctrlRoom];
-                if(room.memory.simple_outer_his == undefined) {
-                    room.memory.simple_outer_his = [];
-                }
-                var diff = 0 - Memory.creeps[name].cost;
-                if(Memory.creeps[name].cnt != undefined) {
-                    diff += Memory.creeps[name].cnt;
-                }
-                room.memory.simple_outer_his.push(diff);
-            }
             delete Memory.creeps[name];
             console.log('Clearing non-existing creep memory:', name);
         }
@@ -53,11 +50,20 @@ module.exports.loop = function() {
     // fetch global context
     var gCtx = fetchGlobalCtx();
 
+    utils.ProfileStage('Init: ');
+
+    gCtx.allOrders = Game.market.getAllOrders((order) => {
+        return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST ||
+                order.resourceType == RESOURCE_OXIDANT;
+    });
+    utils.ProfileStage('Fetch market: ');
+
     // global action begin
 
     // global action end
 
     // run room scheduler
+    var stG = Game.cpu.getUsed();
     for(var i in Game.rooms) {
         try {
             Game.rooms[i].ctx = fetchRoomCtx(gCtx, Game.rooms[i]);
@@ -66,6 +72,8 @@ module.exports.loop = function() {
             utils.TraceError(err, errMsg);
         }
     }
+    utils.ProfileStage('Fetch room ctx: ');
+
     for(var i in Game.rooms) {
         try {
             var room = Game.rooms[i];
@@ -75,58 +83,7 @@ module.exports.loop = function() {
             utils.TraceError(err, errMsg);
         }
     }
-
-    // console.log(JSON.stringify(gCtx.roomCpu));
-    // console.log(JSON.stringify(gCtx.creepCpu));
-
-    // extra
-    try {
-        if(Memory.ExtraWork && Memory.ExtraWork.length > 0) {
-            var newExt = [];
-            for(var i in Memory.ExtraWork) {
-                var workPair = Memory.ExtraWork[i];
-                var creep = Game.getObjectById(workPair.id);
-                if(!creep) continue;
-
-                if(workPair.type == 'walk') {
-                    var target = new RoomPosition(workPair.target.x, workPair.target.y, workPair.target.roomName);
-                    if(!target) continue;
-                    if(!utils.IsSamePosition(creep.pos, target)) {
-                        utils.DefaultMoveTo(creep, target);
-                        newExt.push(workPair);
-                    }
-                } else if(workPair.type == 'attack') {
-                    var target = Game.getObjectById(workPair.target);
-                    if(!target) continue;
-                    var err = creep.attack(target);
-                    if(err == ERR_NOT_IN_RANGE) {
-                        utils.DefaultMoveTo(creep, target);
-                    }
-                    newExt.push(workPair);
-                } else if(workPair.type == 'heal') {
-                    var target = Game.getObjectById(workPair.target);
-                    if(!target) continue;
-                    var err = creep.heal(target);
-                    if(err == ERR_NOT_IN_RANGE) {
-                        utils.DefaultMoveTo(creep, target);
-                    }
-                    newExt.push(workPair);
-                } else if(workPair.type == 'dismantle') {
-                    var target = Game.getObjectById(workPair.target);
-                    if(!target) continue;
-                    var err = creep.dismantle(target);
-                    if(err == ERR_NOT_IN_RANGE) {
-                        utils.DefaultMoveTo(creep, target);
-                    }
-                    newExt.push(workPair);
-                }
-                
-            }
-            Memory.ExtraWork = newExt;
-        }
-    } catch(err) {
-        utils.TraceError(err, 'Extra work error: ');
-    }
+    utils.ProfileStage('Run room scheduler: ');
 
     // cpu use stats
     if(Memory.cpuUse == undefined) {
@@ -137,4 +94,12 @@ module.exports.loop = function() {
     if(Game.time % 100 == 0) {
         console.log(Memory.cpuUse);
     }
+    if(Memory.moveCpuUse == undefined) {
+        Memory.moveCpuUse = Memory.moveCpuUseCur;
+    } else {
+        Memory.moveCpuUse = Memory.moveCpuUse * 0.8 + Memory.moveCpuUseCur * 0.2;
+    }
+    utils.ProfileStage('Stats mean cpu used: ', false, true);
+    // console.log('normal: ' + gCtx.normalCreepCpu);
+    // console.log('out: ' + gCtx.outCreepCpu);
 };

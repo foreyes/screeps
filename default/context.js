@@ -26,6 +26,14 @@ function FetchRoomCtx(gCtx, room) {
 	// var my = room.controller != undefined && room.controller.my;
 	// var neutral = room.controller == undefined || room.controller.owner == 'None';
 	// var hostile = !my && !neutral
+	if(room.controller == undefined || !room.controller.my) {
+		// utils.ProfileStage('Fetch room' + room.name + ' ctx: ');
+		return {
+			room: room,
+			enemies: room.find(FIND_HOSTILE_CREEPS),
+			constructing: room.find(FIND_MY_CONSTRUCTION_SITES),
+		}
+	}
 
 	// spawns
 	var spawn = undefined;
@@ -87,6 +95,11 @@ function FetchRoomCtx(gCtx, room) {
 	var repairers = creeps.filter((creep) => creep.memory.role == 'repairer');
 	var miners = creeps.filter((creep) => creep.memory.role == 'miner');
 	var fillers = creeps.filter((creep) => creep.memory.role == 'filler');
+	fillers = fillers.sort((a, b) => {
+		if(a.spawning) return true;
+		if(b.spawning) return false;
+		return a.id < b.id;
+	});
 	// setup restPos
 	var restPos = spawn;
 	if(room.memory.ctx.restPos != undefined) {
@@ -112,7 +125,7 @@ function FetchRoomCtx(gCtx, room) {
 	var factory = undefined;
 	var factories = room.find(FIND_STRUCTURES, {
 		filter: (s) => {
-			return s.structureType == STRUCTURE_FACTORY && s.my;
+			return s.structureType == STRUCTURE_FACTORY;
 		}
 	});
 	if(factories.length > 0) {
@@ -133,6 +146,17 @@ function FetchRoomCtx(gCtx, room) {
  //        	return creep.my && creep.memory.role == 'specialer' && creep.memory.specialType == 'stealer';
  //    	}
  //   	});
+ 	// power spawn
+ 	var powerSpawn = undefined;
+ 	var powerSpawns = room.find(FIND_STRUCTURES, {
+ 		filter: (s) => {
+ 			return s.structureType == STRUCTURE_POWER_SPAWN;
+ 		}
+ 	});
+ 	if(powerSpawns.length > 0) {
+ 		powerSpawn = powerSpawns[0];
+ 	}
+ 	var powerSpawners = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'powerSpawner');
 
 	var ctx = {
 		room: room,
@@ -168,6 +192,8 @@ function FetchRoomCtx(gCtx, room) {
 		factoriers: factoriers,
 		labs: labs,
 		labers: labers,
+		powerSpawn: powerSpawn,
+		powerSpawners: powerSpawners,
 		// stealers: stealers,
 	};
 	// set room ignore
@@ -250,6 +276,8 @@ function FetchRoomCtx(gCtx, room) {
 							}).length > 0;
 
 	room.ctx = ctx;
+
+	// utils.ProfileStage('Fetch room' + room.name + ' ctx: ');
 	return ctx;
 }
 

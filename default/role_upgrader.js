@@ -11,9 +11,11 @@ var roleParts = {
     1800: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
     2300: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
     3500: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+    3950: utils.GetPartsByArray([[WORK, 34], [CARRY, 2], [MOVE, 9]]), 
 };
 
 function getCost(energy) {
+    if(energy >= 3950) return 3950;
     if(energy >= 3500) return 3500;
     if(energy >= 2300) return 2300;
     if(energy >= 1800) return 1800;
@@ -40,16 +42,12 @@ function findEnergy(ctx, creep) {
         creep.memory.FindEnergy = true;
         creep.say('🔄');
     }
-    if(ctx.controllerLink) {
-        if(ctx.controllerLink.store[RESOURCE_ENERGY] <= 200 && ctx.controllerContainer) {
-            var err = creep.withdraw(ctx.controllerContainer, RESOURCE_ENERGY);
-            if(err == 0) return true;
-        }
-        var err = creep.withdraw(ctx.controllerLink, RESOURCE_ENERGY);
+    if(ctx.upgrading && ctx.controllerContainer) {
+        var err = creep.withdraw(ctx.controllerContainer, RESOURCE_ENERGY);
         if(err == ERR_NOT_IN_RANGE) {
-            return utils.DefaultMoveTo(creep, ctx.controllerLink);
+            utils.DefaultMoveTo(creep, ctx.controllerContainer);
         }
-        return err;
+        return;
     }
     if(ctx.controllerContainer && ctx.controllerContainer.store[RESOURCE_ENERGY] > 0) {
         utils.GetEnergyFromControllerStore(ctx, creep)
@@ -70,6 +68,17 @@ function findEnergy(ctx, creep) {
 }
 
 function Run(ctx, creep) {
+    if(ctx.upgrading && creep.store[RESOURCE_ENERGY] > 0) {
+        var err = creep.upgradeController(ctx.room.controller);
+        if(err == ERR_NOT_IN_RANGE) {
+            creep.say('coming');
+            utils.DefaultMoveTo(creep, ctx.room.controller);
+        }
+        if(!ctx.creepOnContainer) {
+            utils.DefaultMoveTo(creep, ctx.controllerContainer);
+        }
+        return;
+    }
     if(creep.memory.sleep) {
         creep.memory.sleep -= 1;
         return;

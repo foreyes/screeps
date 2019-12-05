@@ -1,3 +1,12 @@
+Creep.prototype.myWithdraw = function(target, resourceType) {
+    var err = this.withdraw(target, resourceType);
+    if(err == ERR_NOT_IN_RANGE) {
+        DefaultMoveTo(this, target);
+        return 0;
+    }
+    return err;
+}
+
 var get_positions_by_dist = function(room, start, dist) {
     var res = [];
     for(var dx = -dist; dx <= dist; dx++) {
@@ -28,45 +37,38 @@ function CmpByObjDist2GivenPos(pos) {
     };
 }
 
-function findNewPath2Target(creep, target, ignoreCreeps) {
-    var costCallback = undefined;
-    if(creep.room.ctx && creep.room.ctx.roomIgnore) {
-        costCallback = function(roomName, costMatrix) {
-            if(roomName == creep.room.name) {
-                for(var i in creep.room.ctx.roomIgnore) {
-                    var pos = creep.room.ctx.roomIgnore[i];
-                    costMatrix.set(pos.x, pos.y, 255);
-                }
-            }
-        }
+function findNewPath2Target(creep, target, ignoreCreeps, otherRoom) {
+    var path = undefined;
+    if(!otherRoom) {
+        path = creep.room.findPath(creep.pos, target, {ignoreCreeps: ignoreCreeps});
+    } else {
+        path = FindPath(creep.pos, target, {ignoreCreeps: ignoreCreeps}).path;
     }
-    var path = creep.room.findPath(creep.pos, target, {ignoreCreeps: ignoreCreeps, costCallback: costCallback});
-    creep.memory.path = Room.serializePath(path);
+    creep.cache.path = path;
+    creep.cache.dest = target;
     return path;
 }
 
-function getPath2Target(creep, target, ignoreCreeps = true) {
-    if(creep.memory.path == undefined) {
-        return findNewPath2Target(creep, target, ignoreCreeps);
+function getPath2Target(creep, target, ignoreCreeps = true, otherRoom = false) {
+    if(creep.cache.path == undefined) {
+        return findNewPath2Target(creep, target, ignoreCreeps, otherRoom);
     }
-    var path = Room.deserializePath(creep.memory.path);
-    var dest = path[path.length - 1];
+    var path = creep.cache.path;
+    var dest = creep.cache.dest;
     if(!dest || target.x != dest.x || target.y != dest.y) {
-        return findNewPath2Target(creep, target, ignoreCreeps);
+        return findNewPath2Target(creep, target, ignoreCreeps, otherRoom);
     }
     return path;
 }
 
 function defaultMoveToOtherRoom(creep, target) {
-    creep.memory.needMove = true;
-    if(creep.memory.role == 'miner') {
-        return creep.moveTo(target, {reusePath: 10, visualizePathStyle: {stroke: '#ffaa00'}});
-    }
     if(creep.memory.stuck <= 2) {
-        return creep.moveTo(target, {reusePath: 50, ignoreCreeps: true, visualizePathStyle: {stroke: '#ffaa00'}});
+        var path = getPath2Target(creep, target, true, true);
+        return creep.moveByPath(path);
     } else {
-        delete creep.memory._move;
-        return creep.moveTo(target, {reusePath: 50, visualizePathStyle: {stroke: '#ffaa00'}});
+        delete creep.cache.path;
+        var path = getPath2Target(creep, target, false, true);
+        return creep.moveByPath(path);
     }
 }
 
@@ -94,12 +96,12 @@ function moveToTest(creep, target) {
     return err;
 }
 
-function DefaultMoveTo(creep, target) {
+function implementMoveTo(creep, target) {
     // return moveToTest(creep, target);
 
     if(target.pos != undefined) target = target.pos;
     if(creep.pos.roomName != target.roomName) {
-        var err = defaultMoveToOtherRoom(creep, target)
+        var err = defaultMoveToOtherRoom(creep, target);
         if(err == 0) {
             creep.memory.needMove = true;
         }
@@ -109,7 +111,7 @@ function DefaultMoveTo(creep, target) {
     creep.say(creep.memory.stuck);
     var path = null;
     if(creep.memory.stuck >= 2) {
-        delete creep.memory.path;
+        delete creep.cache.path;
         path = getPath2Target(creep, target, false);
     } else {
         path = getPath2Target(creep, target, true);
@@ -119,6 +121,11 @@ function DefaultMoveTo(creep, target) {
         creep.memory.needMove = true;
     }
     return err;
+}
+
+function DefaultMoveTo(creep, target) {
+    // return creep.moveTo(target);
+    implementMoveTo(creep, target);
 }
 
 function IsSamePosition(pos1, pos2) {
@@ -586,6 +593,7 @@ function FindPath(origin, goal, opt = {}) {
     return PathFinder.search(origin, goal, {
         plainCost: plainCost,
         swampCost: swampCost,
+        maxOps: 20000,
         roomCallback: function(roomName) {
             var room = Game.rooms[roomName];
             if(!room) return;
@@ -617,6 +625,64 @@ function FindPath(origin, goal, opt = {}) {
     });
 }
 
+function listSum(lst) {
+    var sum = 0;
+    for(var x of lst) {
+        sum += x;
+    }
+    return sum;
+}
+
+function ProfileUpdate() {
+    if(Memory.profilingflag != undefined) {
+        Memory.profileRems = Memory.profilingflag;
+        delete Memory.profilingflag;
+    } 
+    if(Memory.profileRems == undefined) return;
+    if(Memory.profileRems < 0) {
+        delete Memory.profileRems;
+        delete Memory.profileMsg;
+        delete Memory.profileMean;
+        delete Memory.curCpu;
+    } else {
+        Memory.profileRems -= 1;
+        Memory.curCpu = Game.cpu.getUsed();
+    }
+}
+
+function ProfileStage(msg, showHis = false, summary = false) {
+    if(Memory.profileRems == undefined) return;
+    if(Memory.profileMsg == undefined) {
+        Memory.profileMsg = {};
+        Memory.profileMean = {};
+    }
+    if(Memory.profileMsg[msg] == undefined) Memory.profileMsg[msg] = [];
+    var curCpu = Game.cpu.getUsed();
+    Memory.profileMsg[msg].push(curCpu - Memory.curCpu);
+    Memory.curCpu = curCpu;
+    if(Memory.profileRems == 0) {
+        var profileList = Memory.profileMsg[msg];
+        Memory.profileMean[msg] = listSum(profileList) / profileList.length;
+        if(showHis) {
+            console.log(msg, listSum(profileList) / profileList.length, profileList);
+        } else {
+            console.log(msg, listSum(profileList) / profileList.length);
+        }
+        if(summary) {
+            var sum = Memory.memoryFetchTime;
+            for(var i in Memory.profileMean) {
+                sum += Memory.profileMean[i];
+            }
+            console.log('Total cpu used: ' + sum);
+            console.log('Actually used by this tick: ', Game.cpu.getUsed());
+        }
+    }
+}
+
+function StartProfiling(ticks) {
+    Memory.profilingflag = ticks;
+}
+
 module.exports = {
     get_positions_by_dist,
     GetDirectDistance,
@@ -641,4 +707,7 @@ module.exports = {
     InitLinkInfo4Room,
     GetRoomPosition,
     FindPath,
+    ProfileUpdate,
+    ProfileStage,
+    StartProfiling,
 };

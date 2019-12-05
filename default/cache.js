@@ -26,17 +26,21 @@ Creep.prototype.fecthMoveRate = function() {
 }
 
 Creep.prototype.fecthCache = function() {
+	if(this.spawnCooldownTime != undefined) return;
 	if(cache[this.id] == undefined) {
 		cache[this.id] = {};
 	}
 	this.cache = cache[this.id];
-	this.fecthMoveRate();
+	// this.fecthMoveRate();
 }
 
 function FetchCreepCache() {
 	for(var name in Game.creeps) {
 		Game.creeps[name].fecthCache();
 	}
+	// for(var name in Game.powerCreeps) {
+	// 	Game.powerCreeps[name].fecthCache();
+	// }
 }
 
 module.exports = {

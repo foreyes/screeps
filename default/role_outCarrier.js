@@ -68,7 +68,7 @@ function Run(ctx, creep) {
 			outSource.needDefender = true;
 		}
 		creep.memory.sleep = 100;
-		var pos = new RoomPosition(25, 25, creep.memory.ctrlRoom);
+		var pos = ctx.spawn.pos;
 		return utils.DefaultMoveTo(creep, pos);
 	}
 	// sleep after attacked
@@ -80,6 +80,7 @@ function Run(ctx, creep) {
 	var idx = creep.memory.sourceIdx;
 	var workPos = utils.GetRoomPosition(outSource.workPos[idx]);
 	if(creep.room.name != creep.memory.workRoom) {
+		creep.say('hh');
 		return utils.DefaultMoveTo(creep, workPos);
 	}
 	// collect energy
