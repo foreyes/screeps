@@ -1,17 +1,34 @@
 var utils = require('utils');
 
+function getCost(energy) {
+    return Math.min(parseInt(energy / 200), 15) * 200;
+}
+
+function GetPartsAndCost(energy) {
+    var cost = getCost(energy);
+    var cnt = parseInt(cost / 200);
+    var parts = utils.GetPartsByArray([[WORK, cnt], [CARRY, cnt], [MOVE, cnt]]);
+    return {cost: cost, parts: parts};
+}
+
+
+
 function findEnergy(ctx, creep) {
     if(!creep.memory.FindEnergy) {
         creep.memory.FindEnergy = true;
-        creep.say('🔄 find energy');
+        creep.say('🔄');
     }
     if(getTarget(ctx, creep) == null) {
         return;
     }
-    if(ctx.flagDevRole) {
-        utils.GetEnergyFromStore(ctx, creep)
+    if(Game.time % 10 == 0) {
+        delete creep.memory.energyTargetId;
+        delete creep.memory.targetId;
+    }
+    if(utils.GetEnergy4Worker(ctx, creep) || ctx.miners.length != 0) {
         return;
     }
+
     var source = ctx.sources[0];
     var err = creep.harvest(source);
     if(err == ERR_NOT_IN_RANGE) {
@@ -33,22 +50,31 @@ function checkTarget4Build(target) {
     return target.my == true;
 }
 
+function getBuildPriority(structure) {
+    var st = structure.structureType;
+    if(st == STRUCTURE_TOWER) return -1;
+    if(st == STRUCTURE_EXTENSION) return 0;
+    if(st == STRUCTURE_ROAD) return 1;
+    if(st == STRUCTURE_CONTAINER) return 2;
+    return 3;
+}
+
 function getTarget(ctx, creep) {
-    var targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
+    var smallestPrio = 3;
+    var targets = ctx.room.find(FIND_CONSTRUCTION_SITES, {
         filter: (site) => {
-            return site.my;
+            if(site.my) {
+                smallestPrio = Math.min(smallestPrio, getBuildPriority(site));
+                return true;
+            }
+            return false;
         }
     });
     if(targets.length == 0) {
         return null;
     }
-    var target = null;
-    var roads = targets.filter((site) => site.structureType == STRUCTURE_ROAD);
-    if(roads.length != 0) {
-        target = creep.pos.findClosestByPath(roads, {ignoreCreeps: true});
-    } else {
-        target = creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
-    }
+    targets = targets.filter((s) => getBuildPriority(s) == smallestPrio);
+    var target = creep.pos.findClosestByPath(targets);
     creep.memory.targetId = target.id;
     return target;
 }
@@ -80,13 +106,6 @@ function Run(ctx, creep) {
         return;
     }
 
-    ctx.sources.forEach((src) => {
-        if(utils.GetDirectDistance(creep.pos, src.pos) == 1) {
-            escapeFromSource(ctx, creep, src);
-            return;
-        }
-    });
-
     // build logic
     if(try2Build(ctx, creep)) {
         return;
@@ -97,5 +116,6 @@ function Run(ctx, creep) {
 }
 
 module.exports = {
+    GetPartsAndCost,
     Run
 };

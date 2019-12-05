@@ -1,17 +1,41 @@
 var utils = require('utils');
 
+var roleParts = {
+    0: [],
+    200: [WORK, CARRY, MOVE],
+    400: [WORK, WORK, CARRY, CARRY, MOVE, MOVE],
+    600: [WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
+};
+
+function getCost(energy) {
+    if(energy >= 600) return 600;
+    if(energy >= 400) return 400;
+    if(energy >= 200) return 200;
+    return 0;
+}
+
+function GetPartsAndCost(energy) {
+    var cost = getCost(energy);
+    var parts = roleParts[cost];
+    return {cost: cost, parts: parts};
+}
+
 function findEnergy(ctx, creep) {
     if(!creep.memory.FindEnergy) {
         creep.memory.FindEnergy = true;
-        creep.say('🔄 find energy');
+        creep.say('🔄');
     }
     if(getTarget(ctx, creep) == null) {
         return;
     }
-    if(ctx.flagDevRole) {
-        utils.GetEnergyFromStore(ctx, creep)
+    if(Game.time % 10 == 0) {
+        delete creep.memory.energyTargetId;
+        delete creep.memory.targetId;
+    }
+    if(utils.GetEnergy4Worker(ctx, creep) || ctx.miners.length != 0) {
         return;
     }
+
     var source = ctx.sources[0];
     var err = creep.harvest(source);
     if(err == ERR_NOT_IN_RANGE) {
@@ -38,15 +62,9 @@ function checkTarget4Repair(target) {
 function getTarget(ctx, creep) {
     var targets = creep.room.find(FIND_STRUCTURES, {
         filter: (structure) => {
-            var res = structure.hits != undefined;
-            res = res && structure.hits < structure.hitsMax && structure.structureType != 'constructedWall';
-            if(structure.my != undefined) {
-                res = res && structure.my;
-            }
-            if(ctx.towers.length != 0) {
-                res = res && structure.structureType != STRUCTURE_ROAD;
-            }
-            return res;
+            var cond1 = structure.structureType == STRUCTURE_CONTAINER;
+            var cond2 = structure.structureType == STRUCTURE_ROAD && ctx.towers.length == 0 && ctx.room.controller && ctx.room.controller.my;
+            return (cond1 || cond2) && structure.hits < structure.hitsMax;
         }
     });
     if(targets.length == 0) {
@@ -83,13 +101,6 @@ function Run(ctx, creep) {
         return;
     }
 
-    ctx.sources.forEach((src) => {
-        if(utils.GetDirectDistance(creep.pos, src.pos) == 1) {
-            escapeFromSource(ctx, creep, src);
-            return;
-        }
-    });
-
     // repair logic
     if(try2Repair(ctx, creep)) {
         return;
@@ -97,8 +108,14 @@ function Run(ctx, creep) {
     // no work to do
     // TODO: set a rest point
     utils.DefaultMoveTo(creep, ctx.restPos);
+    if(creep.memory.usefulTime == undefined) {
+        creep.memory.usefulTime = 1500;
+    }
+    creep.memory.usefulTime -= 1;
 }
 
 module.exports = {
+    Try2Repair: try2Repair,
+    GetPartsAndCost,
     Run
 };
