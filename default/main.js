@@ -85,6 +85,8 @@ module.exports.loop = function() {
     }
     utils.ProfileStage('Run room scheduler: ');
 
+    require('terminal_scheduler').Run(gCtx);
+
     // cpu use stats
     if(Memory.cpuUse == undefined) {
         Memory.cpuUse = Game.cpu.getUsed();

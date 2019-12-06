@@ -1,18 +1,6 @@
 // 7级之前每个基地最多三个外矿点（三个miner）
 var RoomConfig = {
 	'E29N34': {
-		// TODO: maintain room infomations here
-		// *********************************
-		// sources: [],
-		// sourceContainers: [],
-		// centralContainers: [],
-		// controllerContainer: ,
-		// sourceLinks: [],
-		// centralLink: ,
-		// mainSpawn: ,
-		// spawns: [],
-		// **********************************
-		// out sources
 		outSources: {
 			'E29N35': {
 				needReserve: true,

@@ -29,6 +29,7 @@ function FetchRoomCtx(gCtx, room) {
 	if(room.controller == undefined || !room.controller.my) {
 		// utils.ProfileStage('Fetch room' + room.name + ' ctx: ');
 		return {
+			my: false,
 			room: room,
 			enemies: room.find(FIND_HOSTILE_CREEPS),
 			constructing: room.find(FIND_MY_CONSTRUCTION_SITES),
@@ -160,7 +161,7 @@ function FetchRoomCtx(gCtx, room) {
 
 	var ctx = {
 		room: room,
-		// my: my,
+		my: true,
 		// neutral: neutral,
 		// hostile: hostile,
 		spawns: spawns,

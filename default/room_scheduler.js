@@ -219,7 +219,6 @@ function Run(gCtx, room) {
             gCtx.normalCreepCpu += diff;
             if(diff > 1) {
                 console.log(creep.name + ': ', diff);
-                 if(creep.memory.role == 'filler') console.log(creep.target);
             }
         } catch(err) {
             console.log(creep.memory.role);
@@ -254,14 +253,14 @@ function Run(gCtx, room) {
         // ctx.factory.produce(RESOURCE_LEMERGIUM_BAR);
         ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
         ctx.factory.produce(RESOURCE_UTRIUM_BAR);
-        // ctx.factory.produce(RESOURCE_KEANIUM_BAR);
+        ctx.factory.produce(RESOURCE_KEANIUM_BAR);
         ctx.factory.produce(RESOURCE_OXIDANT);
-        ctx.factory.produce(RESOURCE_CONDENSATE);
         ctx.factory.produce(RESOURCE_PURIFIER);
     }
     if(ctx.factory && ctx.room.name == 'E33N36') {
-        // ctx.factory.produce(RESOURCE_KEANIUM_BAR);
+        ctx.factory.produce(RESOURCE_KEANIUM_BAR);
         ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
+        ctx.factory.produce(RESOURCE_CONDENSATE);
     }
     if(ctx.factory && ctx.room.name == 'E29N34' && ctx.terminal && ctx.terminal.store['O'] >= 10000) {
         ctx.factory.produce(RESOURCE_OXIDANT);

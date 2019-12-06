@@ -683,6 +683,14 @@ function StartProfiling(ticks) {
     Memory.profilingflag = ticks;
 }
 
+function GetObjByArray(arr) {
+    var res = {};
+    for(var i in arr) {
+        res[arr[i][0]] = arr[i][1];
+    }
+    return res;
+}
+
 module.exports = {
     get_positions_by_dist,
     GetDirectDistance,
@@ -710,4 +718,5 @@ module.exports = {
     ProfileUpdate,
     ProfileStage,
     StartProfiling,
+    GetObjByArray,
 };
