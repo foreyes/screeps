@@ -85,7 +85,26 @@ module.exports.loop = function() {
     }
     utils.ProfileStage('Run room scheduler: ');
 
-    require('terminal_scheduler').Run(gCtx);
+    try {
+        require('terminal_scheduler').Run(gCtx);
+    } catch(err) {
+        var errMsg = 'Terminal scheduler error: ';
+        utils.TraceError(err, errMsg);
+    }
+
+    for(var i in Game.rooms) {
+        try {
+            var ctx = Game.rooms[i].ctx;
+            if(ctx.my) {
+                for(var creep of ctx.managers) {
+                    require('role_manager').Run(ctx, creep);
+                }
+            }
+        } catch(err) {
+            var errMsg = 'room ' + i + ' manager error: ';
+            utils.TraceError(err, errMsg);
+        }
+    }
 
     // cpu use stats
     if(Memory.cpuUse == undefined) {

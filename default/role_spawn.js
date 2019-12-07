@@ -14,6 +14,7 @@ var roleMap = {
     outCarrier: require('role_outCarrier'),
     defender: require('role_defender'),
     mister: require('mister'),
+    manager: require('role_manager'),
 };
 
 // opt: parts, must, givenName, memory
@@ -148,13 +149,18 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
     // spawn factorier
-    if(ctx.terminal && ctx.factoriers.filter(hasLongLife).length == 0 && isMain) {
-        return spawnCreep(ctx, spawn, 'specialer', {
+    if((ctx.centralLink || ctx.terminal) && ctx.managers.filter(hasLongLife).length == 0 && isMain) {
+        return spawnCreep(ctx, spawn, 'manager', {
             directions: [TOP],
-            parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY],
-            memory: {specialType: 'factorier'}
         });
     }
+    // if(ctx.terminal && ctx.factoriers.filter(hasLongLife).length == 0 && isMain) {
+    //     return spawnCreep(ctx, spawn, 'specialer', {
+    //         directions: [TOP],
+    //         parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY],
+    //         memory: {specialType: 'factorier'}
+    //     });
+    // }
     // spawn upgrader
     if(ctx.upgraders.filter(hasLongLife).length < ctx.room.memory.ctx.upgraderNum) {
         return spawnCreep(ctx, spawn, 'upgrader');

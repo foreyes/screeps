@@ -134,6 +134,7 @@ function FetchRoomCtx(gCtx, room) {
 	}
 	// factorier
 	var factoriers = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'factorier');
+	var managers = creeps.filter((creep) => creep.memory.role == 'manager');
 	// labs
 	var labs = undefined;
 	if(room.memory.ctx.labIds) {
@@ -191,6 +192,7 @@ function FetchRoomCtx(gCtx, room) {
 		mineralCanHarvest: mineralCanHarvest,
 		factory: factory,
 		factoriers: factoriers,
+		managers: managers,
 		labs: labs,
 		labers: labers,
 		powerSpawn: powerSpawn,

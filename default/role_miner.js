@@ -10,9 +10,11 @@ var roleParts = {
 	650: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE],
 	750: [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE],
 	1250: utils.GetPartsByArray([[WORK, 10], [MOVE, 5]]),
+	1400: utils.GetPartsByArray([[WORK, 10], [CARRY, 4], [MOVE, 4]]),
 };
 
 function getCost(energy) {
+	if(energy >= 1400) return 1400;
 	if(energy >= 1250) return 1250;
 	if(energy >= 750) return 750;
 	if(energy >= 650) return 650;

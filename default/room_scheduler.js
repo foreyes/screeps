@@ -165,7 +165,7 @@ function Run(gCtx, room) {
             // run role logic
 
             // no role
-            if(!creep.memory.role) continue;
+            if(!creep.memory.role || creep.memory.role == 'manager') continue;
             // special roles
             if(creep.memory.role == 'mister') {
                 require('mister').Run(ctx, creep);

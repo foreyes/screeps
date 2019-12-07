@@ -81,6 +81,7 @@ function Run(ctx, creep) {
 	var workPos = utils.GetRoomPosition(outSource.workPos[idx]);
 	if(creep.room.name != creep.memory.workRoom) {
 		creep.say('hh');
+		creep.say(workPos.roomName);
 		return utils.DefaultMoveTo(creep, workPos);
 	}
 	// collect energy

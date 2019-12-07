@@ -102,7 +102,7 @@ function Run(ctx, creep) {
     }
     if(err == 0) {
         // just keep level when no need to upgrade
-        if(ctx.keepLevel) {
+        if(ctx.keepLevel && creep.getActiveBodyparts(WORK) == 1) {
             creep.memory.sleep = 10;
         }
     }
