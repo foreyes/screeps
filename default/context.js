@@ -137,9 +137,9 @@ function FetchRoomCtx(gCtx, room) {
 	var managers = creeps.filter((creep) => creep.memory.role == 'manager');
 	// labs
 	var labs = undefined;
-	if(room.memory.ctx.labIds) {
-		labs = room.memory.ctx.labIds.map(Game.getObjectById);
-	}
+	// if(room.memory.ctx.labIds) {
+	// 	labs = room.memory.ctx.labIds.map(Game.getObjectById);
+	// }
 	// labers
 	var labers = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'laber');
 	// stealers

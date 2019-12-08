@@ -21,7 +21,7 @@ function Run(ctx, creep) {
 	if(creep.memory.store) {
 		if(creep.store[RESOURCE_ENERGY] > 0) {
 			// repair road
-			if(creep.getActiveBodyparts(WORK) > 0) {
+			if(creep.getActiveBodyparts(WORK) > 0 && creep.room.name != creep.memory.ctrlRoom) {
 				var repaires = creep.room.lookAt(creep.pos).filter((item) => {
 						return item.type == 'structure' && item.structure.hits < item.structure.hitsMax && item.structure.structureType == STRUCTURE_ROAD;
 					}

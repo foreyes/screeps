@@ -17,8 +17,8 @@ function Run(gCtx, room) {
     var ctx = room.ctx;
 
     var deposits = room.find(FIND_DEPOSITS);
-    var usefulDeposits = deposits.filter((d) => d.lastCooldown <= 100);
-    var uselessDeposits = deposits.filter((d) => d.lastCooldown > 100);
+    var usefulDeposits = deposits.filter((d) => d.lastCooldown <= 200);
+    var uselessDeposits = deposits.filter((d) => d.lastCooldown > 200);
     if(usefulDeposits.length > 0) {
         if(Memory.deposits == undefined) Memory.deposits = {};
         for(var deposit of usefulDeposits) {
@@ -47,36 +47,77 @@ function Run(gCtx, room) {
         var errMsg = 'Observer in Room ' + room.name + ": ";
         utils.TraceError(err, errMsg);
     }
+
     try {
-    if(room.name == 'E33N36') {
-        var powerCreep = Game.powerCreeps['The Queen'];
-        if(powerCreep.spawnCooldownTime != undefined) {
-            if(powerCreep.spawnCooldownTime == 0) {
-                powerCreep.spawn(ctx.powerSpawn);
-            }
-        } else {
-            if(powerCreep.store[RESOURCE_OPS] >= 100 || powerCreep.ticksToLive < 100) {
-                var err = powerCreep.transfer(ctx.terminal, RESOURCE_OPS);
-                if(err == ERR_NOT_IN_RANGE) {
-                    powerCreep.moveTo(ctx.terminal);
-                }
-            } else {
-                powerCreep.moveTo(new RoomPosition(25, 20, 'E33N36'));
-            }
-            powerCreep.say(powerCreep.powers[PWR_GENERATE_OPS].cooldown);
-            if(powerCreep.powers[PWR_GENERATE_OPS] && powerCreep.powers[PWR_GENERATE_OPS].cooldown == 0) {
-                var err = powerCreep.usePower(PWR_GENERATE_OPS);
-                if(err == -10) {
-                    var err = powerCreep.enableRoom(room.controller);
-                    if(err == ERR_NOT_IN_RANGE) {
-                        powerCreep.moveTo(room.controller)
+        if(room.name == 'E33N36') {
+            var powerCreep = Game.powerCreeps['The Queen'];
+            if(powerCreep.hits != undefined) {
+                if(ctx.factory && (ctx.factory.effects == undefined || ctx.factory.effects.length == 0)) {
+                    if(powerCreep.store[RESOURCE_OPS] < 100) {
+                        var err = powerCreep.withdraw(ctx.terminal, RESOURCE_OPS);
+                        if(err == ERR_NOT_IN_RANGE) {
+                            powerCreep.moveTo(ctx.terminal);
+                        }
+                    } else {
+                        var err = powerCreep.usePower(PWR_OPERATE_FACTORY, ctx.factory);
+                        if(err == ERR_NOT_IN_RANGE) {
+                            powerCreep.moveTo(ctx.factory);
+                        }
+                    }
+                } else {
+                    powerCreep.usePower(PWR_GENERATE_OPS);
+                    if(powerCreep.store[RESOURCE_OPS] > 0) {
+                        var err = powerCreep.transfer(ctx.terminal, RESOURCE_OPS);
+                        if(err == ERR_NOT_IN_RANGE) {
+                            powerCreep.moveTo(ctx.terminal);
+                        }
+                    } else {
+                        powerCreep.moveTo(new RoomPosition(25, 20, 'E33N36'));
+                        powerCreep.renew(Game.getObjectById('5de40b966fde1346b140e382'));
                     }
                 }
+            } else if(powerCreep.spawnCooldownTime == undefined) {
+                powerCreep.spawn(Game.getObjectById('5de40b966fde1346b140e382'));
             }
         }
-    }
     } catch(err) {
-        var errMsg = 'PowerCreep in Room ' + room.name + ": ";
+        var errMsg = 'Power creep in Room ' + room.name + ": ";
+        utils.TraceError(err, errMsg);
+    }
+
+    try {
+        if(room.name == 'E29N34') {
+            var powerCreep = Game.powerCreeps['The Joker'];
+            if(powerCreep.hits != undefined) {
+                if(ctx.factory && (ctx.factory.effects == undefined || ctx.factory.effects.length == 0)) {
+                    if(powerCreep.store[RESOURCE_OPS] < 100) {
+                        var err = powerCreep.withdraw(ctx.terminal, RESOURCE_OPS);
+                        if(err == ERR_NOT_IN_RANGE) {
+                            powerCreep.moveTo(ctx.terminal);
+                        }
+                    } else {
+                        var err = powerCreep.usePower(PWR_OPERATE_FACTORY, ctx.factory);
+                        if(err == ERR_NOT_IN_RANGE) {
+                            powerCreep.moveTo(ctx.factory);
+                        }
+                    }
+                } else {
+                    if(powerCreep.store[RESOURCE_OPS] > 0) {
+                        var err = powerCreep.transfer(ctx.terminal, RESOURCE_OPS);
+                        if(err == ERR_NOT_IN_RANGE) {
+                            powerCreep.moveTo(ctx.terminal);
+                        }
+                    } else {
+                        powerCreep.moveTo(Game.getObjectById('5dc8c9583253f214bd252681'));
+                        powerCreep.renew(Game.getObjectById('5deca6969238aa70737dcf0f'));
+                    }
+                }
+            } else if(powerCreep.spawnCooldownTime == undefined) {
+                powerCreep.spawn(Game.getObjectById('5deca6969238aa70737dcf0f'));
+            }
+        }
+    } catch(err) {
+        var errMsg = 'Power creep in Room ' + room.name + ": ";
         utils.TraceError(err, errMsg);
     }
 
@@ -249,22 +290,6 @@ function Run(gCtx, room) {
     if(ctx.powerSpawn && ctx.storage.store[RESOURCE_ENERGY] > 100000) {
         ctx.powerSpawn.processPower();
     }
-    if(ctx.factory && ctx.room.name == 'E35N38') {
-        // ctx.factory.produce(RESOURCE_LEMERGIUM_BAR);
-        ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
-        ctx.factory.produce(RESOURCE_UTRIUM_BAR);
-        ctx.factory.produce(RESOURCE_KEANIUM_BAR);
-        ctx.factory.produce(RESOURCE_OXIDANT);
-        ctx.factory.produce(RESOURCE_PURIFIER);
-    }
-    if(ctx.factory && ctx.room.name == 'E33N36') {
-        ctx.factory.produce(RESOURCE_KEANIUM_BAR);
-        ctx.factory.produce(RESOURCE_ZYNTHIUM_BAR);
-        ctx.factory.produce(RESOURCE_CONDENSATE);
-    }
-    if(ctx.factory && ctx.room.name == 'E29N34' && ctx.terminal && ctx.terminal.store['O'] >= 10000) {
-        ctx.factory.produce(RESOURCE_OXIDANT);
-    }
     if(ctx.labs) {
         if(ctx.labers.length == 0) {
             require('role_spawn').SpawnCreep('5dc6d24401ce096f94fc8ea6', 'specialer', {parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], memory: {specialType: 'laber'}});
@@ -272,19 +297,7 @@ function Run(gCtx, room) {
         ctx.labs[2].runReaction(ctx.labs[0], ctx.labs[1]);
         ctx.labs[3].runReaction(ctx.labs[0], ctx.labs[1]);
     }
-    if(ctx.upgrading && ctx.controllerLink) {
-        if(ctx.controllerLink.store[RESOURCE_ENERGY] == 0) {
-            for(var i in ctx.sourceLinks) {
-                var link = ctx.sourceLinks[i];
-                if(link.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                    link.transferEnergy(ctx.controllerLink);
-                }
-            }
-            if(ctx.centralLink && ctx.centralLink.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                ctx.centralLink.transferEnergy(ctx.controllerLink);
-            }
-        }
-    } else if(ctx.sourceLinks && ctx.centralLink) {
+    if(ctx.sourceLinks && ctx.centralLink) {
         for(var i in ctx.sourceLinks) {
             var link = ctx.sourceLinks[i];
             if(link.store.getFreeCapacity(RESOURCE_ENERGY) < 100) {
@@ -293,16 +306,30 @@ function Run(gCtx, room) {
         }
     }
     var allOrders = gCtx.allOrders;
-    if(ctx.room.name == 'E29N34') {
-        if(ctx.terminal && ctx.terminal.cooldown == 0 && ctx.terminal.store[RESOURCE_ENERGY] >= 10000) {
-            var sells = allOrders.filter((order) => {
-                return order.resourceType == RESOURCE_OXIDANT && order.amount > 0 &&
-                        order.type == ORDER_BUY && order.price >= 0.34;
+    // if(ctx.room.name == 'E29N34') {
+    //     if(ctx.terminal && ctx.terminal.cooldown == 0 && ctx.terminal.store[RESOURCE_ENERGY] >= 10000) {
+    //         var sells = allOrders.filter((order) => {
+    //             return order.resourceType == RESOURCE_OXIDANT && order.amount > 0 &&
+    //                     order.type == ORDER_BUY && order.price >= 0.34;
+    //         }).sort((a, b) => {
+    //             return a.price < b.price;
+    //         });
+    //         if(sells.length > 0) {
+    //             Game.market.deal(sells[0].id, Math.min(8000, ctx.terminal.store[RESOURCE_OXIDANT], sells[0].amount), 'E29N34');
+    //         }
+    //     }
+    // }
+    if(ctx.room.name == 'E33N36') {
+        if(ctx.terminal && ctx.terminal.cooldown == 0 && ctx.terminal.store[RESOURCE_CRYSTAL] > 0) {
+            var buys = allOrders.filter((order) => {
+                return order.resourceType == RESOURCE_CRYSTAL &&
+                        order.type == ORDER_BUY && order.amount > 0 &&
+                        order.price >= 5.5;
             }).sort((a, b) => {
                 return a.price < b.price;
             });
-            if(sells.length > 0) {
-                Game.market.deal(sells[0].id, Math.min(8000, ctx.terminal.store[RESOURCE_OXIDANT], sells[0].amount), 'E29N34');
+            if(buys.length > 0) {
+                Game.market.deal(buys[0].id, Math.min(8000, ctx.terminal.store[RESOURCE_CRYSTAL], buys[0].amount), 'E33N36');
             }
         }
     }
@@ -365,4 +392,4 @@ function Run(gCtx, room) {
 
 module.exports = {
     Run,
-};
+}; 

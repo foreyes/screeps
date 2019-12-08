@@ -314,10 +314,10 @@ var specialTypeList = {
 				}
 			}
 			if(creep.store[RESOURCE_ENERGY] < limit - 100 && ctx.powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-				var err = creep.withdraw(ctx.terminal, RESOURCE_ENERGY, limit - 100 - creep.store[RESOURCE_ENERGY]);
+				var err = creep.withdraw(ctx.storage, RESOURCE_ENERGY, limit - 100 - creep.store[RESOURCE_ENERGY]);
 				if(err == 0) return;
 				if(err == ERR_NOT_IN_RANGE) {
-					utils.DefaultMoveTo(creep, ctx.terminal);
+					utils.DefaultMoveTo(creep, ctx.storage);
 				}
 			}
 		} else if(creep.store.getUsedCapacity() == 0) {

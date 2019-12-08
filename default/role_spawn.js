@@ -238,6 +238,10 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
 
+    // if(isMain && ctx.managers.length > 0) {
+    //     spawn.renewCreep(ctx.managers[0]);
+    // }
+
     return -233;
 }
 

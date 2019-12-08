@@ -36,6 +36,13 @@ function getNewWork(ctx, creep) {
 		};
 	}
 	if(!ctx.terminal) return;
+	if(ctx.terminal.store[RESOURCE_ENERGY] < 10000) {
+		return creep.memory.work = {
+			srcId: ctx.storage.id,
+			destId: ctx.terminal.id,
+			resourceType: RESOURCE_ENERGY,
+		}
+	}
 
 	// tansfer between factory and terminal
 	if(ctx.factory) {
@@ -73,15 +80,16 @@ function getNewWork(ctx, creep) {
 	var roomNeedEnergy = ctx.terminal.need && ctx.terminal.need[RESOURCE_ENERGY] >= 100000;
 	var tooMuchEnergyInTerminal = !ctx.terminal.need || !ctx.terminal.need[RESOURCE_ENERGY] ||
 		ctx.terminal.store[RESOURCE_ENERGY] > ctx.terminal.need[RESOURCE_ENERGY] * 2;
-
-	if(roomNeedEnergy && ctx.terminal.store[RESOURCE_ENERGY] >= 50000) {
+	var storageEmpty = ctx.storage.store[RESOURCE_ENERGY] < 10000;
+	if((storageEmpty && ctx.terminal.store[RESOURCE_ENERGY] >= 30000) ||
+		(roomNeedEnergy && ctx.terminal.store[RESOURCE_ENERGY] >= 50000)) {
 		return creep.memory.work = {
 			srcId: ctx.terminal.id,
 			destId: ctx.storage.id,
 			resourceType: RESOURCE_ENERGY,
 		};
 	}
-	if(!roomNeedEnergy && ctx.storage.store[RESOURCE_ENERGY] > 500000) {
+	if(!roomNeedEnergy && ctx.storage.store[RESOURCE_ENERGY] > 500000 && ctx.terminal.store.getFreeCapacity() > 50000) {
 		return creep.memory.work = {
 			srcId: ctx.storage.id,
 			destId: ctx.terminal.id,

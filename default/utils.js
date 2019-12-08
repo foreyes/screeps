@@ -92,13 +92,14 @@ function moveToTest(creep, target) {
     var err = creep.moveByPath(creep.cache.path);
     if(err == 0) {
         creep.memory.needMove = true;
+    } else if(err == ERR_NOT_FOUND) {
+        delete creep.cache.path;
     }
     return err;
 }
 
 function implementMoveTo(creep, target) {
     // return moveToTest(creep, target);
-
     if(target.pos != undefined) target = target.pos;
     if(creep.pos.roomName != target.roomName) {
         var err = defaultMoveToOtherRoom(creep, target);
@@ -119,6 +120,8 @@ function implementMoveTo(creep, target) {
     var err = creep.moveByPath(path);
     if(err == 0) {
         creep.memory.needMove = true;
+    } else if(err == ERR_NOT_FOUND) {
+        delete creep.cache.path;
     }
     return err;
 }

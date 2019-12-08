@@ -119,6 +119,10 @@ function findEnergy(ctx, creep) {
 		delete creep.memory.energyTargetId;
 		delete creep.memory.targetId;
 	}
+	if(creep.ticksToLive < 20) {
+		creep.memory.FindEnergy = false;
+		return;
+	}
 	var target = getValidTarget(ctx, creep);
 	if(target == null) return;
 

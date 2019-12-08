@@ -54,7 +54,7 @@ module.exports.loop = function() {
 
     gCtx.allOrders = Game.market.getAllOrders((order) => {
         return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST ||
-                order.resourceType == RESOURCE_OXIDANT;
+                order.resourceType == RESOURCE_OXIDANT || order.resourceType == RESOURCE_CRYSTAL;
     });
     utils.ProfileStage('Fetch market: ');
 
@@ -92,6 +92,8 @@ module.exports.loop = function() {
         utils.TraceError(err, errMsg);
     }
 
+    utils.ProfileStage('Run terminal scheduler: ');
+
     for(var i in Game.rooms) {
         try {
             var ctx = Game.rooms[i].ctx;
@@ -105,6 +107,8 @@ module.exports.loop = function() {
             utils.TraceError(err, errMsg);
         }
     }
+
+    utils.ProfileStage('Run room manager: ');
 
     // cpu use stats
     if(Memory.cpuUse == undefined) {
