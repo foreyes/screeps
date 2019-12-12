@@ -105,7 +105,9 @@ function implementMoveTo(creep, target) {
         var err = defaultMoveToOtherRoom(creep, target);
         if(err == 0) {
             creep.memory.needMove = true;
-        }
+        } else if(err == ERR_NOT_FOUND) {
+        	delete creep.cache.path;
+    	}
         return err; 
     }
 

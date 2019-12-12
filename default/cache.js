@@ -1,5 +1,13 @@
 var cache = {};
 
+Creep.prototype.fecthCache = function() {
+	if(cache[this.id] == undefined) {
+		cache[this.id] = {};
+	}
+	this.cache = cache[this.id];
+	// this.fecthMoveRate();
+}
+
 // DO NOT trying to boost carry or move part
 Creep.prototype.fecthMoveRate = function() {
 	// get move parts, *2 is becase one move can reduce fatigue by 2
@@ -23,15 +31,6 @@ Creep.prototype.fecthMoveRate = function() {
 		return this.cache.moveRate = 10;
 	}
 	return this.cache.moveRate = moves / fatigueParts;
-}
-
-Creep.prototype.fecthCache = function() {
-	if(this.spawnCooldownTime != undefined) return;
-	if(cache[this.id] == undefined) {
-		cache[this.id] = {};
-	}
-	this.cache = cache[this.id];
-	// this.fecthMoveRate();
 }
 
 function FetchCreepCache() {

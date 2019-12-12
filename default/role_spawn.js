@@ -116,6 +116,11 @@ function Run(ctx, spawn, isMain = true) {
     if(ctx.MaxEnergy < 350) {
         return runStart(ctx, spawn);
     }
+    if(ctx.room.name == 'E29N33' && Game.rooms['E26N31'] != undefined) {
+        if(!Game.rooms['E26N31'].ctx.spawn && Game.rooms['E26N31'].ctx.builders.filter(hasLongLife).length < 2) {
+            return spawnCreep(ctx, spawn, 'builder', {memory: {ctrlRoom: 'E26N31', ownRoom: 'E26N31'}});
+        }
+    }
     // TODO: check if need emergency miner
     var needEmergencyMiner = false;
     // spawn the first filler
@@ -179,6 +184,9 @@ function Run(ctx, spawn, isMain = true) {
         for(var roomName in roomConfig.outSources) {
             var outSource = roomConfig.outSources[roomName];
             // defender
+            if(!outSource.needDefender && Game.time % 97 == 17) {
+                outSource.needDefender = Game.rooms[roomName] && Game.rooms[roomName].find(FIND_HOSTILE_STRUCTURES).length > 0;
+            }
             if(outSource.needDefender) {
                 var creepName = 'defender' + roomName;
                 if(!Game.creeps[creepName]) {
@@ -190,7 +198,7 @@ function Run(ctx, spawn, isMain = true) {
                 }
             }
             // outReserver
-            if(Game.rooms[roomName] && (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.ticksToEnd < 2000)) {
+            if(Game.rooms[roomName] && (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.username != 'foreyes1001' || Game.rooms[roomName].controller.reservation.ticksToEnd < 2000)) {
                 var creepName = 'outReserver' + outSource.controller;
                 if(!Game.creeps[creepName]) {
                     return spawnCreep(ctx, spawn, 'outReserver', {givenName: creepName, memory: {

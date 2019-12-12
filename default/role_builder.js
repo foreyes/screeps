@@ -56,6 +56,9 @@ function findEnergy(ctx, creep) {
     }
 
     var source = ctx.sources[0];
+    if(source.energy == 0 && ctx.sources.length >= 2) {
+        source = ctx.sources[1];
+    }
     var err = creep.harvest(source);
     if(err == ERR_NOT_IN_RANGE) {
         utils.DefaultMoveTo(creep, source);

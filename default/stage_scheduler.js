@@ -157,7 +157,7 @@ var stages = {
 			ctx.room.memory.ctx.upgrading = true;
 		},
 		loop: function(ctx) {
-			if(!ctx.storage) return true;
+			if(!ctx.storage) return false;
 			if(ctx.storage.store[RESOURCE_ENERGY] >= 800000) {
 				ctx.room.memory.ctx.fillerNum = 3;
 				ctx.room.memory.ctx.upgraderNum = 4;

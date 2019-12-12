@@ -24,10 +24,19 @@ function Run(ctx, creep) {
 		return utils.DefaultMoveTo(creep, workPos);
 	}
 	// heal
-	creep.heal(creep);
+	if(creep.hits < creep.hitsMax) {
+		creep.heal(creep);
+	}
 	// range attack
 	if(creep.room.ctx.enemies != undefined && creep.room.ctx.enemies.length > 0) {
 		var target = creep.pos.findClosestByPath(creep.room.ctx.enemies);
+		if(creep.rangedAttack(target) == ERR_NOT_IN_RANGE) {
+			return utils.DefaultMoveTo(creep, target);
+		}
+	}
+	var hostileStructures = creep.room.find(FIND_HOSTILE_STRUCTURES);
+	if(hostileStructures.length > 0) {
+		var target = creep.pos.findClosestByPath(hostileStructures);
 		if(creep.rangedAttack(target) == ERR_NOT_IN_RANGE) {
 			return utils.DefaultMoveTo(creep, target);
 		}

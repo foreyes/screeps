@@ -20,7 +20,7 @@ function try2SendResource(gCtx, terminal, resourceType, amount) {
 	var maxPriority = -1e12, targetIdx = -1; 
 	for(var i in gCtx.needList) {
 		var item = gCtx.needList[i];
-		if(item.roomName == terminal.roomName) continue;
+		if(item.roomName == terminal.room.name) continue;
 		if(item.resourceType != resourceType) continue;
 		if(item.needAmount <= 0) continue;
 		if(item.sendFlag) continue;
@@ -35,6 +35,10 @@ function try2SendResource(gCtx, terminal, resourceType, amount) {
 		var sendAmount = Math.min(freeCapacity, gCtx.needList[targetIdx].needAmount, amount);
 		var err = terminal.send(resourceType, sendAmount, targetRoomName);
 		if(err == 0) {
+			if(resourceType == RESOURCE_ENERGY && targetRoomName == 'E35N38') {
+				if(Memory.sendEnergy == undefined) Memory.sendEnergy = 0;
+				Memory.sendEnergy += sendAmount;
+			}
 			console.log('room ' + terminal.room.name + ' send ' + sendAmount + ' ' + resourceType + ' to room ' + targetRoomName);
 			gCtx.needList[targetIdx].sendFlag = true;
 			return 0;
@@ -46,7 +50,11 @@ function try2SendResource(gCtx, terminal, resourceType, amount) {
 function updateNeedInfo(gCtx, terminal) {
 	fetchTerminalNeed(terminal);
 	for(var resourceType in terminal.need) {
-		if(terminal.store[resourceType] < terminal.need[resourceType]) {
+		var threshold = terminal.need[resourceType];
+		if(resourceType == RESOURCE_ENERGY) {
+			threshold *= 0.8;
+		}
+		if(terminal.store[resourceType] < threshold) {
 			var priority = 1;
 			if(terminal.priority[resourceType] != undefined) {
 				priority = terminal.priority[resourceType];

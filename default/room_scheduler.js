@@ -53,7 +53,7 @@ function Run(gCtx, room) {
             var powerCreep = Game.powerCreeps['The Queen'];
             if(powerCreep.hits != undefined) {
                 if(ctx.factory && (ctx.factory.effects == undefined || ctx.factory.effects.length == 0)) {
-                    if(powerCreep.store[RESOURCE_OPS] < 100) {
+                    if(powerCreep.store[RESOURCE_OPS] < 100 && ctx.terminal.store[RESOURCE_OPS] >= 100) {
                         var err = powerCreep.withdraw(ctx.terminal, RESOURCE_OPS);
                         if(err == ERR_NOT_IN_RANGE) {
                             powerCreep.moveTo(ctx.terminal);
@@ -90,7 +90,7 @@ function Run(gCtx, room) {
             var powerCreep = Game.powerCreeps['The Joker'];
             if(powerCreep.hits != undefined) {
                 if(ctx.factory && (ctx.factory.effects == undefined || ctx.factory.effects.length == 0)) {
-                    if(powerCreep.store[RESOURCE_OPS] < 100) {
+                    if(powerCreep.store[RESOURCE_OPS] < 100 && ctx.terminal.store[RESOURCE_OPS] >= 100) {
                         var err = powerCreep.withdraw(ctx.terminal, RESOURCE_OPS);
                         if(err == ERR_NOT_IN_RANGE) {
                             powerCreep.moveTo(ctx.terminal);
@@ -193,6 +193,10 @@ function Run(gCtx, room) {
         try {
             var creep = ctx.creeps[name];
             if(creep.spawning) continue;
+            if(creep.memory.flag) {
+                utils.DefaultMoveTo(creep, Game.flags['move']);
+                continue;
+            }
             var start = Game.cpu.getUsed();
 
             // update stuck count
@@ -320,7 +324,7 @@ function Run(gCtx, room) {
     //     }
     // }
     if(ctx.room.name == 'E33N36') {
-        if(ctx.terminal && ctx.terminal.cooldown == 0 && ctx.terminal.store[RESOURCE_CRYSTAL] > 0) {
+        if(ctx.terminal && ctx.terminal.cooldown == 0 && ctx.terminal.store[RESOURCE_CRYSTAL] >= 100) {
             var buys = allOrders.filter((order) => {
                 return order.resourceType == RESOURCE_CRYSTAL &&
                         order.type == ORDER_BUY && order.amount > 0 &&
@@ -332,6 +336,18 @@ function Run(gCtx, room) {
                 Game.market.deal(buys[0].id, Math.min(8000, ctx.terminal.store[RESOURCE_CRYSTAL], buys[0].amount), 'E33N36');
             }
         }
+        // if(ctx.terminal && ctx.terminal.cooldown == 0 && ctx.terminal.store[RESOURCE_EXTRACT] > 0) {
+        //     var buys = allOrders.filter((order) => {
+        //         return order.resourceType == RESOURCE_EXTRACT &&
+        //                 order.type == ORDER_BUY && order.amount > 0 &&
+        //                 order.price >= 550;
+        //     }).sort((a, b) => {
+        //         return a.price < b.price;
+        //     });
+        //     if(buys.length > 0) {
+        //         Game.market.deal(buys[0].id, Math.min(8000, ctx.terminal.store[RESOURCE_EXTRACT], buys[0].amount), 'E33N36');
+        //     }
+        // }
     }
     if(ctx.room.name == 'E35N38' && ctx.terminal.store[RESOURCE_ENERGY] >= 10000 && ctx.terminal.cooldown == 0) {
         var myOrders = allOrders.filter((order) => {
@@ -383,11 +399,11 @@ function Run(gCtx, room) {
             }
         }
     }
-    if(Game.rooms['E29N34'].storage.store[RESOURCE_ENERGY] + Game.rooms['E29N34'].terminal.store[RESOURCE_ENERGY] < 900000) {
-        if(ctx.room.name != 'E29N34' && ctx.terminal && ctx.terminal.store[RESOURCE_ENERGY] >= 50000) {
-            ctx.terminal.send(RESOURCE_ENERGY, 40000, 'E29N34');
-        }
-    }
+    // if(Game.rooms['E29N34'].storage.store[RESOURCE_ENERGY] + Game.rooms['E29N34'].terminal.store[RESOURCE_ENERGY] < 900000) {
+    //     if(ctx.room.name != 'E29N34' && ctx.terminal && ctx.terminal.store[RESOURCE_ENERGY] >= 50000) {
+    //         ctx.terminal.send(RESOURCE_ENERGY, 40000, 'E29N34');
+    //     }
+    // }
 }
 
 module.exports = {
