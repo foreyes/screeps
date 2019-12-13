@@ -135,10 +135,14 @@ function findEnergy(ctx, creep) {
 	if(ctx.miners.length != 0 || creep.getActiveBodyparts(WORK) == 0) return;
 
 	var source = ctx.sources[0];
-	var err = creep.harvest(source);
-	if(err == ERR_NOT_IN_RANGE) {
-		utils.DefaultMoveTo(creep, source);
-	}
+    if(ctx.sources.length >= 2 && (Game.creeps['miner' + source.id] || source.energy == 0)) {
+        source = ctx.sources[1];
+        if(Game.creeps['miner' + source.id] || source.energy == 0) return;
+    }
+    var err = creep.harvest(source);
+    if(err == ERR_NOT_IN_RANGE) {
+        utils.DefaultMoveTo(creep, source);
+    }
 }
 
 function fillStructure(ctx, creep) {

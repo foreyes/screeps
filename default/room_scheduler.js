@@ -323,6 +323,20 @@ function Run(gCtx, room) {
     //         }
     //     }
     // }
+    if(ctx.room.name == 'E29N34') {
+        if(ctx.terminal && ctx.terminal.cooldown == 0 && ctx.terminal.store[RESOURCE_COMPOSITE] >= 100) {
+            var buys = allOrders.filter((order) => {
+                return order.resourceType == RESOURCE_COMPOSITE &&
+                        order.type == ORDER_BUY && order.amount > 0 &&
+                        order.price >= 2.4;
+            }).sort((a, b) => {
+                return a.price < b.price;
+            });
+            if(buys.length > 0) {
+                Game.market.deal(buys[0].id, Math.min(8000, ctx.terminal.store[RESOURCE_COMPOSITE], buys[0].amount), 'E29N34');
+            }
+        }
+    }
     if(ctx.room.name == 'E33N36') {
         if(ctx.terminal && ctx.terminal.cooldown == 0 && ctx.terminal.store[RESOURCE_CRYSTAL] >= 100) {
             var buys = allOrders.filter((order) => {

@@ -97,7 +97,7 @@ function Run(ctx, creep) {
         creep.say('coming');
         utils.DefaultMoveTo(creep, ctx.room.controller);
     }
-    if(!ctx.creepOnContainer) {
+    if(ctx.controllerContainer && !ctx.creepOnContainer) {
         utils.DefaultMoveTo(creep, ctx.controllerContainer);
     }
     if(err == 0) {

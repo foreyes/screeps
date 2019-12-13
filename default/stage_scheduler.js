@@ -108,6 +108,7 @@ var stages = {
 
 				ctx.room.memory.ctx.builderNum = 3;
 				ctx.room.memory.ctx.flagInit = true;
+				return false;
 			}
 			var constructing = ctx.room.find(FIND_CONSTRUCTION_SITES);
 			if(constructing.length == 0) {
@@ -157,18 +158,18 @@ var stages = {
 			ctx.room.memory.ctx.upgrading = true;
 		},
 		loop: function(ctx) {
-			if(!ctx.storage) return false;
-			if(ctx.storage.store[RESOURCE_ENERGY] >= 800000) {
-				ctx.room.memory.ctx.fillerNum = 3;
-				ctx.room.memory.ctx.upgraderNum = 4;
-				ctx.room.memory.ctx.keepLevel = false;
-				ctx.room.memory.ctx.upgrading = true;
-			}
-			if(ctx.storage.store[RESOURCE_ENERGY] < 200000) {
+			if(ctx.room.controller.level < 4) return false;
+			if(!ctx.storage || ctx.storage.store[RESOURCE_ENERGY] < 200000) {
 				ctx.room.memory.ctx.fillerNum = 2;
 				ctx.room.memory.ctx.upgraderNum = 1;
 				ctx.room.memory.ctx.keepLevel = true;
 				ctx.room.memory.ctx.upgrading = false;
+			}
+			if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] >= 800000) {
+				ctx.room.memory.ctx.fillerNum = 3;
+				ctx.room.memory.ctx.upgraderNum = 4;
+				ctx.room.memory.ctx.keepLevel = false;
+				ctx.room.memory.ctx.upgrading = true;
 			}
 			return false;
 		},

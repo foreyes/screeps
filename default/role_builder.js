@@ -51,13 +51,12 @@ function findEnergy(ctx, creep) {
         delete creep.memory.energyTargetId;
         delete creep.memory.targetId;
     }
-    if(utils.GetEnergy4Worker(ctx, creep) || ctx.miners.length != 0) {
-        return;
-    }
+    if(utils.GetEnergy4Worker(ctx, creep)) return;
 
     var source = ctx.sources[0];
-    if(source.energy == 0 && ctx.sources.length >= 2) {
+    if(ctx.sources.length >= 2 && (Game.creeps['miner' + source.id] || source.energy == 0)) {
         source = ctx.sources[1];
+        if(Game.creeps['miner' + source.id] || source.energy == 0) return;
     }
     var err = creep.harvest(source);
     if(err == ERR_NOT_IN_RANGE) {

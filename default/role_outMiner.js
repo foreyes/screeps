@@ -54,6 +54,9 @@ function Run(ctx, creep) {
 	if(!utils.IsSamePosition(creep.pos, workPos)) {
 		return utils.DefaultMoveTo(creep, workPos);
 	}
+	if(creep.room.ctx.reservedByOthers) {
+		return -1551;
+	}
 	// create container if not exist
 	var container = Game.rooms[creep.memory.workRoom].ctx.room.lookAt(creep.pos).filter((item) => {
 		return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
