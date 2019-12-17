@@ -227,7 +227,7 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
 
-    if(ctx.powerSpawn && ctx.powerSpawners.length == 0) {
+    if(ctx.powerSpawn && ctx.terminal && ctx.terminal.store[RESOURCE_POWER] >= 100 && ctx.powerSpawners.length == 0) {
         return spawnCreep(ctx, spawn, 'specialer', {parts: utils.GetPartsByArray([[CARRY, 30], [MOVE, 15]]), memory: {
             specialType: 'powerSpawner',
         }});
@@ -235,13 +235,16 @@ function Run(ctx, spawn, isMain = true) {
 
     if(ctx.room.name == 'E29N34') {
         for(var id in Memory.deposits) {
-            var creepName = 'mister' + id;
-            if(!Game.creeps[creepName]) {
-                return spawnCreep(ctx, spawn, 'mister', {givenName: creepName, memory: {
-                    workRoom: Memory.deposits[id].roomName,
-                    targetId: id,
-                    status: 'toWork',
-                }});
+            var workPosNum = Memory.deposits[id].workPosNum;
+            for(var idx = 0; idx < workPosNum; idx++) {
+                var creepName = 'mister' + id + '_' + idx;
+                if(!Game.creeps[creepName]) {
+                    return spawnCreep(ctx, spawn, 'mister', {givenName: creepName, memory: {
+                        workRoom: Memory.deposits[id].roomName,
+                        targetId: id,
+                        status: 'toWork',
+                    }});
+                }
             }
         }
     }

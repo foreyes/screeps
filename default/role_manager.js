@@ -81,6 +81,7 @@ function getNewWork(ctx, creep) {
 	var tooMuchEnergyInTerminal = !ctx.terminal.need || !ctx.terminal.need[RESOURCE_ENERGY] ||
 		ctx.terminal.store[RESOURCE_ENERGY] > ctx.terminal.need[RESOURCE_ENERGY] * 2;
 	var storageEmpty = ctx.storage.store[RESOURCE_ENERGY] < 10000;
+	var terminalNeedEnergy = ctx.terminal.store[RESOURCE_ENERGY] < 10000;
 	if((storageEmpty && ctx.terminal.store[RESOURCE_ENERGY] >= 30000) ||
 		(roomNeedEnergy && ctx.terminal.store[RESOURCE_ENERGY] >= 50000)) {
 		return creep.memory.work = {
@@ -89,7 +90,7 @@ function getNewWork(ctx, creep) {
 			resourceType: RESOURCE_ENERGY,
 		};
 	}
-	if(!roomNeedEnergy && ctx.storage.store[RESOURCE_ENERGY] > 500000 && ctx.terminal.store.getFreeCapacity() > 50000) {
+	if(terminalNeedEnergy || (!roomNeedEnergy && ctx.storage.store[RESOURCE_ENERGY] > 500000 && ctx.terminal.store.getFreeCapacity() > 50000)) {
 		return creep.memory.work = {
 			srcId: ctx.storage.id,
 			destId: ctx.terminal.id,

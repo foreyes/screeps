@@ -171,7 +171,7 @@ var stages = {
 				ctx.room.memory.ctx.keepLevel = false;
 				ctx.room.memory.ctx.upgrading = true;
 			}
-			return false;
+			return ctx.room.controller.level >= 8;
 		},
 		terminate: function(ctx, next) {
 			ctx.room.memory.ctx.fillerNum = 2;

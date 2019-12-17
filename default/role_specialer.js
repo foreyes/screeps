@@ -293,31 +293,31 @@ var specialTypeList = {
 			var err = creep.transfer(ctx.powerSpawn, RESOURCE_POWER);
 			if(err == 0) return;
 			if(err == ERR_NOT_IN_RANGE) {
-				utils.DefaultMoveTo(creep, ctx.powerSpawn);
+				return utils.DefaultMoveTo(creep, ctx.powerSpawn);
 			}
 		}
 		if(creep.store[RESOURCE_ENERGY] > 0 &&ctx.powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
 			var err = creep.transfer(ctx.powerSpawn, RESOURCE_ENERGY);
 			if(err == 0) return;
 			if(err == ERR_NOT_IN_RANGE) {
-				utils.DefaultMoveTo(creep, ctx.powerSpawn);
+				return utils.DefaultMoveTo(creep, ctx.powerSpawn);
 			}
 		}
 
 		if(creep.ticksToLive >= 100) {
 			var limit = creep.store.getCapacity();
-			if(creep.store[RESOURCE_POWER] < 100 && ctx.powerSpawn.store.getFreeCapacity(RESOURCE_POWER) > 0) {
+			if(creep.store[RESOURCE_POWER] < 100 && ctx.powerSpawn.store.getFreeCapacity(RESOURCE_POWER) > 0 && ctx.terminal.store[RESOURCE_POWER] >= 100) {
 				var err = creep.withdraw(ctx.terminal, RESOURCE_POWER, 100 - creep.store[RESOURCE_POWER]);
 				if(err == 0) return;
 				if(err == ERR_NOT_IN_RANGE) {
-					utils.DefaultMoveTo(creep, ctx.terminal);
+					return utils.DefaultMoveTo(creep, ctx.terminal);
 				}
 			}
 			if(creep.store[RESOURCE_ENERGY] < limit - 100 && ctx.powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
 				var err = creep.withdraw(ctx.storage, RESOURCE_ENERGY, limit - 100 - creep.store[RESOURCE_ENERGY]);
 				if(err == 0) return;
 				if(err == ERR_NOT_IN_RANGE) {
-					utils.DefaultMoveTo(creep, ctx.storage);
+					return utils.DefaultMoveTo(creep, ctx.storage);
 				}
 			}
 		} else if(creep.store.getUsedCapacity() == 0) {

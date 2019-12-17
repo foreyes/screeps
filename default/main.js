@@ -1,6 +1,5 @@
-// TODOs: suicade logic, fix find energy then store, refactor ctx, recycle droped energy
-// build err, stats road, refactor stages, extension use, reuse carrier and spawner
-// get position by dist, tower logic, wall and rampart
+// TODOs: suicade logic, build err, refactor stages, extension use
+// get position by dist, wall and rampart
 var utils = require('utils');
 
 function fetchGlobalCtx() {
@@ -20,6 +19,8 @@ function fetchRoomCtx(gCtx, room) {
 // set a restPos Flag
 // require('prototype.Creep.move')
 module.exports.loop = function() {
+    if(Game.cpu.bucket < 2000) return 0;
+
     if(Memory.profilingflag == 1 || Memory.profileRems == 1) {
         Memory.memoryFetchTime = Game.cpu.getUsed();
         console.log('Parse memory: ' + Memory.memoryFetchTime);
@@ -29,6 +30,15 @@ module.exports.loop = function() {
     utils.ProfileUpdate();
     // statOutMiner
     Memory.outSpeed = Memory.statOutMiner / (Game.time - Memory.statStart);
+    // statCredit
+    if(Memory.creditHis == undefined) {
+        Memory.creditHis = [Game.market.credits];
+    }
+    if(Game.time % 1000 == 23) {
+        var curCredit = Game.market.credits;
+        Memory.creditHis.push(curCredit - Memory.creditHis[0]);
+        Memory.creditHis[0] = curCredit;
+    }
     // clear memory
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {

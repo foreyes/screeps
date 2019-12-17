@@ -88,6 +88,9 @@ function Run(ctx, creep) {
 	if(creep.pos.x == 0 || creep.pos.y == 0 || creep.pos.x == 49 || creep.pos.y == 49) {
 		return utils.DefaultMoveTo(creep, workPos);
 	}
+	if(creep.pos.x == 1 || creep.pos.y == 1 || creep.pos.x == 48 || creep.pos.y == 48) {
+		return utils.DefaultMoveTo(creep, workPos);
+	}
 	if(creep.room.ctx.reservedByOthers) {
 		return -1551;
 	}

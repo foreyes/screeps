@@ -16,15 +16,23 @@ var roleMap = {
 function Run(gCtx, room) {
     var ctx = room.ctx;
 
+    if(ctx.my && ctx.room.controller.level >= 5 && ctx.room.memory.ctx.repairerNum > 0) {
+        ctx.room.memory.ctx.repairerNum = 0;
+    }
+
     var deposits = room.find(FIND_DEPOSITS);
-    var usefulDeposits = deposits.filter((d) => d.lastCooldown <= 200);
-    var uselessDeposits = deposits.filter((d) => d.lastCooldown > 200);
+    var usefulDeposits = deposits.filter((d) => d.lastCooldown <= 150);
+    var uselessDeposits = deposits.filter((d) => d.lastCooldown > 150);
     if(usefulDeposits.length > 0) {
         if(Memory.deposits == undefined) Memory.deposits = {};
         for(var deposit of usefulDeposits) {
-            if(Memory.deposits[deposit.id] == undefined) {
+            if(Memory.deposits[deposit.id] == undefined || Memory.deposits[deposit.id].workPosNum == undefined) {
+                var x = deposit.pos.x, y = deposit.pos.y;
+                var workPosNum = deposit.room.lookForAtArea(LOOK_TERRAIN, y-1, x-1, y+1, x+1, true).filter(
+                    (item) => item.terrain == 'plain').length;
                 Memory.deposits[deposit.id] = {
                     roomName: room.name,
+                    workPosNum: workPosNum,
                 }
             }
         }
@@ -65,14 +73,8 @@ function Run(gCtx, room) {
                         }
                     }
                 } else {
-                    powerCreep.usePower(PWR_GENERATE_OPS);
-                    if(powerCreep.store[RESOURCE_OPS] > 0) {
-                        var err = powerCreep.transfer(ctx.terminal, RESOURCE_OPS);
-                        if(err == ERR_NOT_IN_RANGE) {
-                            powerCreep.moveTo(ctx.terminal);
-                        }
-                    } else {
-                        powerCreep.moveTo(new RoomPosition(25, 20, 'E33N36'));
+                    powerCreep.moveTo(new RoomPosition(25, 20, 'E33N36'));
+                    if(powerCreep.ticksToLive < 1000) {
                         powerCreep.renew(Game.getObjectById('5de40b966fde1346b140e382'));
                     }
                 }
@@ -87,7 +89,7 @@ function Run(gCtx, room) {
 
     try {
         if(room.name == 'E29N34') {
-            var powerCreep = Game.powerCreeps['The Joker'];
+            var powerCreep = Game.powerCreeps['The Jack'];
             if(powerCreep.hits != undefined) {
                 if(ctx.factory && (ctx.factory.effects == undefined || ctx.factory.effects.length == 0)) {
                     if(powerCreep.store[RESOURCE_OPS] < 100 && ctx.terminal.store[RESOURCE_OPS] >= 100) {
@@ -109,11 +111,41 @@ function Run(gCtx, room) {
                         }
                     } else {
                         powerCreep.moveTo(Game.getObjectById('5dc8c9583253f214bd252681'));
-                        powerCreep.renew(Game.getObjectById('5deca6969238aa70737dcf0f'));
+                        if(powerCreep.ticksToLive < 1000) {
+                            powerCreep.renew(Game.getObjectById('5deca6969238aa70737dcf0f'));
+                        }
                     }
                 }
             } else if(powerCreep.spawnCooldownTime == undefined) {
                 powerCreep.spawn(Game.getObjectById('5deca6969238aa70737dcf0f'));
+            }
+        }
+    } catch(err) {
+        var errMsg = 'Power creep in Room ' + room.name + ": ";
+        utils.TraceError(err, errMsg);
+    }
+
+    try {
+        if(room.name == 'E29N34') {
+            var powerCreep = Game.powerCreeps['The King'];
+            if(powerCreep.hits != undefined) {
+                powerCreep.usePower(PWR_GENERATE_OPS);
+                if(powerCreep.ticksToLive < 1000) {
+                    var err = powerCreep.renew(ctx.powerSpawn);
+                    if(err == ERR_NOT_IN_RANGE) {
+                        powerCreep.moveTo(new RoomPosition(38, 23, 'E29N34'));
+                    }
+                } else {
+                    if(powerCreep.store[RESOURCE_OPS] >= 2 && powerCreep.powers[PWR_OPERATE_EXTENSION] &&
+                        powerCreep.powers[PWR_OPERATE_EXTENSION].cooldown < 2 && ctx.emptyExts.length >= 12) {
+                        var err = powerCreep.usePower(PWR_OPERATE_EXTENSION, ctx.terminal);
+                        if(err == ERR_NOT_IN_RANGE) {
+                            powerCreep.moveTo(ctx.terminal);
+                        }
+                    }
+                }
+            } else if(powerCreep.spawnCooldownTime == undefined) {
+                powerCreep.spawn(ctx.powerSpawn);
             }
         }
     } catch(err) {

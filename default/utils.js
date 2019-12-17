@@ -37,12 +37,31 @@ function CmpByObjDist2GivenPos(pos) {
     };
 }
 
+var pathCache = {};
+
+function stringifyPosition(pos) {
+    return '' + pos.x + pos.y + pos.roomName;
+}
+
 function findNewPath2Target(creep, target, ignoreCreeps, otherRoom) {
     var path = undefined;
     if(!otherRoom) {
         path = creep.room.findPath(creep.pos, target, {ignoreCreeps: ignoreCreeps});
     } else {
-        path = FindPath(creep.pos, target, {ignoreCreeps: ignoreCreeps}).path;
+        var hashVal = stringifyPosition(creep.pos) + '#' + stringifyPosition(target);
+        if(ignoreCreeps) {
+            if(pathCache[hashVal] != undefined && Game.time - pathCache[hashVal].timestamp < 10000) {
+                path = pathCache[hashVal].path;
+            } else {
+                path = FindPath(creep.pos, target, {ignoreCreeps: ignoreCreeps}).path;
+                pathCache[hashVal] = {
+                    path: path,
+                    timestamp: Game.time,
+                };
+            }
+        } else {
+            path = FindPath(creep.pos, target, {ignoreCreeps: ignoreCreeps}).path;
+        }
     }
     creep.cache.path = path;
     creep.cache.dest = target;
@@ -62,7 +81,7 @@ function getPath2Target(creep, target, ignoreCreeps = true, otherRoom = false) {
 }
 
 function defaultMoveToOtherRoom(creep, target) {
-    if(creep.memory.stuck <= 2) {
+    if(creep.memory.stuck < 3) {
         var path = getPath2Target(creep, target, true, true);
         return creep.moveByPath(path);
     } else {
@@ -72,54 +91,30 @@ function defaultMoveToOtherRoom(creep, target) {
     }
 }
 
-function moveToTest(creep, target) {
-    if(target.pos != undefined) target = target.pos;
-    creep.say('' + creep.memory.stuck + ',' + creep.cache.moveRate);
-    if(creep.memory.stuck >= 2) {
-        creep.cache.dest = target;
-        creep.cache.path = FindPath(creep.pos, target, {moveRate: creep.cache.moveRate}).path;
-    }
-    if(creep.cache.dest == undefined || !IsSamePosition(target, creep.cache.dest)) {
-        creep.cache.dest = target;
-        creep.cache.path = FindPath(creep.pos, target, {moveRate: creep.cache.moveRate, ignoreCreeps: true}).path;
-    }
-    if(creep.cache.path.length > 0 && !IsSamePosition(target, creep.cache.path[creep.cache.path.length - 1])) {
-        if(Memory.holyCreep == undefined) Memory.holyCreep = [];
-        Memory.holyCreep.push(creep.memory.role);
-        creep.cache.dest = target;
-        creep.cache.path = FindPath(creep.pos, target, {moveRate: creep.cache.moveRate}).path;
-    }
-    var err = creep.moveByPath(creep.cache.path);
-    if(err == 0) {
-        creep.memory.needMove = true;
-    } else if(err == ERR_NOT_FOUND) {
+function defaultMoveToSameRoom(creep, target) {
+    creep.say(creep.memory.stuck);
+    if(creep.memory.stuck < 2) {
+        var path = getPath2Target(creep, target, true);
+        return creep.moveByPath(path);
+    } else {
         delete creep.cache.path;
+        var path = getPath2Target(creep, target, false);
+        return creep.moveByPath(path);
     }
-    return err;
 }
 
 function implementMoveTo(creep, target) {
-    // return moveToTest(creep, target);
     if(target.pos != undefined) target = target.pos;
-    if(creep.pos.roomName != target.roomName) {
-        var err = defaultMoveToOtherRoom(creep, target);
-        if(err == 0) {
-            creep.memory.needMove = true;
-        } else if(err == ERR_NOT_FOUND) {
-        	delete creep.cache.path;
-    	}
-        return err; 
+
+    var err = null;
+    if(creep.memory.stuck <= 2 && creep.cache.path != undefined && target.isEqualTo(creep.cache.dest)) {
+        err = creep.moveByPath(creep.cache.path);
+    } else if(creep.pos.roomName != target.roomName) {
+        err = defaultMoveToOtherRoom(creep, target);
+    } else {
+        err = defaultMoveToSameRoom(creep, target);
     }
 
-    creep.say(creep.memory.stuck);
-    var path = null;
-    if(creep.memory.stuck >= 2) {
-        delete creep.cache.path;
-        path = getPath2Target(creep, target, false);
-    } else {
-        path = getPath2Target(creep, target, true);
-    }
-    var err = creep.moveByPath(path);
     if(err == 0) {
         creep.memory.needMove = true;
     } else if(err == ERR_NOT_FOUND) {
@@ -696,6 +691,22 @@ function GetObjByArray(arr) {
     return res;
 }
 
+function GetResourcesStats(resourceType) {
+    var sum = 0;
+    for(var roomName in Game.rooms) {
+        var room = Game.rooms[roomName];
+        if(room.ctx.terminal) {
+            sum += room.ctx.terminal.store[resourceType];
+        }
+    }
+    return sum;
+}
+
+function DistanceInRange(pos1, pos2) {
+    if(pos1.roomName != pos2.roomName) return 100000;
+    return Math.max(pos1.x - pos2.x, pos1.y - pos2.y);
+}
+
 module.exports = {
     get_positions_by_dist,
     GetDirectDistance,
@@ -724,4 +735,6 @@ module.exports = {
     ProfileStage,
     StartProfiling,
     GetObjByArray,
+    GetResourcesStats,
+    DistanceInRange,
 };

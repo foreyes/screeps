@@ -45,9 +45,11 @@ function Run(ctx, creep) {
 	}
 
 	var target = ctx.sourceContainers[creep.memory.sourceIdx];
-	if(!utils.IsSamePosition(creep.pos, target.pos)) {
-		utils.DefaultMoveTo(creep, target);
-		return;
+	if(!creep.pos.isEqualTo(target.pos)) {
+		return utils.DefaultMoveTo(creep, target.pos);
+	}
+	if(creep.store && creep.store[RESOURCE_ENERGY] > 0 && target.hits < target.hitsMax) {
+		return creep.repair(target);
 	}
 	if(ctx.centralLink && ctx.sourceLinks && ctx.sourceLinks[creep.memory.sourceIdx] && ctx.sourceLinks[creep.memory.sourceIdx].store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.getActiveBodyparts(CARRY) > 0) {
 		var works = creep.getActiveBodyparts(WORK);
