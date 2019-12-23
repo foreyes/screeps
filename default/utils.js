@@ -107,7 +107,7 @@ function implementMoveTo(creep, target) {
     if(target.pos != undefined) target = target.pos;
 
     var err = null;
-    if(creep.memory.stuck <= 2 && creep.cache.path != undefined && target.isEqualTo(creep.cache.dest)) {
+    if(creep.memory.stuck < 2 && creep.cache.path != undefined && target.isEqualTo(creep.cache.dest)) {
         err = creep.moveByPath(creep.cache.path);
     } else if(creep.pos.roomName != target.roomName) {
         err = defaultMoveToOtherRoom(creep, target);
@@ -149,7 +149,7 @@ function findNewStore(ctx, creep) {
         return container.store[RESOURCE_ENERGY] >= 100;
     });
     if(targets.length != 0) {
-        return creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
+        return creep.pos.findClosestByRange(targets);
     }
     if(ctx.storage == undefined || ctx.storage.store[RESOURCE_ENERGY] < 100) return null;
     return ctx.storage;
@@ -181,20 +181,20 @@ function findNewEnergyTarget4Worker(ctx, creep) {
     if(ctx.centralContainers) {
         var containers = _.filter(ctx.centralContainers, (c) => c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
         if(containers.length > 0) {
-            return creep.pos.findClosestByPath(containers);
+            return creep.pos.findClosestByRange(containers);
         }
     }
     if(ctx.sourceContainers) {
         var containers = _.filter(ctx.sourceContainers, (c) => c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
         if(containers.length > 0) {
-            return creep.pos.findClosestByPath(containers);
+            return creep.pos.findClosestByRange(containers);
         }
     }
     // get from dropped energy
     if(ctx.dropedEnergy) {
         var largeEnergy = ctx.dropedEnergy.filter((de) => de.amount >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
         if(largeEnergy.length > 0) {
-            return creep.pos.findClosestByPath(largeEnergy);
+            return creep.pos.findClosestByRange(largeEnergy);
         }
         // TODO:
         // return creep.pos.findClosestByPath(ctx.dropedEnergy);
@@ -206,7 +206,7 @@ function findNewEnergyTarget4Worker(ctx, creep) {
         }
     });
     if(usefulHostileStructures.length != 0) {
-        return creep.pos.findClosestByPath(usefulHostileStructures);
+        return creep.pos.findClosestByRange(usefulHostileStructures);
     }
     // TODO: get from tomestone
     return null;
@@ -253,7 +253,7 @@ function findNewEnergyTarget4Filler(ctx, creep, fillTargetId) {
     if(ctx.dropedEnergy) {
         var largeEnergy = ctx.dropedEnergy.filter((de) => de.amount >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
         if(largeEnergy.length > 0) {
-            return creep.pos.findClosestByPath(largeEnergy);
+            return creep.pos.findClosestByRange(largeEnergy);
         }
         // TODO:
         // return creep.pos.findClosestByPath(ctx.dropedEnergy);
@@ -265,23 +265,23 @@ function findNewEnergyTarget4Filler(ctx, creep, fillTargetId) {
         }
     });
     if(usefulHostileStructures.length != 0) {
-        return creep.pos.findClosestByPath(usefulHostileStructures);
+        return creep.pos.findClosestByRange(usefulHostileStructures);
     }
     // get from source's container
     if(ctx.sourceContainers) {
-        var containers = _.filter(ctx.sourceContainers, (c) => c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
+        var containers = _.filter(ctx.sourceContainers, (c) => c && c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
         if(containers.length > 0) {
-            return creep.pos.findClosestByPath(containers);
+            return creep.pos.findClosestByRange(containers);
         }
     }
     // get from central containers
     if(ctx.centralContainers) {
         var containers = _.filter(ctx.centralContainers, (c) => {
             // stop [get, store] infinite loop.
-            return fillTargetId != c.id && c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500);
+            return c && fillTargetId != c.id && c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500);
         });
         if(containers.length > 0) {
-            return creep.pos.findClosestByPath(containers);
+            return creep.pos.findClosestByRange(containers);
         }
     }
     // get from storage
@@ -339,7 +339,7 @@ function findNewEnergyTarget4ImportantTarget(ctx, creep) {
             return c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500);
         });
         if(containers.length > 0) {
-            return creep.pos.findClosestByPath(containers);
+            return creep.pos.findClosestByRange(containers);
         }
     }
     // get from storage
@@ -392,7 +392,7 @@ function GetEnergyFromStore(ctx, creep) {
     }
     if(ctx.dropedEnergy.length != 0) {
         // TODO: plan closest
-        target = creep.pos.findClosestByPath(ctx.dropedEnergy, {ignoreCreeps: true});
+        target = creep.pos.findClosestByRange(ctx.dropedEnergy);
         // target = ctx.dropedEnergy[0];
         // ctx.dropedEnergy = ctx.dropedEnergy.slice(1);
     }

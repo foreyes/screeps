@@ -57,101 +57,112 @@ function Run(gCtx, room) {
     }
 
     try {
-        if(room.name == 'E33N36') {
-            var powerCreep = Game.powerCreeps['The Queen'];
-            if(powerCreep.hits != undefined) {
-                if(ctx.factory && (ctx.factory.effects == undefined || ctx.factory.effects.length == 0)) {
-                    if(powerCreep.store[RESOURCE_OPS] < 100 && ctx.terminal.store[RESOURCE_OPS] >= 100) {
-                        var err = powerCreep.withdraw(ctx.terminal, RESOURCE_OPS);
-                        if(err == ERR_NOT_IN_RANGE) {
-                            powerCreep.moveTo(ctx.terminal);
-                        }
-                    } else {
-                        var err = powerCreep.usePower(PWR_OPERATE_FACTORY, ctx.factory);
-                        if(err == ERR_NOT_IN_RANGE) {
-                            powerCreep.moveTo(ctx.factory);
-                        }
-                    }
-                } else {
-                    powerCreep.moveTo(new RoomPosition(25, 20, 'E33N36'));
-                    if(powerCreep.ticksToLive < 1000) {
-                        powerCreep.renew(Game.getObjectById('5de40b966fde1346b140e382'));
-                    }
-                }
-            } else if(powerCreep.spawnCooldownTime == undefined) {
-                powerCreep.spawn(Game.getObjectById('5de40b966fde1346b140e382'));
-            }
+        if(room.name == 'E29N34') {
+            var mistList = ['E22N30', 'E23N30', 'E24N30', 'E25N30', 'E26N30', 'E27N30', 'E28N30', 'E29N30', 'E30N30'];
+            var mistRoom = mistList[Game.time % 9];
+            Game.getObjectById('5ded10a69f95c3553107363b').observeRoom(mistRoom);
         }
     } catch(err) {
-        var errMsg = 'Power creep in Room ' + room.name + ": ";
+        var errMsg = 'Observer in Room ' + room.name + ": ";
         utils.TraceError(err, errMsg);
     }
 
-    try {
-        if(room.name == 'E29N34') {
-            var powerCreep = Game.powerCreeps['The Jack'];
-            if(powerCreep.hits != undefined) {
-                if(ctx.factory && (ctx.factory.effects == undefined || ctx.factory.effects.length == 0)) {
-                    if(powerCreep.store[RESOURCE_OPS] < 100 && ctx.terminal.store[RESOURCE_OPS] >= 100) {
-                        var err = powerCreep.withdraw(ctx.terminal, RESOURCE_OPS);
-                        if(err == ERR_NOT_IN_RANGE) {
-                            powerCreep.moveTo(ctx.terminal);
-                        }
-                    } else {
-                        var err = powerCreep.usePower(PWR_OPERATE_FACTORY, ctx.factory);
-                        if(err == ERR_NOT_IN_RANGE) {
-                            powerCreep.moveTo(ctx.factory);
-                        }
-                    }
-                } else {
-                    if(powerCreep.store[RESOURCE_OPS] > 0) {
-                        var err = powerCreep.transfer(ctx.terminal, RESOURCE_OPS);
-                        if(err == ERR_NOT_IN_RANGE) {
-                            powerCreep.moveTo(ctx.terminal);
-                        }
-                    } else {
-                        powerCreep.moveTo(Game.getObjectById('5dc8c9583253f214bd252681'));
-                        if(powerCreep.ticksToLive < 1000) {
-                            powerCreep.renew(Game.getObjectById('5deca6969238aa70737dcf0f'));
-                        }
-                    }
-                }
-            } else if(powerCreep.spawnCooldownTime == undefined) {
-                powerCreep.spawn(Game.getObjectById('5deca6969238aa70737dcf0f'));
-            }
-        }
-    } catch(err) {
-        var errMsg = 'Power creep in Room ' + room.name + ": ";
-        utils.TraceError(err, errMsg);
-    }
+    // try {
+    //     if(room.name == 'E33N36') {
+    //         var powerCreep = Game.powerCreeps['The Queen'];
+    //         if(powerCreep.hits != undefined) {
+    //             if(ctx.factory && (ctx.factory.effects == undefined || ctx.factory.effects.length == 0)) {
+    //                 if(powerCreep.store[RESOURCE_OPS] < 100 && ctx.terminal.store[RESOURCE_OPS] >= 100) {
+    //                     var err = powerCreep.withdraw(ctx.terminal, RESOURCE_OPS);
+    //                     if(err == ERR_NOT_IN_RANGE) {
+    //                         powerCreep.moveTo(ctx.terminal);
+    //                     }
+    //                 } else {
+    //                     var err = powerCreep.usePower(PWR_OPERATE_FACTORY, ctx.factory);
+    //                     if(err == ERR_NOT_IN_RANGE) {
+    //                         powerCreep.moveTo(ctx.factory);
+    //                     }
+    //                 }
+    //             } else {
+    //                 powerCreep.moveTo(new RoomPosition(25, 20, 'E33N36'));
+    //                 if(powerCreep.ticksToLive < 1000) {
+    //                     powerCreep.renew(Game.getObjectById('5de40b966fde1346b140e382'));
+    //                 }
+    //             }
+    //         } else if(powerCreep.spawnCooldownTime == undefined) {
+    //             powerCreep.spawn(Game.getObjectById('5de40b966fde1346b140e382'));
+    //         }
+    //     }
+    // } catch(err) {
+    //     var errMsg = 'Power creep in Room ' + room.name + ": ";
+    //     utils.TraceError(err, errMsg);
+    // }
 
-    try {
-        if(room.name == 'E29N34') {
-            var powerCreep = Game.powerCreeps['The King'];
-            if(powerCreep.hits != undefined) {
-                powerCreep.usePower(PWR_GENERATE_OPS);
-                if(powerCreep.ticksToLive < 1000) {
-                    var err = powerCreep.renew(ctx.powerSpawn);
-                    if(err == ERR_NOT_IN_RANGE) {
-                        powerCreep.moveTo(new RoomPosition(38, 23, 'E29N34'));
-                    }
-                } else {
-                    if(powerCreep.store[RESOURCE_OPS] >= 2 && powerCreep.powers[PWR_OPERATE_EXTENSION] &&
-                        powerCreep.powers[PWR_OPERATE_EXTENSION].cooldown < 2 && ctx.emptyExts.length >= 12) {
-                        var err = powerCreep.usePower(PWR_OPERATE_EXTENSION, ctx.terminal);
-                        if(err == ERR_NOT_IN_RANGE) {
-                            powerCreep.moveTo(ctx.terminal);
-                        }
-                    }
-                }
-            } else if(powerCreep.spawnCooldownTime == undefined) {
-                powerCreep.spawn(ctx.powerSpawn);
-            }
-        }
-    } catch(err) {
-        var errMsg = 'Power creep in Room ' + room.name + ": ";
-        utils.TraceError(err, errMsg);
-    }
+    // try {
+    //     if(room.name == 'E29N34') {
+    //         var powerCreep = Game.powerCreeps['The Jack'];
+    //         if(powerCreep.hits != undefined) {
+    //             if(ctx.factory && (ctx.factory.effects == undefined || ctx.factory.effects.length == 0)) {
+    //                 if(powerCreep.store[RESOURCE_OPS] < 100 && ctx.terminal.store[RESOURCE_OPS] >= 100) {
+    //                     var err = powerCreep.withdraw(ctx.terminal, RESOURCE_OPS);
+    //                     if(err == ERR_NOT_IN_RANGE) {
+    //                         powerCreep.moveTo(ctx.terminal);
+    //                     }
+    //                 } else {
+    //                     var err = powerCreep.usePower(PWR_OPERATE_FACTORY, ctx.factory);
+    //                     if(err == ERR_NOT_IN_RANGE) {
+    //                         powerCreep.moveTo(ctx.factory);
+    //                     }
+    //                 }
+    //             } else {
+    //                 if(powerCreep.store[RESOURCE_OPS] > 0) {
+    //                     var err = powerCreep.transfer(ctx.terminal, RESOURCE_OPS);
+    //                     if(err == ERR_NOT_IN_RANGE) {
+    //                         powerCreep.moveTo(ctx.terminal);
+    //                     }
+    //                 } else {
+    //                     powerCreep.moveTo(Game.getObjectById('5dc8c9583253f214bd252681'));
+    //                     if(powerCreep.ticksToLive < 1000) {
+    //                         powerCreep.renew(Game.getObjectById('5deca6969238aa70737dcf0f'));
+    //                     }
+    //                 }
+    //             }
+    //         } else if(powerCreep.spawnCooldownTime == undefined) {
+    //             powerCreep.spawn(Game.getObjectById('5deca6969238aa70737dcf0f'));
+    //         }
+    //     }
+    // } catch(err) {
+    //     var errMsg = 'Power creep in Room ' + room.name + ": ";
+    //     utils.TraceError(err, errMsg);
+    // }
+
+    // try {
+    //     if(room.name == 'E29N34') {
+    //         var powerCreep = Game.powerCreeps['The King'];
+    //         if(powerCreep.hits != undefined) {
+    //             powerCreep.usePower(PWR_GENERATE_OPS);
+    //             if(powerCreep.ticksToLive < 1000) {
+    //                 var err = powerCreep.renew(ctx.powerSpawn);
+    //                 if(err == ERR_NOT_IN_RANGE) {
+    //                     powerCreep.moveTo(new RoomPosition(38, 23, 'E29N34'));
+    //                 }
+    //             } else {
+    //                 if(powerCreep.store[RESOURCE_OPS] >= 2 && powerCreep.powers[PWR_OPERATE_EXTENSION] &&
+    //                     powerCreep.powers[PWR_OPERATE_EXTENSION].cooldown < 2 && ctx.emptyExts.length >= 12) {
+    //                     var err = powerCreep.usePower(PWR_OPERATE_EXTENSION, ctx.terminal);
+    //                     if(err == ERR_NOT_IN_RANGE) {
+    //                         powerCreep.moveTo(ctx.terminal);
+    //                     }
+    //                 }
+    //             }
+    //         } else if(powerCreep.spawnCooldownTime == undefined) {
+    //             powerCreep.spawn(ctx.powerSpawn);
+    //         }
+    //     }
+    // } catch(err) {
+    //     var errMsg = 'Power creep in Room ' + room.name + ": ";
+    //     utils.TraceError(err, errMsg);
+    // }
 
     try {
         if(ctx.storage) {

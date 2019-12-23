@@ -37,29 +37,27 @@ function Run(ctx, creep) {
 	}
 	var source = ctx.sources[creep.memory.sourceIdx];
 	if(!ctx.sourceContainers || !ctx.sourceContainers[creep.memory.sourceIdx]) {
-		var err = creep.harvest(source);
-		if(err != 0) {
-			utils.DefaultMoveTo(creep, source);
+		if(!creep.pos.isNearTo(source.pos)) {
+			return utils.DefaultMoveTo(creep, source.pos);
 		}
-		return;
+	} else {
+		var target = ctx.sourceContainers[creep.memory.sourceIdx];
+		if(!creep.pos.isEqualTo(target.pos)) {
+			return utils.DefaultMoveTo(creep, target.pos);
+		} else if(creep.store && creep.store[RESOURCE_ENERGY] > 0 && target.hits < target.hitsMax) {
+			return creep.repair(target);
+		}
 	}
 
-	var target = ctx.sourceContainers[creep.memory.sourceIdx];
-	if(!creep.pos.isEqualTo(target.pos)) {
-		return utils.DefaultMoveTo(creep, target.pos);
-	}
-	if(creep.store && creep.store[RESOURCE_ENERGY] > 0 && target.hits < target.hitsMax) {
-		return creep.repair(target);
-	}
 	if(ctx.centralLink && ctx.sourceLinks && ctx.sourceLinks[creep.memory.sourceIdx] && ctx.sourceLinks[creep.memory.sourceIdx].store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.getActiveBodyparts(CARRY) > 0) {
 		var works = creep.getActiveBodyparts(WORK);
 		if(creep.store.getFreeCapacity(RESOURCE_ENERGY) >= works * 2) {
-			creep.harvest(source);
+			return creep.harvest(source);
 		} else {
-			creep.transfer(ctx.sourceLinks[creep.memory.sourceIdx], RESOURCE_ENERGY);
+			return creep.transfer(ctx.sourceLinks[creep.memory.sourceIdx], RESOURCE_ENERGY);
 		}
 	} else {
-		creep.harvest(source);
+		return creep.harvest(source);
 	}
 }
 

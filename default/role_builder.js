@@ -103,7 +103,7 @@ function getTarget(ctx, creep) {
         return null;
     }
     targets = targets.filter((s) => getBuildPriority(s) == smallestPrio);
-    var target = creep.pos.findClosestByPath(targets);
+    var target = creep.pos.findClosestByRange(targets);
     if(!target) return null;
     creep.memory.targetId = target.id;
     return target;

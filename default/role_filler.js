@@ -47,7 +47,7 @@ function findNewTarget(ctx, creep) {
 	if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] >= 2000 && ctx.towers) {
 		var emptyTowers = ctx.towers.filter((t) => t.store[RESOURCE_ENERGY] < 500);
 		if(emptyTowers.length > 0) {
-			return creep.pos.findClosestByPath(emptyTowers);
+			return creep.pos.findClosestByRange(emptyTowers);
 		}
 	}
 	// fill spawn and extensions
@@ -60,13 +60,13 @@ function findNewTarget(ctx, creep) {
 		spwansAndEmptyExts = spwansAndEmptyExts.concat(emptySpawns);
 	}
 	if(spwansAndEmptyExts.length != 0) {
-		return creep.pos.findClosestByPath(spwansAndEmptyExts);
+		return creep.pos.findClosestByRange(spwansAndEmptyExts);
 	}
 	// fill tower
 	if(ctx.towers) {
 		var emptyTowers = ctx.towers.filter((t) => t.store[RESOURCE_ENERGY] < 500);
 		if(emptyTowers.length > 0) {
-			return creep.pos.findClosestByPath(emptyTowers);
+			return creep.pos.findClosestByRange(emptyTowers);
 		}
 	}
 	// fill controller's container
@@ -85,7 +85,7 @@ function findNewTarget(ctx, creep) {
 	if(ctx.centralContainers) {
 		var containers = _.filter(ctx.centralContainers, (c) => c.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
 		if(containers.length > 0) {
-			return creep.pos.findClosestByPath(containers);
+			return creep.pos.findClosestByRange(containers);
 		}
 	}
 	return null;

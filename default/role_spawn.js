@@ -25,13 +25,13 @@ function spawnCreep(ctx, spawn, roleName, opt = {}) {
     if(parts == undefined) {
         var res = null;
         if(opt.must) {
-            if(roleName == 'upgrader' || roleName == 'filler') {
+            if(roleName == 'upgrader' || roleName == 'filler' || roleName == 'mister') {
                 res = roleMap[roleName].GetPartsAndCost(ctx.CurEnergy, ctx);
             } else {
                 res = roleMap[roleName].GetPartsAndCost(ctx.CurEnergy);
             }
         } else {
-            if(roleName == 'upgrader' || roleName == 'filler') {
+            if(roleName == 'upgrader' || roleName == 'filler' || roleName == 'mister') {
                 res = roleMap[roleName].GetPartsAndCost(ctx.MaxEnergy, ctx);
             } else {
                 res = roleMap[roleName].GetPartsAndCost(ctx.MaxEnergy);
@@ -235,6 +235,9 @@ function Run(ctx, spawn, isMain = true) {
 
     if(ctx.room.name == 'E29N34') {
         for(var id in Memory.deposits) {
+            if(Memory.deposits[id].roomName[2] != '0') {
+                continue;
+            }
             var workPosNum = Memory.deposits[id].workPosNum;
             for(var idx = 0; idx < workPosNum; idx++) {
                 var creepName = 'mister' + id + '_' + idx;
@@ -249,9 +252,27 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
 
-    // if(isMain && ctx.managers.length > 0) {
-    //     spawn.renewCreep(ctx.managers[0]);
-    // }
+    if(ctx.room.name == 'E26N31') {
+        for(var id in Memory.deposits) {
+            if(Memory.deposits[id].roomName[2] == '0') {
+                continue;
+            }
+            var workPosNum = Memory.deposits[id].workPosNum;
+            if(ctx.room.controller.level < 7) {
+                workPosNum = Math.min(workPosNum, 2);
+            }
+            for(var idx = 0; idx < workPosNum; idx++) {
+                var creepName = 'mister' + id + '_' + idx;
+                if(!Game.creeps[creepName]) {
+                    return spawnCreep(ctx, spawn, 'mister', {givenName: creepName, memory: {
+                        workRoom: Memory.deposits[id].roomName,
+                        targetId: id,
+                        status: 'toWork',
+                    }});
+                }
+            }
+        }
+    }
 
     return -233;
 }

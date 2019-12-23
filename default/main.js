@@ -19,6 +19,15 @@ function fetchRoomCtx(gCtx, room) {
 // set a restPos Flag
 // require('prototype.Creep.move')
 module.exports.loop = function() {
+    if(global.runExtension != undefined) {
+        try {
+            if(global.runExtension()) return 0;
+        } catch(err) {
+            var errMsg = 'Run extension err';
+            utils.TraceError(err, errMsg);
+        }
+    }
+
     if(Game.cpu.bucket < 2000) return 0;
 
     if(Memory.profilingflag == 1 || Memory.profileRems == 1) {
@@ -120,6 +129,18 @@ module.exports.loop = function() {
     }
 
     utils.ProfileStage('Run room manager: ');
+
+    for(var powerCreepName in Game.powerCreeps) {
+        try {
+            var powerCreep = Game.powerCreeps[powerCreepName];
+            require('role_powerCreep').Run(powerCreep);
+        } catch(err) {
+            var errMsg = 'PowerCreep ' + powerCreepName + ' error: ';
+            utils.TraceError(err, errMsg);
+        }
+    }
+
+    utils.ProfileStage('Run power creeps: ');
 
     // cpu use stats
     if(Memory.cpuUse == undefined) {

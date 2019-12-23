@@ -75,10 +75,14 @@ function Run(ctx, creep) {
         var err = creep.upgradeController(ctx.room.controller);
         if(err == ERR_NOT_IN_RANGE) {
             creep.say('coming');
-            utils.DefaultMoveTo(creep, ctx.room.controller);
+            return utils.DefaultMoveTo(creep, ctx.room.controller);
         }
         if(!ctx.creepOnContainer) {
-            utils.DefaultMoveTo(creep, ctx.controllerContainer);
+            return utils.DefaultMoveTo(creep, ctx.controllerContainer);
+        }
+        var structures = creep.pos.lookFor(LOOK_STRUCTURES);
+        if(structures.filter((s) => s.structureType == STRUCTURE_ROAD).length > 0) {
+            return utils.DefaultMoveTo(creep, ctx.room.controller);
         }
         return;
     }

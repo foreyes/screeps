@@ -62,7 +62,7 @@ function updateNeedInfo(gCtx, terminal) {
 			gCtx.needList.push({
 				roomName: terminal.room.name,
 				resourceType: resourceType,
-				priority: (-terminal.store[resourceType] / priority) - (priority * 0.001),
+				priority: (-terminal.store[resourceType] / priority) + (priority * 0.001),
 				needAmount: terminal.need[resourceType] - terminal.store[resourceType],
 				sendFlag: false,
 			});

@@ -1,12 +1,27 @@
 var utils = require('utils');
 
-var mistWorkParts = 20;
+var mistWorkParts = 20; 
 
-function GetPartsAndCost(energy) {
-	if(energy < 3500) {
+function GetPartsAndCost(energy, ctx = {}) {
+	if(!ctx.room || !ctx.room.controller) {
 		return {cost: 0, parts: []};
+	}
+	var cl = ctx.room.controller.level;
+	if(cl < 6) {
+		return {cost: 0, parts: []};
+	}
+	if(cl == 6){
+		if(energy < 1900) {
+			return {cost: 0, parts: []};
+		} else {
+			return {cost: 1900, parts: utils.GetPartsByArray([[WORK, 10], [CARRY, 4], [MOVE, 14]])};
+		}
 	} else {
-		return {cost: 3500, parts: utils.GetPartsByArray([[WORK, mistWorkParts], [CARRY, 5], [MOVE, 25]])};
+		if(energy < 3500) {
+			return {cost: 0, parts: []};
+		} else {
+			return {cost: 3500, parts: utils.GetPartsByArray([[WORK, mistWorkParts], [CARRY, 5], [MOVE, 25]])};
+		}
 	}
 }
 

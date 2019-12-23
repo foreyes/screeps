@@ -26,6 +26,8 @@ Changelog:
 1.7; Added Factory support (line 46)
 */
 
+Object.defineProperty(global, '有啥', { get: sell })
+
 var roomStructures           = {};
 var roomStructuresExpiration = {};
 
