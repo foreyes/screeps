@@ -38,7 +38,7 @@ var TerminalConfig = {
 	},
 	'E29N33': {
 		need: {
-			[RESOURCE_ENERGY]: 150000,
+			[RESOURCE_ENERGY]: 40000,
 			[RESOURCE_MIST]: 10000,
 			[RESOURCE_OXYGEN]: 10000,
 			[RESOURCE_HYDROGEN]: 10000,
