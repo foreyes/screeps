@@ -17,8 +17,13 @@ var FactoryConfig = {
 		need: {
 			[RESOURCE_ENERGY]: 10000,
 			[RESOURCE_CATALYST]: 1000,
+			[RESOURCE_EXTRACT]: 10,
+			[RESOURCE_CONCENTRATE]: 30,
+			[RESOURCE_PURIFIER]: 1000,
+			[RESOURCE_REDUCTANT]: 1000,
+
 		},
-		produceList: [RESOURCE_PURIFIER],
+		produceList: [RESOURCE_SPIRIT, RESOURCE_PURIFIER],
 	},
 	'E29N34': {
 		need: {

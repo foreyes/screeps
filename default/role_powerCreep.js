@@ -1,3 +1,13 @@
+function enablePower(ctx, powerCreep) {
+	if(ctx.room.controller.isPowerEnabled) return false;
+	if(!powerCreep.pos.isNearTo(ctx.room.controller)) {
+		powerCreep.moveTo(ctx.room.controller);
+		return true;
+	}
+	powerCreep.enableRoom(ctx.room.controller);
+	return false;
+}
+
 function maintainFactory(ctx, powerCreep) {
 	if(!ctx.factory || !powerCreep.powers[PWR_OPERATE_FACTORY]) return false;
 	if(ctx.factory.effects != undefined && ctx.factory.effects.length > 0) return false;
@@ -64,6 +74,7 @@ function Run(powerCreep) {
 				break;
 			}
 
+			if(enablePower(ctx, powerCreep)) break;
 			if(maintainFactory(ctx, powerCreep)) break;
 			if(operateExtension(ctx, powerCreep)) break;
 			if(storeOps(ctx, powerCreep)) break;
@@ -91,6 +102,7 @@ function Run(powerCreep) {
 				break;
 			}
 
+			if(enablePower(ctx, powerCreep)) break;
 			if(maintainFactory(ctx, powerCreep)) break;
 			if(operateExtension(ctx, powerCreep)) break;
 			if(storeOps(ctx, powerCreep)) break;
@@ -102,6 +114,32 @@ function Run(powerCreep) {
 		break;
 	}
 	case 'The King': {
+		var ctx = Game.rooms['E35N38'].ctx;
+		if(powerCreep.hits != undefined) {
+			if(powerCreep.powers[PWR_GENERATE_OPS] &&
+				powerCreep.powers[PWR_GENERATE_OPS].cooldown == 0) {
+				powerCreep.usePower(PWR_GENERATE_OPS);
+			}
+
+			if(powerCreep.ticksToLive < 1000) {
+				if(!powerCreep.pos.isNearTo(ctx.powerSpawn)) {
+					powerCreep.moveTo(ctx.powerSpawn);
+					break;
+				}
+				powerCreep.renew(ctx.powerSpawn);
+				break;
+			}
+
+			if(enablePower(ctx, powerCreep)) break;
+			if(maintainFactory(ctx, powerCreep)) break;
+			if(operateExtension(ctx, powerCreep)) break;
+			if(storeOps(ctx, powerCreep)) break;
+			// rest
+			powerCreep.moveTo(Game.getObjectById('5daaaf5ff1fd4c66b1b175d3'));
+		} else if(powerCreep.spawnCooldownTime == undefined) {
+			powerCreep.spawn(ctx.powerSpawn);
+		}
+		break;
 	}
 	case 'The Joker': {
 	}

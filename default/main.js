@@ -74,7 +74,8 @@ module.exports.loop = function() {
     gCtx.allOrders = Game.market.getAllOrders((order) => {
         return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST ||
                 order.resourceType == RESOURCE_OXIDANT || order.resourceType == RESOURCE_CRYSTAL ||
-                order.resourceType == RESOURCE_EXTRACT || order.resourceType == RESOURCE_COMPOSITE;
+                order.resourceType == RESOURCE_EXTRACT || order.resourceType == RESOURCE_COMPOSITE ||
+                order.resourceType == RESOURCE_SPIRIT;
     });
     utils.ProfileStage('Fetch market: ');
 
