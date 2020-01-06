@@ -21,7 +21,14 @@ function InitRoomCtx(gCtx, room) {
 	room.memory.ctx.sourceIds = room.find(FIND_SOURCES).map((src) => src.id);
 }
 
+roomCache = {};
+
 function FetchRoomCtx(gCtx, room) {
+	// fetch room cache
+	if(roomCache[room.name] == undefined) {
+		roomCache[room.name] = {};
+	}
+	room.cache = roomCache[room.name];
 	// // ownership
 	// var my = room.controller != undefined && room.controller.my;
 	// var neutral = room.controller == undefined || room.controller.owner == 'None';
@@ -29,6 +36,8 @@ function FetchRoomCtx(gCtx, room) {
 	if(room.controller == undefined || !room.controller.my) {
 		// utils.ProfileStage('Fetch room' + room.name + ' ctx: ');
 		return {
+			my: false,
+			reservedByOthers: room.controller && room.controller.reservation && room.controller.reservation.username != 'foreyes1001',
 			room: room,
 			enemies: room.find(FIND_HOSTILE_CREEPS),
 			constructing: room.find(FIND_MY_CONSTRUCTION_SITES),
@@ -133,11 +142,16 @@ function FetchRoomCtx(gCtx, room) {
 	}
 	// factorier
 	var factoriers = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'factorier');
+	var managers = creeps.filter((creep) => creep.memory.role == 'manager');
 	// labs
-	var labs = undefined;
-	if(room.memory.ctx.labIds) {
-		labs = room.memory.ctx.labIds.map(Game.getObjectById);
-	}
+	var labs = room.find(FIND_STRUCTURES, {
+		filter: (s) => {
+			return s.my && s.structureType == STRUCTURE_LAB;
+		}
+	});
+	// if(room.memory.ctx.labIds) {
+	// 	labs = room.memory.ctx.labIds.map(Game.getObjectById);
+	// }
 	// labers
 	var labers = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'laber');
 	// stealers
@@ -160,7 +174,8 @@ function FetchRoomCtx(gCtx, room) {
 
 	var ctx = {
 		room: room,
-		// my: my,
+		my: true,
+		reservedByOthers: room.controller && room.controller.reservation && room.controller.reservation.username != 'foreyes1001',
 		// neutral: neutral,
 		// hostile: hostile,
 		spawns: spawns,
@@ -185,11 +200,11 @@ function FetchRoomCtx(gCtx, room) {
 		fillers: fillers,
 		keepLevel: room.memory.ctx.keepLevel == true,
 		upgrading: room.memory.ctx.upgrading == true,
-		restPos: restPos,
 		mineral: mineral,
 		mineralCanHarvest: mineralCanHarvest,
 		factory: factory,
 		factoriers: factoriers,
+		managers: managers,
 		labs: labs,
 		labers: labers,
 		powerSpawn: powerSpawn,

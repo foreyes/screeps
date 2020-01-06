@@ -10,13 +10,11 @@ var roleParts = {
     1300: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
     1800: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
     2300: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE],
-    3500: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-    3950: utils.GetPartsByArray([[WORK, 34], [CARRY, 2], [MOVE, 9]]), 
+    3700: utils.GetPartsByArray([[WORK, 30], [CARRY, 6], [MOVE, 8]]),
 };
 
 function getCost(energy) {
-    if(energy >= 3950) return 3950;
-    if(energy >= 3500) return 3500;
+    if(energy >= 3700) return 3700;
     if(energy >= 2300) return 2300;
     if(energy >= 1800) return 1800;
     if(energy >= 1300) return 1300;
@@ -69,13 +67,22 @@ function findEnergy(ctx, creep) {
 
 function Run(ctx, creep) {
     if(ctx.upgrading && creep.store[RESOURCE_ENERGY] > 0) {
+        if(ctx.controllerContainer &&
+            creep.pos.isEqualTo(ctx.controllerContainer.pos) &&
+            ctx.controllerContainer.hits < ctx.controllerContainer.hitsMax) {
+            return creep.repair(ctx.controllerContainer);
+        }
         var err = creep.upgradeController(ctx.room.controller);
         if(err == ERR_NOT_IN_RANGE) {
             creep.say('coming');
-            utils.DefaultMoveTo(creep, ctx.room.controller);
+            return utils.DefaultMoveTo(creep, ctx.room.controller);
         }
         if(!ctx.creepOnContainer) {
-            utils.DefaultMoveTo(creep, ctx.controllerContainer);
+            return utils.DefaultMoveTo(creep, ctx.controllerContainer);
+        }
+        var structures = creep.pos.lookFor(LOOK_STRUCTURES);
+        if(structures.filter((s) => s.structureType == STRUCTURE_ROAD).length > 0) {
+            return utils.DefaultMoveTo(creep, ctx.room.controller);
         }
         return;
     }
@@ -92,17 +99,23 @@ function Run(ctx, creep) {
         return;
     }
 
+    if(creep.store[RESOURCE_ENERGY] > 0 && ctx.controllerContainer &&
+        creep.pos.isEqualTo(ctx.controllerContainer.pos) &&
+        ctx.controllerContainer.hits < ctx.controllerContainer.hitsMax) {
+        return creep.repair(ctx.controllerContainer);
+    }
+
     var err = creep.upgradeController(ctx.room.controller);
     if(err == ERR_NOT_IN_RANGE) {
         creep.say('coming');
         utils.DefaultMoveTo(creep, ctx.room.controller);
     }
-    if(!ctx.creepOnContainer) {
+    if(ctx.controllerContainer && !ctx.creepOnContainer) {
         utils.DefaultMoveTo(creep, ctx.controllerContainer);
     }
     if(err == 0) {
         // just keep level when no need to upgrade
-        if(ctx.keepLevel) {
+        if(ctx.keepLevel && creep.getActiveBodyparts(WORK) == 1) {
             creep.memory.sleep = 10;
         }
     }

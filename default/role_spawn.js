@@ -14,6 +14,7 @@ var roleMap = {
     outCarrier: require('role_outCarrier'),
     defender: require('role_defender'),
     mister: require('mister'),
+    manager: require('role_manager'),
 };
 
 // opt: parts, must, givenName, memory
@@ -24,13 +25,13 @@ function spawnCreep(ctx, spawn, roleName, opt = {}) {
     if(parts == undefined) {
         var res = null;
         if(opt.must) {
-            if(roleName == 'upgrader' || roleName == 'filler') {
+            if(roleName == 'upgrader' || roleName == 'filler' || roleName == 'mister') {
                 res = roleMap[roleName].GetPartsAndCost(ctx.CurEnergy, ctx);
             } else {
                 res = roleMap[roleName].GetPartsAndCost(ctx.CurEnergy);
             }
         } else {
-            if(roleName == 'upgrader' || roleName == 'filler') {
+            if(roleName == 'upgrader' || roleName == 'filler' || roleName == 'mister') {
                 res = roleMap[roleName].GetPartsAndCost(ctx.MaxEnergy, ctx);
             } else {
                 res = roleMap[roleName].GetPartsAndCost(ctx.MaxEnergy);
@@ -115,6 +116,27 @@ function Run(ctx, spawn, isMain = true) {
     if(ctx.MaxEnergy < 350) {
         return runStart(ctx, spawn);
     }
+
+    if(ctx.room.cache.needBoost && !ctx.room.cache.boostPrepare) {
+        var creepName = 'boostHelper' + ctx.room.name;
+        if(!Game.creeps[creepName]) {
+            return spawnCreep(ctx, spawn, 'specialer', {givenName: creepName, parts: utils.GetPartsByArray([[CARRY, 20], [MOVE, 10]]), memory: {specialType: 'boostHelper'}});
+        }
+    }
+
+    if(ctx.extraSpawnFunction != undefined) {
+        if(ctx.extraSpawnFunction(spawn)) {
+            return;
+        } else {
+            delete ctx.extraSpawnFunction;
+        }
+    }
+
+    if(ctx.room.name == 'E29N33' && Game.rooms['E26N31'] != undefined) {
+        if(!Game.rooms['E26N31'].ctx.spawn && Game.rooms['E26N31'].ctx.builders.filter(hasLongLife).length < 2) {
+            return spawnCreep(ctx, spawn, 'builder', {memory: {ctrlRoom: 'E26N31', ownRoom: 'E26N31'}});
+        }
+    }
     // TODO: check if need emergency miner
     var needEmergencyMiner = false;
     // spawn the first filler
@@ -140,7 +162,7 @@ function Run(ctx, spawn, isMain = true) {
         return spawnCreep(ctx, spawn, 'filler')
     }
     // spawn mineraler
-    if(ctx.mineralCanHarvest != undefined) {
+    if(ctx.mineralCanHarvest != undefined && ctx.terminal) {
         var name = 'mineraler' + ctx.mineralCanHarvest.id;
         var creep = Game.creeps[name];
         if(!creep) {
@@ -148,13 +170,18 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
     // spawn factorier
-    if(ctx.terminal && ctx.factoriers.filter(hasLongLife).length == 0 && isMain) {
-        return spawnCreep(ctx, spawn, 'specialer', {
+    if((ctx.centralLink || ctx.terminal) && ctx.managers.filter(hasLongLife).length == 0 && isMain) {
+        return spawnCreep(ctx, spawn, 'manager', {
             directions: [TOP],
-            parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY],
-            memory: {specialType: 'factorier'}
         });
     }
+    // if(ctx.terminal && ctx.factoriers.filter(hasLongLife).length == 0 && isMain) {
+    //     return spawnCreep(ctx, spawn, 'specialer', {
+    //         directions: [TOP],
+    //         parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY],
+    //         memory: {specialType: 'factorier'}
+    //     });
+    // }
     // spawn upgrader
     if(ctx.upgraders.filter(hasLongLife).length < ctx.room.memory.ctx.upgraderNum) {
         return spawnCreep(ctx, spawn, 'upgrader');
@@ -169,10 +196,13 @@ function Run(ctx, spawn, isMain = true) {
     }
 
     var roomConfig = require('room_config')[ctx.room.name];
-    if(roomConfig != undefined) {
+    if(roomConfig != undefined && ctx.storage) {
         for(var roomName in roomConfig.outSources) {
             var outSource = roomConfig.outSources[roomName];
             // defender
+            if(!outSource.needDefender && Game.time % 97 == 17) {
+                outSource.needDefender = Game.rooms[roomName] && Game.rooms[roomName].find(FIND_HOSTILE_STRUCTURES).length > 0;
+            }
             if(outSource.needDefender) {
                 var creepName = 'defender' + roomName;
                 if(!Game.creeps[creepName]) {
@@ -184,7 +214,7 @@ function Run(ctx, spawn, isMain = true) {
                 }
             }
             // outReserver
-            if(Game.rooms[roomName] && (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.ticksToEnd < 2000)) {
+            if(Game.rooms[roomName] && (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.username != 'foreyes1001' || Game.rooms[roomName].controller.reservation.ticksToEnd < 2000)) {
                 var creepName = 'outReserver' + outSource.controller;
                 if(!Game.creeps[creepName]) {
                     return spawnCreep(ctx, spawn, 'outReserver', {givenName: creepName, memory: {
@@ -213,21 +243,49 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
 
-    if(ctx.powerSpawn && ctx.powerSpawners.length == 0) {
+    if(ctx.powerSpawn && ctx.terminal && ctx.terminal.store[RESOURCE_POWER] >= 100 && ctx.powerSpawners.length == 0) {
         return spawnCreep(ctx, spawn, 'specialer', {parts: utils.GetPartsByArray([[CARRY, 30], [MOVE, 15]]), memory: {
             specialType: 'powerSpawner',
         }});
     }
 
-    if(ctx.room.name == 'E29N34') {
+    if(ctx.room.name == 'E29N34' && ctx.terminal) {
         for(var id in Memory.deposits) {
-            var creepName = 'mister' + id;
-            if(!Game.creeps[creepName]) {
-                return spawnCreep(ctx, spawn, 'mister', {givenName: creepName, memory: {
-                    workRoom: Memory.deposits[id].roomName,
-                    targetId: id,
-                    status: 'toWork',
-                }});
+            if(Memory.deposits[id].roomName[2] != '0') {
+                continue;
+            }
+            var workPosNum = Memory.deposits[id].workPosNum;
+            for(var idx = 0; idx < workPosNum; idx++) {
+                var creepName = 'mister' + id + '_' + idx;
+                if(!Game.creeps[creepName]) {
+                    return spawnCreep(ctx, spawn, 'mister', {givenName: creepName, memory: {
+                        workRoom: Memory.deposits[id].roomName,
+                        targetId: id,
+                        status: 'toWork',
+                    }});
+                }
+            }
+        }
+    }
+
+    if(ctx.room.name == 'E26N31' && ctx.terminal) {
+        for(var id in Memory.deposits) {
+            if(Memory.deposits[id].roomName[2] == '0') {
+                continue;
+            }
+            var workPosNum = Memory.deposits[id].workPosNum;
+            if(ctx.room.controller.level < 7) {
+                workPosNum = Math.min(workPosNum, 2);
+            }
+            for(var idx = 0; idx < workPosNum; idx++) {
+                var creepName = 'mister' + id + '_' + idx;
+                if(!Game.creeps[creepName]) {
+                    return spawnCreep(ctx, spawn, 'mister', {givenName: creepName, memory: {
+                        workRoom: Memory.deposits[id].roomName,
+                        targetId: id,
+                        status: 'toWork',
+                    }});
+                }
             }
         }
     }

@@ -37,12 +37,31 @@ function CmpByObjDist2GivenPos(pos) {
     };
 }
 
+var pathCache = {};
+
+function stringifyPosition(pos) {
+    return '' + pos.x + pos.y + pos.roomName;
+}
+
 function findNewPath2Target(creep, target, ignoreCreeps, otherRoom) {
     var path = undefined;
     if(!otherRoom) {
         path = creep.room.findPath(creep.pos, target, {ignoreCreeps: ignoreCreeps});
     } else {
-        path = FindPath(creep.pos, target, {ignoreCreeps: ignoreCreeps}).path;
+        var hashVal = stringifyPosition(creep.pos) + '#' + stringifyPosition(target);
+        if(ignoreCreeps) {
+            if(pathCache[hashVal] != undefined && Game.time - pathCache[hashVal].timestamp < 10000) {
+                path = pathCache[hashVal].path;
+            } else {
+                path = FindPath(creep.pos, target, {ignoreCreeps: ignoreCreeps}).path;
+                pathCache[hashVal] = {
+                    path: path,
+                    timestamp: Game.time,
+                };
+            }
+        } else {
+            path = FindPath(creep.pos, target, {ignoreCreeps: ignoreCreeps}).path;
+        }
     }
     creep.cache.path = path;
     creep.cache.dest = target;
@@ -62,7 +81,7 @@ function getPath2Target(creep, target, ignoreCreeps = true, otherRoom = false) {
 }
 
 function defaultMoveToOtherRoom(creep, target) {
-    if(creep.memory.stuck <= 2) {
+    if(creep.memory.stuck < 3) {
         var path = getPath2Target(creep, target, true, true);
         return creep.moveByPath(path);
     } else {
@@ -72,53 +91,34 @@ function defaultMoveToOtherRoom(creep, target) {
     }
 }
 
-function moveToTest(creep, target) {
-    if(target.pos != undefined) target = target.pos;
-    creep.say('' + creep.memory.stuck + ',' + creep.cache.moveRate);
-    if(creep.memory.stuck >= 2) {
-        creep.cache.dest = target;
-        creep.cache.path = FindPath(creep.pos, target, {moveRate: creep.cache.moveRate}).path;
+function defaultMoveToSameRoom(creep, target) {
+    creep.say(creep.memory.stuck);
+    if(creep.memory.stuck < 2) {
+        var path = getPath2Target(creep, target, true);
+        return creep.moveByPath(path);
+    } else {
+        delete creep.cache.path;
+        var path = getPath2Target(creep, target, false);
+        return creep.moveByPath(path);
     }
-    if(creep.cache.dest == undefined || !IsSamePosition(target, creep.cache.dest)) {
-        creep.cache.dest = target;
-        creep.cache.path = FindPath(creep.pos, target, {moveRate: creep.cache.moveRate, ignoreCreeps: true}).path;
-    }
-    if(creep.cache.path.length > 0 && !IsSamePosition(target, creep.cache.path[creep.cache.path.length - 1])) {
-        if(Memory.holyCreep == undefined) Memory.holyCreep = [];
-        Memory.holyCreep.push(creep.memory.role);
-        creep.cache.dest = target;
-        creep.cache.path = FindPath(creep.pos, target, {moveRate: creep.cache.moveRate}).path;
-    }
-    var err = creep.moveByPath(creep.cache.path);
-    if(err == 0) {
-        creep.memory.needMove = true;
-    }
-    return err;
 }
 
 function implementMoveTo(creep, target) {
-    // return moveToTest(creep, target);
-
     if(target.pos != undefined) target = target.pos;
-    if(creep.pos.roomName != target.roomName) {
-        var err = defaultMoveToOtherRoom(creep, target);
-        if(err == 0) {
-            creep.memory.needMove = true;
-        }
-        return err; 
+
+    var err = null;
+    if(creep.memory.stuck < 2 && creep.cache.path != undefined && target.isEqualTo(creep.cache.dest)) {
+        err = creep.moveByPath(creep.cache.path);
+    } else if(creep.pos.roomName != target.roomName) {
+        err = defaultMoveToOtherRoom(creep, target);
+    } else {
+        err = defaultMoveToSameRoom(creep, target);
     }
 
-    creep.say(creep.memory.stuck);
-    var path = null;
-    if(creep.memory.stuck >= 2) {
-        delete creep.cache.path;
-        path = getPath2Target(creep, target, false);
-    } else {
-        path = getPath2Target(creep, target, true);
-    }
-    var err = creep.moveByPath(path);
     if(err == 0) {
         creep.memory.needMove = true;
+    } else if(err == ERR_NOT_FOUND) {
+        delete creep.cache.path;
     }
     return err;
 }
@@ -149,7 +149,7 @@ function findNewStore(ctx, creep) {
         return container.store[RESOURCE_ENERGY] >= 100;
     });
     if(targets.length != 0) {
-        return creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
+        return creep.pos.findClosestByRange(targets);
     }
     if(ctx.storage == undefined || ctx.storage.store[RESOURCE_ENERGY] < 100) return null;
     return ctx.storage;
@@ -181,20 +181,20 @@ function findNewEnergyTarget4Worker(ctx, creep) {
     if(ctx.centralContainers) {
         var containers = _.filter(ctx.centralContainers, (c) => c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
         if(containers.length > 0) {
-            return creep.pos.findClosestByPath(containers);
+            return creep.pos.findClosestByRange(containers);
         }
     }
     if(ctx.sourceContainers) {
         var containers = _.filter(ctx.sourceContainers, (c) => c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
         if(containers.length > 0) {
-            return creep.pos.findClosestByPath(containers);
+            return creep.pos.findClosestByRange(containers);
         }
     }
     // get from dropped energy
     if(ctx.dropedEnergy) {
         var largeEnergy = ctx.dropedEnergy.filter((de) => de.amount >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
         if(largeEnergy.length > 0) {
-            return creep.pos.findClosestByPath(largeEnergy);
+            return creep.pos.findClosestByRange(largeEnergy);
         }
         // TODO:
         // return creep.pos.findClosestByPath(ctx.dropedEnergy);
@@ -206,7 +206,7 @@ function findNewEnergyTarget4Worker(ctx, creep) {
         }
     });
     if(usefulHostileStructures.length != 0) {
-        return creep.pos.findClosestByPath(usefulHostileStructures);
+        return creep.pos.findClosestByRange(usefulHostileStructures);
     }
     // TODO: get from tomestone
     return null;
@@ -253,7 +253,7 @@ function findNewEnergyTarget4Filler(ctx, creep, fillTargetId) {
     if(ctx.dropedEnergy) {
         var largeEnergy = ctx.dropedEnergy.filter((de) => de.amount >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
         if(largeEnergy.length > 0) {
-            return creep.pos.findClosestByPath(largeEnergy);
+            return creep.pos.findClosestByRange(largeEnergy);
         }
         // TODO:
         // return creep.pos.findClosestByPath(ctx.dropedEnergy);
@@ -265,23 +265,23 @@ function findNewEnergyTarget4Filler(ctx, creep, fillTargetId) {
         }
     });
     if(usefulHostileStructures.length != 0) {
-        return creep.pos.findClosestByPath(usefulHostileStructures);
+        return creep.pos.findClosestByRange(usefulHostileStructures);
     }
     // get from source's container
     if(ctx.sourceContainers) {
-        var containers = _.filter(ctx.sourceContainers, (c) => c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
+        var containers = _.filter(ctx.sourceContainers, (c) => c && c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500));
         if(containers.length > 0) {
-            return creep.pos.findClosestByPath(containers);
+            return creep.pos.findClosestByRange(containers);
         }
     }
     // get from central containers
     if(ctx.centralContainers) {
         var containers = _.filter(ctx.centralContainers, (c) => {
             // stop [get, store] infinite loop.
-            return fillTargetId != c.id && c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500);
+            return c && fillTargetId != c.id && c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500);
         });
         if(containers.length > 0) {
-            return creep.pos.findClosestByPath(containers);
+            return creep.pos.findClosestByRange(containers);
         }
     }
     // get from storage
@@ -339,7 +339,7 @@ function findNewEnergyTarget4ImportantTarget(ctx, creep) {
             return c.store[RESOURCE_ENERGY] >= Math.min(creep.store.getFreeCapacity(RESOURCE_ENERGY), 500);
         });
         if(containers.length > 0) {
-            return creep.pos.findClosestByPath(containers);
+            return creep.pos.findClosestByRange(containers);
         }
     }
     // get from storage
@@ -392,7 +392,7 @@ function GetEnergyFromStore(ctx, creep) {
     }
     if(ctx.dropedEnergy.length != 0) {
         // TODO: plan closest
-        target = creep.pos.findClosestByPath(ctx.dropedEnergy, {ignoreCreeps: true});
+        target = creep.pos.findClosestByRange(ctx.dropedEnergy);
         // target = ctx.dropedEnergy[0];
         // ctx.dropedEnergy = ctx.dropedEnergy.slice(1);
     }
@@ -683,6 +683,33 @@ function StartProfiling(ticks) {
     Memory.profilingflag = ticks;
 }
 
+function GetObjByArray(arr) {
+    var res = {};
+    for(var i in arr) {
+        res[arr[i][0]] = arr[i][1];
+    }
+    return res;
+}
+
+function GetResourcesStats(resourceType) {
+    var sum = 0;
+    for(var roomName in Game.rooms) {
+        var room = Game.rooms[roomName];
+        if(room.ctx.terminal) {
+            sum += room.ctx.terminal.store[resourceType];
+        }
+        if(room.ctx.storage) {
+            sum += room.ctx.storage.store[resourceType];
+        }
+    }
+    return sum;
+}
+
+function DistanceInRange(pos1, pos2) {
+    if(pos1.roomName != pos2.roomName) return 100000;
+    return Math.max(pos1.x - pos2.x, pos1.y - pos2.y);
+}
+
 module.exports = {
     get_positions_by_dist,
     GetDirectDistance,
@@ -710,4 +737,7 @@ module.exports = {
     ProfileUpdate,
     ProfileStage,
     StartProfiling,
+    GetObjByArray,
+    GetResourcesStats,
+    DistanceInRange,
 };

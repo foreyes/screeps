@@ -1,10 +1,27 @@
 var utils = require('utils');
 
-function GetPartsAndCost(energy) {
-	if(energy < 3300) {
+var mistWorkParts = 20; 
+
+function GetPartsAndCost(energy, ctx = {}) {
+	if(!ctx.room || !ctx.room.controller) {
 		return {cost: 0, parts: []};
+	}
+	var cl = ctx.room.controller.level;
+	if(cl < 6) {
+		return {cost: 0, parts: []};
+	}
+	if(cl == 6){
+		if(energy < 1900) {
+			return {cost: 0, parts: []};
+		} else {
+			return {cost: 1900, parts: utils.GetPartsByArray([[WORK, 10], [CARRY, 4], [MOVE, 14]])};
+		}
 	} else {
-		return {cost: 3300, parts: utils.GetPartsByArray([[WORK, 16], [CARRY, 9], [MOVE, 25]])};
+		if(energy < 3500) {
+			return {cost: 0, parts: []};
+		} else {
+			return {cost: 3500, parts: utils.GetPartsByArray([[WORK, mistWorkParts], [CARRY, 5], [MOVE, 25]])};
+		}
 	}
 }
 
@@ -14,24 +31,40 @@ function Run(ctx, creep) {
 		if(creep.room.name != creep.memory.workRoom) {
 			utils.DefaultMoveTo(creep, new RoomPosition(25, 25, creep.memory.workRoom));
 		} else {
-			creep.memory.status = 'work';
+			var deposit = Game.getObjectById(creep.memory.targetId);
+			if(!creep.pos.isNearTo(deposit)) {
+				utils.DefaultMoveTo(creep, deposit);
+			} else {
+				if(creep.memory.remTime == undefined) {
+					creep.memory.remTime = 1500 - creep.ticksToLive + 70;
+				}
+				creep.memory.status = 'work';
+			}
 		}
 		break;
 	}
 	case 'work': {
-		if(creep.store.getFreeCapacity(RESOURCE_MIST) < 16 ||
+		if(creep.store.getFreeCapacity(RESOURCE_MIST) < mistWorkParts ||
 			(creep.memory.remTime != undefined && creep.ticksToLive < creep.memory.remTime)) {
 			creep.memory.status = 'back';
 			break;
 		}
 		var deposit = Game.getObjectById(creep.memory.targetId);
 		var err = creep.harvest(deposit);
-		if(err == ERR_NOT_IN_RANGE) {
-			utils.DefaultMoveTo(creep, deposit);
-		} else {
-			if(creep.memory.remTime == undefined) {
-				creep.memory.remTime = 1500 - creep.ticksToLive + 150;
+		// try to sleep
+		if(err != 0 && creep.ticksToLive - deposit.cooldown > creep.memory.remTime) {
+			var sleepTime = Math.max(deposit.cooldown - 3, 0);
+			if(sleepTime > 0) {
+				creep.memory.sleepTo = Game.time + sleepTime;
+				creep.memory.status = 'sleep';
 			}
+		}
+		break;
+	}
+	case 'sleep': {
+		creep.say('💤');
+		if(Game.time >= creep.memory.sleepTo) {
+			creep.memory.status = 'work';
 		}
 		break;
 	}
@@ -53,6 +86,12 @@ function Run(ctx, creep) {
 		if(err == ERR_NOT_IN_RANGE) {
 			utils.DefaultMoveTo(creep, terminal);
 			break;
+		}
+		if(err == 0) {
+			if(Memory.mist == undefined) {
+				Memory.mist = 0;
+			}
+			Memory.mist += creep.store[RESOURCE_MIST];
 		}
 		break;
 	}

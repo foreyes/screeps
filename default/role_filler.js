@@ -9,11 +9,13 @@ var roleParts = {
     900: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
     1050: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
     1200: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-    2500: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+    2250: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+    2400: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
 };
 
 function getCost(energy, flag = false) {
-	if(energy >= 2500 && flag) return 2500;
+	if(energy >= 2400 && flag) return 2400;
+	if(energy >= 2250 && flag) return 2250;
 	if(energy >= 1200) return 1200;
 	if(energy >= 1050) return 1050;
 	if(energy >= 900) return 900;
@@ -45,7 +47,7 @@ function findNewTarget(ctx, creep) {
 	if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] >= 2000 && ctx.towers) {
 		var emptyTowers = ctx.towers.filter((t) => t.store[RESOURCE_ENERGY] < 500);
 		if(emptyTowers.length > 0) {
-			return creep.pos.findClosestByPath(emptyTowers);
+			return creep.pos.findClosestByRange(emptyTowers);
 		}
 	}
 	// fill spawn and extensions
@@ -58,13 +60,13 @@ function findNewTarget(ctx, creep) {
 		spwansAndEmptyExts = spwansAndEmptyExts.concat(emptySpawns);
 	}
 	if(spwansAndEmptyExts.length != 0) {
-		return creep.pos.findClosestByPath(spwansAndEmptyExts);
+		return creep.pos.findClosestByRange(spwansAndEmptyExts);
 	}
 	// fill tower
 	if(ctx.towers) {
 		var emptyTowers = ctx.towers.filter((t) => t.store[RESOURCE_ENERGY] < 500);
 		if(emptyTowers.length > 0) {
-			return creep.pos.findClosestByPath(emptyTowers);
+			return creep.pos.findClosestByRange(emptyTowers);
 		}
 	}
 	// fill controller's container
@@ -83,7 +85,7 @@ function findNewTarget(ctx, creep) {
 	if(ctx.centralContainers) {
 		var containers = _.filter(ctx.centralContainers, (c) => c.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
 		if(containers.length > 0) {
-			return creep.pos.findClosestByPath(containers);
+			return creep.pos.findClosestByRange(containers);
 		}
 	}
 	return null;
@@ -119,6 +121,10 @@ function findEnergy(ctx, creep) {
 		delete creep.memory.energyTargetId;
 		delete creep.memory.targetId;
 	}
+	if(creep.ticksToLive < 20) {
+		creep.memory.FindEnergy = false;
+		return;
+	}
 	var target = getValidTarget(ctx, creep);
 	if(target == null) return;
 
@@ -131,10 +137,14 @@ function findEnergy(ctx, creep) {
 	if(ctx.miners.length != 0 || creep.getActiveBodyparts(WORK) == 0) return;
 
 	var source = ctx.sources[0];
-	var err = creep.harvest(source);
-	if(err == ERR_NOT_IN_RANGE) {
-		utils.DefaultMoveTo(creep, source);
-	}
+    if(ctx.sources.length >= 2 && (Game.creeps['miner' + source.id] || source.energy == 0)) {
+        source = ctx.sources[1];
+        if(Game.creeps['miner' + source.id] || source.energy == 0) return;
+    }
+    var err = creep.harvest(source);
+    if(err == ERR_NOT_IN_RANGE) {
+        utils.DefaultMoveTo(creep, source);
+    }
 }
 
 function fillStructure(ctx, creep) {

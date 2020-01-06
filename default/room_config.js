@@ -1,18 +1,6 @@
 // 7级之前每个基地最多三个外矿点（三个miner）
 var RoomConfig = {
 	'E29N34': {
-		// TODO: maintain room infomations here
-		// *********************************
-		// sources: [],
-		// sourceContainers: [],
-		// centralContainers: [],
-		// controllerContainer: ,
-		// sourceLinks: [],
-		// centralLink: ,
-		// mainSpawn: ,
-		// spawns: [],
-		// **********************************
-		// out sources
 		outSources: {
 			'E29N35': {
 				needReserve: true,
@@ -54,14 +42,14 @@ var RoomConfig = {
 				sources: ['5bbcaef99099fc012e639e6c', '5bbcaef99099fc012e639e6e'],
 				workPos: [{x: 41, y: 6, roomName: 'E35N37'}, {x: 19, y: 41, roomName: 'E35N37'}],
 			},
-			'E36N38': {
-				needReserve: true,
-				needClearInvader: false,
-				controller: '5bbcaf0b9099fc012e63a095',
-				reservePos: {x: 12, y: 43, roomName: 'E36N38'},
-				sources: ['5bbcaf0b9099fc012e63a094'],
-				workPos: [{x: 33, y: 40, roomName: 'E36N38'}],
-			},
+			// 'E36N38': {
+			// 	needReserve: true,
+			// 	needClearInvader: false,
+			// 	controller: '5bbcaf0b9099fc012e63a095',
+			// 	reservePos: {x: 12, y: 43, roomName: 'E36N38'},
+			// 	sources: ['5bbcaf0b9099fc012e63a094'],
+			// 	workPos: [{x: 33, y: 40, roomName: 'E36N38'}],
+			// },
 		},
 	},
 	'E29N33': {
@@ -81,6 +69,18 @@ var RoomConfig = {
 				reservePos: {x: 24, y: 10, roomName: 'E28N33'},
 				sources: ['5bbcae939099fc012e639401'],
 				workPos: [{x: 33, y: 23, roomName: 'E28N33'}],
+			},
+		},
+	},
+	'E26N31': {
+		outSources: {
+			'E26N32': {
+				needReserve: true,
+				needClearInvader: false,
+				controller: '5bbcae6e9099fc012e639063',
+				reservePos: {x: 26, y: 10, roomName: 'E26N32'},
+				sources: ['5bbcae6e9099fc012e639064', '5bbcae6e9099fc012e639062'],
+				workPos: [{x: 25, y: 13, roomName: 'E26N32'}, {x: 19, y: 5, roomName: 'E26N32'}],
 			},
 		},
 	},

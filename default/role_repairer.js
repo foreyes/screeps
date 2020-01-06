@@ -70,7 +70,7 @@ function getTarget(ctx, creep) {
     if(targets.length == 0) {
         return null;
     }
-    var target = creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
+    var target = creep.pos.findClosestByRange(targets, {ignoreCreeps: true});
     creep.memory.targetId = target.id;
     return target;
 }

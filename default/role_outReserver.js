@@ -3,9 +3,13 @@ var utils = require('utils');
 var roleParts = {
 	0: [],
 	1300: [CLAIM, CLAIM, MOVE, MOVE],
+	1950: [CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE],
+	2600: [CLAIM, CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE, MOVE],
 };
 
 function getCost(energy) {
+	if(energy >= 2600) return 2600;
+	if(energy >= 1950) return 1950;
 	if(energy >= 1300) return 1300;
 	return 0;
 }
@@ -43,7 +47,11 @@ function Run(ctx, creep) {
 	}
 	// reserve
 	var controller = Game.getObjectById(outSource.controller);
-	return creep.reserveController(controller);
+	var err = creep.reserveController(controller);
+	if(err == ERR_INVALID_TARGET) {
+		err = creep.attackController(controller);
+	}
+	return err;
 }
 
 module.exports = {

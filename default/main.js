@@ -1,6 +1,5 @@
-// TODOs: suicade logic, fix find energy then store, refactor ctx, recycle droped energy
-// build err, stats road, refactor stages, extension use, reuse carrier and spawner
-// get position by dist, tower logic, wall and rampart
+// TODOs: suicade logic, build err, refactor stages, extension use
+// get position by dist, wall and rampart
 var utils = require('utils');
 
 function fetchGlobalCtx() {
@@ -20,6 +19,17 @@ function fetchRoomCtx(gCtx, room) {
 // set a restPos Flag
 // require('prototype.Creep.move')
 module.exports.loop = function() {
+    if(global.runExtension != undefined) {
+        try {
+            if(global.runExtension()) return 0;
+        } catch(err) {
+            var errMsg = 'Run extension err';
+            utils.TraceError(err, errMsg);
+        }
+    }
+
+    if(Game.cpu.bucket < 2000) return 0;
+
     if(Memory.profilingflag == 1 || Memory.profileRems == 1) {
         Memory.memoryFetchTime = Game.cpu.getUsed();
         console.log('Parse memory: ' + Memory.memoryFetchTime);
@@ -29,6 +39,15 @@ module.exports.loop = function() {
     utils.ProfileUpdate();
     // statOutMiner
     Memory.outSpeed = Memory.statOutMiner / (Game.time - Memory.statStart);
+    // statCredit
+    if(Memory.creditHis == undefined) {
+        Memory.creditHis = [Game.market.credits];
+    }
+    if(Game.time % 1000 == 23) {
+        var curCredit = Game.market.credits;
+        Memory.creditHis.push(curCredit - Memory.creditHis[0]);
+        Memory.creditHis[0] = curCredit;
+    }
     // clear memory
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
@@ -54,7 +73,9 @@ module.exports.loop = function() {
 
     gCtx.allOrders = Game.market.getAllOrders((order) => {
         return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST ||
-                order.resourceType == RESOURCE_OXIDANT;
+                order.resourceType == RESOURCE_OXIDANT || order.resourceType == RESOURCE_CRYSTAL ||
+                order.resourceType == RESOURCE_EXTRACT || order.resourceType == RESOURCE_COMPOSITE ||
+                order.resourceType == RESOURCE_SPIRIT || order.resourceType == RESOURCE_POWER;
     });
     utils.ProfileStage('Fetch market: ');
 
@@ -85,6 +106,43 @@ module.exports.loop = function() {
     }
     utils.ProfileStage('Run room scheduler: ');
 
+    try {
+        require('terminal_scheduler').Run(gCtx);
+    } catch(err) {
+        var errMsg = 'Terminal scheduler error: ';
+        utils.TraceError(err, errMsg);
+    }
+
+    utils.ProfileStage('Run terminal scheduler: ');
+
+    for(var i in Game.rooms) {
+        try {
+            var ctx = Game.rooms[i].ctx;
+            if(ctx.my) {
+                for(var creep of ctx.managers) {
+                    require('role_manager').Run(ctx, creep);
+                }
+            }
+        } catch(err) {
+            var errMsg = 'room ' + i + ' manager error: ';
+            utils.TraceError(err, errMsg);
+        }
+    }
+
+    utils.ProfileStage('Run room manager: ');
+
+    for(var powerCreepName in Game.powerCreeps) {
+        try {
+            var powerCreep = Game.powerCreeps[powerCreepName];
+            require('role_powerCreep').Run(powerCreep);
+        } catch(err) {
+            var errMsg = 'PowerCreep ' + powerCreepName + ' error: ';
+            utils.TraceError(err, errMsg);
+        }
+    }
+
+    utils.ProfileStage('Run power creeps: ');
+
     // cpu use stats
     if(Memory.cpuUse == undefined) {
         Memory.cpuUse = Game.cpu.getUsed();
@@ -102,4 +160,11 @@ module.exports.loop = function() {
     utils.ProfileStage('Stats mean cpu used: ', false, true);
     // console.log('normal: ' + gCtx.normalCreepCpu);
     // console.log('out: ' + gCtx.outCreepCpu);
+
+    try {
+        require('role_invaderPair').Run();
+    } catch(err) {
+        var errMsg = 'Invader Pair error: ';
+        utils.TraceError(err, errMsg);
+    }
 };

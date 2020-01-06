@@ -10,9 +10,11 @@ var roleParts = {
 	650: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE],
 	750: [WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE],
 	1250: utils.GetPartsByArray([[WORK, 10], [MOVE, 5]]),
+	1400: utils.GetPartsByArray([[WORK, 10], [CARRY, 4], [MOVE, 4]]),
 };
 
 function getCost(energy) {
+	if(energy >= 1400) return 1400;
 	if(energy >= 1250) return 1250;
 	if(energy >= 750) return 750;
 	if(energy >= 650) return 650;
@@ -35,27 +37,27 @@ function Run(ctx, creep) {
 	}
 	var source = ctx.sources[creep.memory.sourceIdx];
 	if(!ctx.sourceContainers || !ctx.sourceContainers[creep.memory.sourceIdx]) {
-		var err = creep.harvest(source);
-		if(err != 0) {
-			utils.DefaultMoveTo(creep, source);
+		if(!creep.pos.isNearTo(source.pos)) {
+			return utils.DefaultMoveTo(creep, source.pos);
 		}
-		return;
+	} else {
+		var target = ctx.sourceContainers[creep.memory.sourceIdx];
+		if(!creep.pos.isEqualTo(target.pos)) {
+			return utils.DefaultMoveTo(creep, target.pos);
+		} else if(creep.store && creep.store[RESOURCE_ENERGY] > 0 && target.hits < target.hitsMax) {
+			return creep.repair(target);
+		}
 	}
 
-	var target = ctx.sourceContainers[creep.memory.sourceIdx];
-	if(!utils.IsSamePosition(creep.pos, target.pos)) {
-		utils.DefaultMoveTo(creep, target);
-		return;
-	}
 	if(ctx.centralLink && ctx.sourceLinks && ctx.sourceLinks[creep.memory.sourceIdx] && ctx.sourceLinks[creep.memory.sourceIdx].store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.getActiveBodyparts(CARRY) > 0) {
 		var works = creep.getActiveBodyparts(WORK);
 		if(creep.store.getFreeCapacity(RESOURCE_ENERGY) >= works * 2) {
-			creep.harvest(source);
+			return creep.harvest(source);
 		} else {
-			creep.transfer(ctx.sourceLinks[creep.memory.sourceIdx], RESOURCE_ENERGY);
+			return creep.transfer(ctx.sourceLinks[creep.memory.sourceIdx], RESOURCE_ENERGY);
 		}
 	} else {
-		creep.harvest(source);
+		return creep.harvest(source);
 	}
 }
 

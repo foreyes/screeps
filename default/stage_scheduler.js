@@ -42,6 +42,83 @@ function checkBuildFlag(ctx, flagName = 'flagflag', timeSlot = 50) {
 function startStage(stageName, roomName) {
 	Memory.rooms[roomName].ctx.Wait.push({wait: 0, name: stageName});
 }
+ 
+// require('stage_scheduler').StartNewStage('getSpawnInvaderPairMethod', 'E33N49');
+function StartNewStage(stageName, roomName) {
+	var room = Game.rooms[roomName];
+	if(room.cache.newStages == undefined) {
+		room.cache.newStages = [];
+	}
+	room.cache.newStages.push(newStages[stageName](roomName));
+}
+
+var newStages = {
+	getSpawnInvaderPairMethod: function(roomName) {
+		var workerName = roomName + '_worker_' + Game.time;
+		var healerName = roomName + '_healer_' + Game.time;
+		return function(ctx) {
+			if(ctx.labs.length < 4) {
+				console.log("labs are not enough!")
+				return true;
+			}
+			ctx.room.cache.needBoost = true;
+			if(!ctx.room.cache.boostPrepare) {
+				return false;
+			}
+			// spawn them
+			var worker = Game.creeps[workerName];
+			var healer = Game.creeps[healerName];
+			if(ctx.extraSpawnFunction == undefined && (!worker || !healer)) {
+				ctx.extraSpawnFunction = function(spawn) {
+					if(!worker) {
+						require('role_spawn').spawnCreep(spawn.room.ctx, spawn, '', {
+							givenName: workerName,
+							parts: utils.GetPartsByArray([[TOUGH, 12], [WORK, 28], [MOVE, 10]]),
+							memory: {
+								needBoost: true,
+								boostCnt: 3,
+							},
+						});
+						return true;
+					}
+					if(!healer) {
+						require('role_spawn').spawnCreep(spawn.room.ctx, spawn, '', {
+							givenName: healerName,
+							parts: utils.GetPartsByArray([[TOUGH, 12], [HEAL, 12], [MOVE, 6]]),
+							memory: {
+								needBoost: true,
+								boostCnt: 3,
+							},
+						});
+						return true;
+					}
+					return false;
+				}
+			}
+			// go to boost
+			var boostPos = Game.flags['boostPos'];
+			var meetingPos = Game.flags['meetingPos'];
+			if(worker && worker.memory.needBoost) {
+				if(worker.memory.boostCnt > 0) {
+					utils.DefaultMoveTo(worker, boostPos);
+				} else {
+					utils.DefaultMoveTo(worker, meetingPos);
+				}
+			}
+			if(healer && healer.memory.needBoost) {
+				if(healer.memory.boostCnt > 0) {
+					utils.DefaultMoveTo(healer, boostPos);
+				} else {
+					utils.DefaultMoveTo(healer, meetingPos);
+				}
+			}
+			if(worker && worker.memory.boostCnt == 0 && healer && healer.memory.boostCnt == 0) {
+				require('role_invaderPair').AttachInvaderPair(worker, healer, 'invade');
+				return true;
+			}
+		}
+	},
+};
 
 // loop returning true means need terminate.
 var stages = {
@@ -108,6 +185,7 @@ var stages = {
 
 				ctx.room.memory.ctx.builderNum = 3;
 				ctx.room.memory.ctx.flagInit = true;
+				return false;
 			}
 			var constructing = ctx.room.find(FIND_CONSTRUCTION_SITES);
 			if(constructing.length == 0) {
@@ -157,20 +235,20 @@ var stages = {
 			ctx.room.memory.ctx.upgrading = true;
 		},
 		loop: function(ctx) {
-			if(!ctx.storage) return true;
-			if(ctx.storage.store[RESOURCE_ENERGY] >= 800000) {
-				ctx.room.memory.ctx.fillerNum = 3;
-				ctx.room.memory.ctx.upgraderNum = 4;
-				ctx.room.memory.ctx.keepLevel = false;
-				ctx.room.memory.ctx.upgrading = true;
-			}
-			if(ctx.storage.store[RESOURCE_ENERGY] < 200000) {
+			if(ctx.room.controller.level < 4) return false;
+			if(!ctx.storage || ctx.storage.store[RESOURCE_ENERGY] < 200000) {
 				ctx.room.memory.ctx.fillerNum = 2;
 				ctx.room.memory.ctx.upgraderNum = 1;
 				ctx.room.memory.ctx.keepLevel = true;
 				ctx.room.memory.ctx.upgrading = false;
 			}
-			return false;
+			if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] >= 800000) {
+				ctx.room.memory.ctx.fillerNum = 3;
+				ctx.room.memory.ctx.upgraderNum = 4;
+				ctx.room.memory.ctx.keepLevel = false;
+				ctx.room.memory.ctx.upgrading = true;
+			}
+			return ctx.room.controller.level >= 8;
 		},
 		terminate: function(ctx, next) {
 			ctx.room.memory.ctx.fillerNum = 2;
@@ -861,5 +939,6 @@ var stages = {
 
 module.exports = {
 	startStage,
-    stages
+    stages,
+    StartNewStage
 };

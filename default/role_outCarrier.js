@@ -21,7 +21,7 @@ function Run(ctx, creep) {
 	if(creep.memory.store) {
 		if(creep.store[RESOURCE_ENERGY] > 0) {
 			// repair road
-			if(creep.getActiveBodyparts(WORK) > 0) {
+			if(creep.getActiveBodyparts(WORK) > 0 && creep.room.name != creep.memory.ctrlRoom) {
 				var repaires = creep.room.lookAt(creep.pos).filter((item) => {
 						return item.type == 'structure' && item.structure.hits < item.structure.hitsMax && item.structure.structureType == STRUCTURE_ROAD;
 					}
@@ -29,9 +29,10 @@ function Run(ctx, creep) {
 				if(repaires.length > 0) {
 					var target = repaires[0].structure;
 					var err = creep.repair(target);
-					if(err == 0 && target.hitsMax - target.hits > 100 && !creep.memory.goBack) {
-						return 0;
-					}
+					// just go back
+					// if(err == 0 && target.hitsMax - target.hits > 100 && !creep.memory.goBack) {
+					// 	return 0;
+					// }
 				}
 			}
 			// transfer energy
@@ -81,10 +82,21 @@ function Run(ctx, creep) {
 	var workPos = utils.GetRoomPosition(outSource.workPos[idx]);
 	if(creep.room.name != creep.memory.workRoom) {
 		creep.say('hh');
+		creep.say(workPos.roomName);
 		return utils.DefaultMoveTo(creep, workPos);
 	}
+	if(creep.pos.x == 0 || creep.pos.y == 0 || creep.pos.x == 49 || creep.pos.y == 49) {
+		return utils.DefaultMoveTo(creep, workPos);
+	}
+	if(creep.pos.x == 1 || creep.pos.y == 1 || creep.pos.x == 48 || creep.pos.y == 48) {
+		return utils.DefaultMoveTo(creep, workPos);
+	}
+	if(creep.room.ctx.reservedByOthers) {
+		return -1551;
+	}
 	// collect energy
-	if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+	var freeCapacity = creep.store.getFreeCapacity(RESOURCE_ENERGY);
+	if(freeCapacity > 0) {
 		// pick up energy
 		var err = -233;
 		var droppedEnergy = creep.room.lookAt(workPos).filter((item) => {
@@ -102,18 +114,25 @@ function Run(ctx, creep) {
 		var containers = creep.room.lookAt(workPos).filter((item) => {
 			return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
 		});
-		if(containers.length > 0) {
+		if(containers.length > 0 && containers[0]) {
 			var target = containers[0].structure;
-			err = creep.withdraw(target, RESOURCE_ENERGY);
-		}
-		if(err == ERR_NOT_IN_RANGE) {
-			return utils.DefaultMoveTo(creep, workPos);
-		}
-		if(err == 0) {
-			return 0;
+			if(creep.cache.withdrawFlag) {
+				creep.cache.withdrawFlag = target.store[RESOURCE_ENERGY] < freeCapacity;
+			}
+			if(!creep.cache.withdrawFlag) {
+				err = creep.withdraw(target, RESOURCE_ENERGY);
+				if(err == ERR_NOT_IN_RANGE) {
+					return utils.DefaultMoveTo(creep, workPos);
+				}
+				if(err == 0) {
+					creep.cache.withdrawFlag = true;
+					return 0;
+				}
+			}
 		}
 	} else {
 		creep.memory.store = true;
+		creep.cache.withdrawFlag = false;
 	}
 }
 
