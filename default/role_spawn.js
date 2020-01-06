@@ -162,7 +162,7 @@ function Run(ctx, spawn, isMain = true) {
         return spawnCreep(ctx, spawn, 'filler')
     }
     // spawn mineraler
-    if(ctx.mineralCanHarvest != undefined) {
+    if(ctx.mineralCanHarvest != undefined && ctx.terminal) {
         var name = 'mineraler' + ctx.mineralCanHarvest.id;
         var creep = Game.creeps[name];
         if(!creep) {
@@ -249,7 +249,7 @@ function Run(ctx, spawn, isMain = true) {
         }});
     }
 
-    if(ctx.room.name == 'E29N34') {
+    if(ctx.room.name == 'E29N34' && ctx.terminal) {
         for(var id in Memory.deposits) {
             if(Memory.deposits[id].roomName[2] != '0') {
                 continue;
@@ -268,7 +268,7 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
 
-    if(ctx.room.name == 'E26N31') {
+    if(ctx.room.name == 'E26N31' && ctx.terminal) {
         for(var id in Memory.deposits) {
             if(Memory.deposits[id].roomName[2] == '0') {
                 continue;
