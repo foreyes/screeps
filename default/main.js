@@ -75,7 +75,7 @@ module.exports.loop = function() {
         return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST ||
                 order.resourceType == RESOURCE_OXIDANT || order.resourceType == RESOURCE_CRYSTAL ||
                 order.resourceType == RESOURCE_EXTRACT || order.resourceType == RESOURCE_COMPOSITE ||
-                order.resourceType == RESOURCE_SPIRIT;
+                order.resourceType == RESOURCE_SPIRIT || order.resourceType == RESOURCE_POWER;
     });
     utils.ProfileStage('Fetch market: ');
 
@@ -160,4 +160,11 @@ module.exports.loop = function() {
     utils.ProfileStage('Stats mean cpu used: ', false, true);
     // console.log('normal: ' + gCtx.normalCreepCpu);
     // console.log('out: ' + gCtx.outCreepCpu);
+
+    try {
+        require('role_invaderPair').Run();
+    } catch(err) {
+        var errMsg = 'Invader Pair error: ';
+        utils.TraceError(err, errMsg);
+    }
 };

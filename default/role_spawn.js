@@ -116,6 +116,22 @@ function Run(ctx, spawn, isMain = true) {
     if(ctx.MaxEnergy < 350) {
         return runStart(ctx, spawn);
     }
+
+    if(ctx.room.cache.needBoost && !ctx.room.cache.boostPrepare) {
+        var creepName = 'boostHelper' + ctx.room.name;
+        if(!Game.creeps[creepName]) {
+            return spawnCreep(ctx, spawn, 'specialer', {givenName: creepName, parts: utils.GetPartsByArray([[CARRY, 20], [MOVE, 10]]), memory: {specialType: 'boostHelper'}});
+        }
+    }
+
+    if(ctx.extraSpawnFunction != undefined) {
+        if(ctx.extraSpawnFunction(spawn)) {
+            return;
+        } else {
+            delete ctx.extraSpawnFunction;
+        }
+    }
+
     if(ctx.room.name == 'E29N33' && Game.rooms['E26N31'] != undefined) {
         if(!Game.rooms['E26N31'].ctx.spawn && Game.rooms['E26N31'].ctx.builders.filter(hasLongLife).length < 2) {
             return spawnCreep(ctx, spawn, 'builder', {memory: {ctrlRoom: 'E26N31', ownRoom: 'E26N31'}});
@@ -180,7 +196,7 @@ function Run(ctx, spawn, isMain = true) {
     }
 
     var roomConfig = require('room_config')[ctx.room.name];
-    if(roomConfig != undefined) {
+    if(roomConfig != undefined && ctx.storage) {
         for(var roomName in roomConfig.outSources) {
             var outSource = roomConfig.outSources[roomName];
             // defender

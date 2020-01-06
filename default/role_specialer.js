@@ -289,7 +289,7 @@ var specialTypeList = {
 	powerSpawner: function(ctx, creep) {
 		if(!ctx.powerSpawn) return;
 
-		if(creep.store[RESOURCE_POWER] > 0 && ctx.powerSpawn.store.getFreeCapacity(RESOURCE_POWER) > 0) {
+		if(creep.store[RESOURCE_POWER] > 0 && ctx.powerSpawn.store.getFreeCapacity(RESOURCE_POWER) > 50) {
 			var err = creep.transfer(ctx.powerSpawn, RESOURCE_POWER);
 			if(err == 0) return;
 			if(err == ERR_NOT_IN_RANGE) {
@@ -324,6 +324,70 @@ var specialTypeList = {
 			return creep.suicide();
 		}
 	},
+	boostHelper: function(ctx, creep) {
+		if(ctx.labs.length < 4) return false;
+		var resourceList = [RESOURCE_CATALYZED_ZYNTHIUM_ACID, RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE,
+							RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE, RESOURCE_CATALYZED_GHODIUM_ALKALIDE];
+		if(creep.store[RESOURCE_ENERGY] + ctx.terminal.store[RESOURCE_ENERGY] > 0) {
+			for(var i = 0; i < 4; i++) {
+				var lab = ctx.labs[i];
+				if(lab.store[RESOURCE_ENERGY] < 1500) {
+					if(creep.store[RESOURCE_ENERGY] > 0) {
+						if(!creep.pos.isNearTo(lab)) {
+							return utils.DefaultMoveTo(creep, lab);
+						}
+						return creep.transfer(lab, RESOURCE_ENERGY);
+					} else {
+						if(!creep.pos.isNearTo(ctx.terminal)) {
+							return utils.DefaultMoveTo(creep, ctx.terminal)
+						}
+						return creep.withdraw(ctx.terminal, RESOURCE_ENERGY);
+					}
+				}
+			}
+		}
+		for(var i = 0; i < 4; i++) {
+			var resourceType = resourceList[i];
+			var lab = ctx.labs[i];
+			if(lab.store[resourceType] < 2000) {
+				if(creep.store[resourceType] > 0) {
+					if(!creep.pos.isNearTo(lab)) {
+						return utils.DefaultMoveTo(creep, lab)
+					}
+					return creep.transfer(lab, resourceType);
+				} else {
+					if(ctx.terminal.store[resourceType] == 0) {
+						continue;
+					}
+					if(!creep.pos.isNearTo(ctx.terminal)) {
+						return utils.DefaultMoveTo(creep, ctx.terminal)
+					}
+					return creep.withdraw(ctx.terminal, resourceType);
+				}
+			}
+		}
+		var flag = true;
+		for(var i = 0; i < 4; i++) {
+			var resourceType = resourceList[i];
+			var lab = ctx.labs[i];
+			if(lab.store[resourceType] < 1000) {
+				flag = false;
+				break;
+			}
+			if(lab.store[RESOURCE_ENERGY] < 1500) {
+				flag = false;
+				break;
+			}
+		}
+		if(flag) {
+			ctx.room.cache.boostPrepare = true;
+		}
+		if(!creep.pos.isEqualTo(Game.flags['helperPos'])) {
+			return utils.DefaultMoveTo(creep, Game.flags['helperPos']);
+		}
+
+		return false;
+	}
 };
 
 function getResourceTargetFromStorageOrTerminal(ctx, creep, resourceType = RESOURCE_ENERGY) {

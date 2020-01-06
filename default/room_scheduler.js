@@ -16,13 +16,27 @@ var roleMap = {
 function Run(gCtx, room) {
     var ctx = room.ctx;
 
+    try {
+        var nxtNewStages = [];
+        for(var stageFuncIdx in room.cache.newStages) {
+            var stageFunc = room.cache.newStages[stageFuncIdx];
+            if(!stageFunc(ctx)) {
+                nxtNewStages.push(stageFunc);
+            }
+        }
+        room.cache.newStages = nxtNewStages;
+    } catch(err) {
+        var errMsg = 'New stage in Room ' + room.name + ": ";
+        utils.TraceError(err, errMsg);
+    }
+
     if(ctx.my && ctx.room.controller.level >= 5 && ctx.room.memory.ctx.repairerNum > 0) {
         ctx.room.memory.ctx.repairerNum = 0;
     }
 
     var deposits = room.find(FIND_DEPOSITS);
     var usefulDeposits = deposits.filter((d) => d.lastCooldown <= 150);
-    var uselessDeposits = deposits.filter((d) => d.lastCooldown > 150);
+    var uselessDeposits = deposits.filter((d) => {return d.lastCooldown > 150});
     if(usefulDeposits.length > 0) {
         if(Memory.deposits == undefined) Memory.deposits = {};
         for(var deposit of usefulDeposits) {
@@ -316,15 +330,16 @@ function Run(gCtx, room) {
     }
     try {
         // run main spawn first, and at most spawn one creep pre tick.
+        var err = -233;
         if(spawn != undefined) {
-            var err = roleMap['spawn'].Run(ctx, spawn);
-            if(err != 0) {
-                for(var i in ctx.spawns) {
-                    if(ctx.spawns[i].name != spawn.name) {
-                        var err = roleMap['spawn'].Run(ctx, ctx.spawns[i], false);
-                        if(err == 0) {
-                            break;
-                        }
+            err = roleMap['spawn'].Run(ctx, spawn);
+        }
+        if(err != 0) {
+            for(var i in ctx.spawns) {
+                if(!spawn || ctx.spawns[i].name != spawn.name) {
+                    var err = roleMap['spawn'].Run(ctx, ctx.spawns[i], false);
+                    if(err == 0) {
+                        break;
                     }
                 }
             }
@@ -334,15 +349,33 @@ function Run(gCtx, room) {
         utils.TraceError(err, errMsg);
     }
 
-    if(ctx.powerSpawn && ctx.storage.store[RESOURCE_ENERGY] > 100000) {
+    if(ctx.powerSpawn && ctx.storage && ctx.storage.store[RESOURCE_ENERGY] > 350000) {
         ctx.powerSpawn.processPower();
     }
-    if(ctx.labs) {
-        if(ctx.labers.length == 0) {
-            require('role_spawn').SpawnCreep('5dc6d24401ce096f94fc8ea6', 'specialer', {parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], memory: {specialType: 'laber'}});
+    // if(ctx.labs) {
+    //     if(ctx.labers.length == 0) {
+    //         require('role_spawn').SpawnCreep('5dc6d24401ce096f94fc8ea6', 'specialer', {parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], memory: {specialType: 'laber'}});
+    //     }
+    //     ctx.labs[2].runReaction(ctx.labs[0], ctx.labs[1]);
+    //     ctx.labs[3].runReaction(ctx.labs[0], ctx.labs[1]);
+    // }
+    // boost
+    if(ctx.labs && ctx.labs.length >= 4 && room.cache.needBoost) {
+        for(var i = 0; i < 4; i++) {
+            var lab = ctx.labs[i];
+            var creeps4Boost = lab.pos.findInRange(FIND_MY_CREEPS, 1, {
+                filter: (creep) => {
+                    return creep.memory.needBoost && creep.memory.boostCnt > 0;
+                }
+            });
+            for(var creep of creeps4Boost) {
+                var err = lab.boostCreep(creep);
+                if(err == 0) {
+                    creep.memory.boostCnt -= 1;
+                    break;
+                }
+            }
         }
-        ctx.labs[2].runReaction(ctx.labs[0], ctx.labs[1]);
-        ctx.labs[3].runReaction(ctx.labs[0], ctx.labs[1]);
     }
     if(ctx.sourceLinks && ctx.centralLink) {
         for(var i in ctx.sourceLinks) {
@@ -406,7 +439,32 @@ function Run(gCtx, room) {
         //     }
         // }
     }
-    if(ctx.room.name == 'E35N38' && ctx.terminal.store[RESOURCE_ENERGY] >= 10000 && ctx.terminal.cooldown == 0) {
+    if(ctx.room.name == 'E35N38' && ctx.terminal && ctx.terminal.store[RESOURCE_SPIRIT] > 0 && ctx.terminal.cooldown == 0) {
+        var spiritOrders = allOrders.filter((order) => {
+            return order.resourceType == RESOURCE_SPIRIT &&
+                    order.type == ORDER_BUY && order.amount > 0 &&
+                    order.price >= 3400;
+        }).sort((a, b) => {
+            return a.price < b.price;
+        });
+        if(spiritOrders.length > 0) {
+            Game.market.deal(spiritOrders[0].id, Math.min(8000, ctx.terminal.store[RESOURCE_SPIRIT], spiritOrders[0].amount), 'E35N38');
+        }
+    }
+    if(ctx.room.name == 'E26N31' && ctx.terminal.store[RESOURCE_POWER] < 100000 && ctx.terminal.cooldown == 0) {
+        var powerOrders = allOrders.filter((order) => {
+            return order.resourceType == RESOURCE_POWER &&
+                    order.type == ORDER_SELL && order.amount > 0 &&
+                    order.price < 0.62;
+        }).sort((a, b) => {
+            return a.price > b.price;
+        });
+        if(powerOrders.length > 0) {
+            Game.market.deal(powerOrders[0].id, Math.min(8000, powerOrders[0].amount), 'E26N31');
+        }
+    }
+    
+    if(ctx.room.name == 'E35N38' && ctx.terminal && ctx.terminal.store[RESOURCE_ENERGY] >= 10000 && ctx.terminal.cooldown == 0) {
         var myOrders = allOrders.filter((order) => {
             return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST;
         });
@@ -430,20 +488,20 @@ function Run(gCtx, room) {
                             order.amount > 0;
                 });
                 if(activeBuyX.length == 0) {
-                    Game.market.createOrder({
-                        type: ORDER_BUY,
-                        resourceType: RESOURCE_CATALYST,
-                        price: 0.13,
-                        totalAmount: 10000,
-                        roomName: "E35N38"
-                    });
-                } else {
-                    if(activeBuyX[0].remainingAmount < 10000) {
-                        Game.market.extendOrder(activeBuyX[0].id, 10000 - activeBuyX[0].remainingAmount);
+                        Game.market.createOrder({
+                            type: ORDER_BUY,
+                            resourceType: RESOURCE_CATALYST,
+                            price: 0.13,
+                            totalAmount: 10000,
+                            roomName: "E35N38"
+                        });
+                        } else {
+                            if(activeBuyX[0].remainingAmount < 10000) {
+                                Game.market.extendOrder(activeBuyX[0].id, 10000 - activeBuyX[0].remainingAmount);
+                            }
+                        }
                     }
                 }
-            }
-        }
         if(xbars > 1000) {
             var sells = myOrders.filter((order) => {
                 return order.resourceType == RESOURCE_PURIFIER && order.type == ORDER_BUY && order.price >= 0.96 && order.amount > 0;

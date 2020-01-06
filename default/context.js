@@ -21,7 +21,14 @@ function InitRoomCtx(gCtx, room) {
 	room.memory.ctx.sourceIds = room.find(FIND_SOURCES).map((src) => src.id);
 }
 
+roomCache = {};
+
 function FetchRoomCtx(gCtx, room) {
+	// fetch room cache
+	if(roomCache[room.name] == undefined) {
+		roomCache[room.name] = {};
+	}
+	room.cache = roomCache[room.name];
 	// // ownership
 	// var my = room.controller != undefined && room.controller.my;
 	// var neutral = room.controller == undefined || room.controller.owner == 'None';
@@ -137,7 +144,11 @@ function FetchRoomCtx(gCtx, room) {
 	var factoriers = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'factorier');
 	var managers = creeps.filter((creep) => creep.memory.role == 'manager');
 	// labs
-	var labs = undefined;
+	var labs = room.find(FIND_STRUCTURES, {
+		filter: (s) => {
+			return s.my && s.structureType == STRUCTURE_LAB;
+		}
+	});
 	// if(room.memory.ctx.labIds) {
 	// 	labs = room.memory.ctx.labIds.map(Game.getObjectById);
 	// }

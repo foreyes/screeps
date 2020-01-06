@@ -29,6 +29,7 @@ function maintainFactory(ctx, powerCreep) {
 }
 
 function operateExtension(ctx, powerCreep) {
+	if(!ctx.terminal) return false;
 	if(!powerCreep.powers[PWR_OPERATE_EXTENSION] ||
 		powerCreep.powers[PWR_OPERATE_EXTENSION].cooldown > 0) return false;
 	if(powerCreep.store[RESOURCE_OPS] < 2) return false;
