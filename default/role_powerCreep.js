@@ -56,6 +56,23 @@ function storeOps(ctx, powerCreep) {
 	return err == 0;
 }
 
+function regenSource(ctx, powerCreep) {
+	if(!powerCreep.powers[PWR_REGEN_SOURCE] ||
+		powerCreep.powers[PWR_REGEN_SOURCE].cooldown > 0) return false;
+	for(var src of ctx.sources) {
+		if(src.effects != undefined && src.effects.length > 0) {
+			continue;
+		}
+		if(!powerCreep.pos.inRangeTo(src, 3)) {
+			powerCreep.moveTo(src);
+			return true;
+		}
+		var err = powerCreep.usePower(PWR_REGEN_SOURCE, src);
+		return err == 0;
+	}
+	return false;
+}
+
 function Run(powerCreep) {
 	switch(powerCreep.name) {
 	case 'The Jack': {
@@ -79,6 +96,7 @@ function Run(powerCreep) {
 			if(maintainFactory(ctx, powerCreep)) break;
 			if(operateExtension(ctx, powerCreep)) break;
 			if(storeOps(ctx, powerCreep)) break;
+			if(regenSource(ctx, powerCreep)) break;
 			// rest
 			powerCreep.moveTo(Game.getObjectById('5dc8c9583253f214bd252681'));
 		} else if(powerCreep.spawnCooldownTime == undefined) {
@@ -107,6 +125,7 @@ function Run(powerCreep) {
 			if(maintainFactory(ctx, powerCreep)) break;
 			if(operateExtension(ctx, powerCreep)) break;
 			if(storeOps(ctx, powerCreep)) break;
+			if(regenSource(ctx, powerCreep)) break;
 			// rest
 			powerCreep.moveTo(new RoomPosition(25, 20, 'E33N36'));
 		} else if(powerCreep.spawnCooldownTime == undefined) {
@@ -135,6 +154,7 @@ function Run(powerCreep) {
 			if(maintainFactory(ctx, powerCreep)) break;
 			if(operateExtension(ctx, powerCreep)) break;
 			if(storeOps(ctx, powerCreep)) break;
+			if(regenSource(ctx, powerCreep)) break;
 			// rest
 			powerCreep.moveTo(Game.getObjectById('5daaaf5ff1fd4c66b1b175d3'));
 		} else if(powerCreep.spawnCooldownTime == undefined) {

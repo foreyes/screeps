@@ -26,6 +26,14 @@ Changelog:
 1.7; Added Factory support (line 46)
 */
 
+Game.market.createOrder({
+    type: ORDER_BUY,
+    resourceType: RESOURCE_UTRIUM_BAR,
+    price: 0.31,
+    totalAmount: 50000,
+    roomName: "E29N34"
+});
+
 Object.defineProperty(global, '有啥', { get: sell })
 
 var roomStructures           = {};

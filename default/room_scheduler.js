@@ -36,7 +36,7 @@ function Run(gCtx, room) {
 
     var deposits = room.find(FIND_DEPOSITS);
     var usefulDeposits = deposits.filter((d) => d.lastCooldown <= 150);
-    var uselessDeposits = deposits.filter((d) => {return d.lastCooldown > 150 || d.id == '5e03305aa8467ea366f9d0e9'});
+    var uselessDeposits = deposits.filter((d) => {return d.lastCooldown > 150});
     if(usefulDeposits.length > 0) {
         if(Memory.deposits == undefined) Memory.deposits = {};
         for(var deposit of usefulDeposits) {
@@ -488,20 +488,20 @@ function Run(gCtx, room) {
                             order.amount > 0;
                 });
                 if(activeBuyX.length == 0) {
-                            Game.market.createOrder({
-                                type: ORDER_BUY,
-                                resourceType: RESOURCE_CATALYST,
-                                price: 0.13,
-                                totalAmount: 10000,
-                                roomName: "E35N38"
-                            });
-                        } else {
-                            if(activeBuyX[0].remainingAmount < 10000) {
-                                Game.market.extendOrder(activeBuyX[0].id, 10000 - activeBuyX[0].remainingAmount);
-                            }
-                        }
+                    Game.market.createOrder({
+                        type: ORDER_BUY,
+                        resourceType: RESOURCE_CATALYST,
+                        price: 0.13,
+                        totalAmount: 10000,
+                        roomName: "E35N38"
+                    });
+                } else {
+                    if(activeBuyX[0].remainingAmount < 10000) {
+                        Game.market.extendOrder(activeBuyX[0].id, 10000 - activeBuyX[0].remainingAmount);
                     }
                 }
+            }
+        }
         if(xbars > 1000) {
             var sells = myOrders.filter((order) => {
                 return order.resourceType == RESOURCE_PURIFIER && order.type == ORDER_BUY && order.price >= 0.96 && order.amount > 0;

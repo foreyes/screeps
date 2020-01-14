@@ -698,6 +698,9 @@ function GetResourcesStats(resourceType) {
         if(room.ctx.terminal) {
             sum += room.ctx.terminal.store[resourceType];
         }
+        if(room.ctx.storage) {
+            sum += room.ctx.storage.store[resourceType];
+        }
     }
     return sum;
 }
