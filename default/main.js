@@ -13,6 +13,89 @@ function fetchRoomCtx(gCtx, room) {
     return require('context').FetchRoomCtx(gCtx, room);
 }
 
+var marketConfig = {
+    [RESOURCE_ZYNTHIUM_BAR]: {
+        roomName: 'E33N36',
+        amount: 10000,
+        price: 0.31,
+        least: 2000,
+    },
+    [RESOURCE_KEANIUM_BAR]: {
+        roomName: 'E29N33',
+        amount: 30000,
+        price: 0.31,
+        least: 3000,
+    },
+    [RESOURCE_UTRIUM_BAR]: {
+        roomName: 'E29N34',
+        amount: 10000,
+        price: 0.31,
+        least: 1000,
+    },
+    [RESOURCE_LEMERGIUM_BAR]: {
+        roomName: 'E33N36',
+        amount: 10000,
+        price: 0.61,
+        least: 2000,
+    },
+    [RESOURCE_REDUCTANT]: {
+        roomName: 'E29N33',
+        amount: 30000,
+        price: 0.31,
+        least: 3000,
+    },
+    [RESOURCE_OPS]: {
+        roomName: 'E33N36',
+        amount: 30000,
+        price: 0.61,
+        least: 1000,
+    },
+    [RESOURCE_MIST]: {
+        roomName: 'E29N34',
+        amount: 100000,
+        price: 1.5,
+        least: 0,
+    },
+}
+
+function dealMarket(orders, myOrders) {
+    for(var resourceType in marketConfig) {
+        info = marketConfig[resourceType];
+        if(!Game.rooms[info.roomName] || !Game.rooms[info.roomName].terminal || !Game.rooms[info.roomName].terminal.my) {
+            continue;
+        }
+        var terminal = Game.rooms[info.roomName].terminal;
+        var curAmount = terminal.store[resourceType];
+        if(curAmount < info.amount) {
+            var targets = orders.filter((order) => {
+                return order.type == ORDER_SELL &&
+                        order.resourceType == resourceType &&
+                        order.amount > 0 && order.price <= info.price;
+            }).sort((a, b) => {
+                return a.price > b.price;
+            });
+            if(targets.length > 0) {
+                Game.market.deal(targets[0].id, Math.min(8000, info.amount - curAmount, targets[0].amount), info.roomName);
+            }
+        }
+        if(curAmount < info.least) {
+            var exsitOrder = _.filter(myOrders, (order) => {
+                return order.type == ORDER_BUY &&
+                        order.resourceType == resourceType && order.amount > 0;
+            });
+            if(exsitOrder.length == 0) {
+                Game.market.createOrder({
+                    type: ORDER_BUY,
+                    resourceType: resourceType,
+                    price: info.price,
+                    totalAmount: info.least,
+                    roomName: info.roomName,
+                });
+            } 
+        }
+    }
+}
+
 // make sure spawn's adjusted 4 cells are not wall when respawn.
 // spawn should not near by sources.
 // sort from small to big
@@ -25,6 +108,14 @@ module.exports.loop = function() {
         } catch(err) {
             var errMsg = 'Run extension err';
             utils.TraceError(err, errMsg);
+        }
+    }
+
+    for(var id in Memory.deposits) {
+        if(Game.rooms[Memory.deposits[id].roomName]) {
+            if(!Game.getObjectById(id)) {
+                delete Memory.deposits[id];
+            }
         }
     }
 
@@ -72,9 +163,11 @@ module.exports.loop = function() {
     utils.ProfileStage('Init: ');
 
     gCtx.allOrders = Game.market.getAllOrders((order) => {
-        return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST ||
-                order.resourceType == RESOURCE_OXIDANT || order.resourceType == RESOURCE_CRYSTAL ||
-                order.resourceType == RESOURCE_EXTRACT || order.resourceType == RESOURCE_COMPOSITE;
+        return true;
+        // return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST ||
+        //         order.resourceType == RESOURCE_OXIDANT || order.resourceType == RESOURCE_CRYSTAL ||
+        //         order.resourceType == RESOURCE_EXTRACT || order.resourceType == RESOURCE_COMPOSITE ||
+        //         order.resourceType == RESOURCE_SPIRIT || order.resourceType == RESOURCE_POWER;
     });
     utils.ProfileStage('Fetch market: ');
 
@@ -159,4 +252,18 @@ module.exports.loop = function() {
     utils.ProfileStage('Stats mean cpu used: ', false, true);
     // console.log('normal: ' + gCtx.normalCreepCpu);
     // console.log('out: ' + gCtx.outCreepCpu);
+
+    try {
+        dealMarket(gCtx.allOrders, Game.market.orders);
+    } catch(err) {
+        var errMsg = 'Market error: ';
+        utils.TraceError(err, errMsg);
+    }
+
+    try {
+        require('role_invaderPair').Run();
+    } catch(err) {
+        var errMsg = 'Invader Pair error: ';
+        utils.TraceError(err, errMsg);
+    }
 };
