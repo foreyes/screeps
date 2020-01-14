@@ -13,7 +13,7 @@ function fetchRoomCtx(gCtx, room) {
     return require('context').FetchRoomCtx(gCtx, room);
 }
 
-var marketConfig = {
+var marketBuyConfig = {
     [RESOURCE_ZYNTHIUM_BAR]: {
         roomName: 'E33N36',
         amount: 10000,
@@ -56,28 +56,45 @@ var marketConfig = {
         price: 1.5,
         least: 0,
     },
-}
+    [RESOURCE_POWER]: {
+        roomName: 'E26N31',
+        amount: 100000,
+        price: 1,
+        least: 1000,
+    },
+};
+
+var marketSellConfig = {
+    [RESOURCE_OXIDANT]: {
+        roomName: 'E29N33',
+        price: 0.22,
+        least: 10000,
+    },
+    [RESOURCE_SPIRIT]: {
+        roomName: 'E35N38',
+        price: 3400,
+        least: 0,
+    },
+    [RESOURCE_CRYSTAL]: {
+        roomName: 'E33N36',
+        price: 5.5,
+        least: 0,
+    },
+    [RESOURCE_COMPOSITE]: {
+        roomName: 'E29N34',
+        price: 2.4,
+        least: 0,
+    },
+};
 
 function dealMarket(orders, myOrders) {
-    for(var resourceType in marketConfig) {
-        info = marketConfig[resourceType];
+    for(var resourceType in marketBuyConfig) {
+        info = marketBuyConfig[resourceType];
         if(!Game.rooms[info.roomName] || !Game.rooms[info.roomName].terminal || !Game.rooms[info.roomName].terminal.my) {
             continue;
         }
         var terminal = Game.rooms[info.roomName].terminal;
         var curAmount = terminal.store[resourceType];
-        if(curAmount < info.amount) {
-            var targets = orders.filter((order) => {
-                return order.type == ORDER_SELL &&
-                        order.resourceType == resourceType &&
-                        order.amount > 0 && order.price <= info.price;
-            }).sort((a, b) => {
-                return a.price > b.price;
-            });
-            if(targets.length > 0) {
-                Game.market.deal(targets[0].id, Math.min(8000, info.amount - curAmount, targets[0].amount), info.roomName);
-            }
-        }
         if(curAmount < info.least) {
             var exsitOrder = _.filter(myOrders, (order) => {
                 return order.type == ORDER_BUY &&
@@ -92,6 +109,45 @@ function dealMarket(orders, myOrders) {
                     roomName: info.roomName,
                 });
             } 
+        }
+
+        if(terminal.cooldown > 0) continue;
+
+        if(curAmount < info.amount) {
+            var targets = orders.filter((order) => {
+                return order.type == ORDER_SELL &&
+                        order.resourceType == resourceType &&
+                        order.amount > 0 && order.price <= info.price;
+            }).sort((a, b) => {
+                return a.price > b.price;
+            });
+            if(targets.length > 0) {
+                Game.market.deal(targets[0].id, Math.min(8000, info.amount - curAmount, targets[0].amount), info.roomName);
+            }
+        }
+    }
+
+    for(var resourceType in marketSellConfig) {
+        info = marketSellConfig[resourceType];
+        if(!Game.rooms[info.roomName] || !Game.rooms[info.roomName].terminal || !Game.rooms[info.roomName].terminal.my) {
+            continue;
+        }
+        var terminal = Game.rooms[info.roomName].terminal;
+        var curAmount = terminal.store[resourceType];
+        if(curAmount <= info.least) continue;
+
+        // only deal order_buy, won't create order_sell.
+        if(terminal.cooldown > 0) continue;
+
+        var targets = orders.filter((order) => {
+            return order.type == ORDER_BUY &&
+                    order.resourceType == resourceType &&
+                    order.amount > 0 && order.price >= info.price;
+        }).sort((a, b) => {
+            return a.price < b.price;
+        });
+        if(targets.length > 0) {
+            Game.market.deal(targets[0].id, Math.min(8000, curAmount - info.least, targets[0].amount), info.roomName);
         }
     }
 }
