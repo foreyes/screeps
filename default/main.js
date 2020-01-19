@@ -39,7 +39,7 @@ var marketBuyConfig = {
         least: 2000,
     },
     [RESOURCE_REDUCTANT]: {
-        roomName: 'E29N33',
+        roomName: 'E26N31',
         amount: 30000,
         price: 0.31,
         least: 3000,
@@ -57,34 +57,104 @@ var marketBuyConfig = {
         least: 0,
     },
     [RESOURCE_POWER]: {
-        roomName: 'E26N31',
+        roomName: 'E29N33',
         amount: 100000,
-        price: 1,
+        price: 1.1,
         least: 1000,
     },
+    [RESOURCE_MIST]: {
+        roomName: 'E26N31',
+        amount: 100000,
+        price: 2,
+        least: 1000,
+    },
+    [RESOURCE_GHODIUM_MELT]: {
+        roomName: 'E33N36',
+        amount: 100000,
+        price: 3,
+        least: 1000,
+    },
+    [RESOURCE_CRYSTAL]: {
+        roomName: 'E33N36',
+        amount: 100000,
+        price: 5.5,
+        least: 1000,
+    },
+    [RESOURCE_CONDENSATE]: {
+        roomName: 'E26N31',
+        amount: 6000,
+        price: 6.2,
+        least: 3000,
+    },
+    [RESOURCE_CONCENTRATE]: {
+        roomName: 'E33N36',
+        amount: 272,
+        price: 161,
+        least: 136,
+    },
+    [RESOURCE_EXTRACT]: {
+        roomName: 'E35N38',
+        amount: 42,
+        price: 1550,
+        least: 21,
+    },
+    [RESOURCE_MICROCHIP]: {
+        roomName: 'E33N36',
+        amount: 90,
+        price: 3500,
+        least: 15,
+    },
+    [RESOURCE_SPIRIT]: {
+        roomName: 'E33N36',
+        amount: 90,
+        price: 4400,
+        least: 15,
+    },
+    [RESOURCE_CIRCUIT]: {
+        roomName: 'E33N36',
+        amount: 30,
+        price: 16000,
+        least: 5,
+    },
+    [RESOURCE_EMANATION]: {
+        roomName: 'E33N36',
+        amount: 30,
+        price: 15000,
+        least: 5,
+    }
 };
 
 var marketSellConfig = {
     [RESOURCE_OXIDANT]: {
-        roomName: 'E29N33',
+        roomName: 'E26N31',
         price: 0.22,
         least: 10000,
     },
-    [RESOURCE_SPIRIT]: {
-        roomName: 'E35N38',
-        price: 3400,
-        least: 0,
-    },
-    [RESOURCE_CRYSTAL]: {
-        roomName: 'E33N36',
-        price: 5.5,
-        least: 0,
-    },
+    // [RESOURCE_SPIRIT]: {
+    //     roomName: 'E35N38',
+    //     price: 3400,
+    //     least: 0,
+    // },
+    // [RESOURCE_CRYSTAL]: {
+    //     roomName: 'E33N36',
+    //     price: 5.5,
+    //     least: 0,
+    // },
     [RESOURCE_COMPOSITE]: {
         roomName: 'E29N34',
         price: 2.4,
         least: 0,
     },
+    [RESOURCE_ESSENCE]: {
+        roomName: 'E33N36',
+        price: 45000,
+        least: 0,
+    },
+    [RESOURCE_DEVICE]: {
+        roomName: 'E33N36',
+        price: 48000,
+        least: 0,
+    }
 };
 
 function dealMarket(orders, myOrders) {
@@ -119,7 +189,7 @@ function dealMarket(orders, myOrders) {
                         order.resourceType == resourceType &&
                         order.amount > 0 && order.price <= info.price;
             }).sort((a, b) => {
-                return a.price > b.price;
+                return a.price - b.price;
             });
             if(targets.length > 0) {
                 Game.market.deal(targets[0].id, Math.min(8000, info.amount - curAmount, targets[0].amount), info.roomName);
@@ -144,7 +214,7 @@ function dealMarket(orders, myOrders) {
                     order.resourceType == resourceType &&
                     order.amount > 0 && order.price >= info.price;
         }).sort((a, b) => {
-            return a.price < b.price;
+            return b.price - a.price;
         });
         if(targets.length > 0) {
             Game.market.deal(targets[0].id, Math.min(8000, curAmount - info.least, targets[0].amount), info.roomName);
@@ -173,6 +243,20 @@ module.exports.loop = function() {
                 delete Memory.deposits[id];
             }
         }
+    }
+
+    try {
+        require('role_invaderPair').Run();
+    } catch(err) {
+        var errMsg = 'Invader Pair error: ';
+        utils.TraceError(err, errMsg);
+    }
+
+    try {
+        require('role_invaderPicker').Run();
+    } catch(err) {
+        var errMsg = 'Invader Picker error: ';
+        utils.TraceError(err, errMsg);
     }
 
     if(Game.cpu.bucket < 2000) return 0;
@@ -313,13 +397,6 @@ module.exports.loop = function() {
         dealMarket(gCtx.allOrders, Game.market.orders);
     } catch(err) {
         var errMsg = 'Market error: ';
-        utils.TraceError(err, errMsg);
-    }
-
-    try {
-        require('role_invaderPair').Run();
-    } catch(err) {
-        var errMsg = 'Invader Pair error: ';
         utils.TraceError(err, errMsg);
     }
 };

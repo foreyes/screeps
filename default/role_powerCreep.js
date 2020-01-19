@@ -162,7 +162,34 @@ function Run(powerCreep) {
 		}
 		break;
 	}
-	case 'The Joker': {
+	case 'The World': {
+		var ctx = Game.rooms['E29N33'].ctx;
+		if(powerCreep.hits != undefined) {
+			if(powerCreep.powers[PWR_GENERATE_OPS] &&
+				powerCreep.powers[PWR_GENERATE_OPS].cooldown == 0) {
+				powerCreep.usePower(PWR_GENERATE_OPS);
+			}
+
+			if(powerCreep.ticksToLive < 1000) {
+				if(!powerCreep.pos.isNearTo(ctx.powerSpawn)) {
+					powerCreep.moveTo(ctx.powerSpawn);
+					break;
+				}
+				powerCreep.renew(ctx.powerSpawn);
+				break;
+			}
+
+			if(enablePower(ctx, powerCreep)) break;
+			if(maintainFactory(ctx, powerCreep)) break;
+			if(operateExtension(ctx, powerCreep)) break;
+			if(storeOps(ctx, powerCreep)) break;
+			if(regenSource(ctx, powerCreep)) break;
+			// rest
+			powerCreep.moveTo(Game.getObjectById('5e00cd90f9d86b1a84519ecf'));
+		} else if(powerCreep.spawnCooldownTime == undefined) {
+			powerCreep.spawn(ctx.powerSpawn);
+		}
+		break;
 	}
 	}
 }

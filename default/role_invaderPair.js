@@ -40,6 +40,10 @@ function runPair(pair) {
     var healerDamage = healer.hitsMax - healer.hits;
     var workFlag = pair.workFlag;
 
+    require('cache');
+    worker.fetchCache();
+    healer.fetchCache();
+
     // heal
     if(healer.room.name != worker.room.name) {
         healer.heal(healer);
@@ -63,8 +67,16 @@ function runPair(pair) {
 
     if(worker.pos.isNearTo(workFlag)) {
         var structs = workFlag.pos.lookFor(LOOK_STRUCTURES);
-        if(structs.length > 0) {
-            worker.dismantle(structs[0]);
+        var rams = structs.filter((s) => s.structureType == STRUCTURE_RAMPART);
+        if(rams.length > 0) {
+            if(worker.dismantle(rams[0]) != 0) {
+                worker.attack(rams[0]);
+            }
+        } else if(structs.length > 0) {
+            if(worker.dismantle(structs[0]) != 0) {
+                worker.attack(structs[0]);
+            }
+            // range attack
         }
     }
 }

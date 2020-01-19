@@ -105,9 +105,9 @@ function FetchRoomCtx(gCtx, room) {
 	var miners = creeps.filter((creep) => creep.memory.role == 'miner');
 	var fillers = creeps.filter((creep) => creep.memory.role == 'filler');
 	fillers = fillers.sort((a, b) => {
-		if(a.spawning) return true;
-		if(b.spawning) return false;
-		return a.id < b.id;
+		if(a.spawning) return 1;
+		if(b.spawning) return -1;
+		return a.id - b.id;
 	});
 	// setup restPos
 	var restPos = spawn;

@@ -1,6 +1,6 @@
 var cache = {};
 
-Creep.prototype.fecthCache = function() {
+Creep.prototype.fetchCache = function() {
 	if(cache[this.id] == undefined) {
 		cache[this.id] = {};
 	}
@@ -35,10 +35,10 @@ Creep.prototype.fecthMoveRate = function() {
 
 function FetchCreepCache() {
 	for(var name in Game.creeps) {
-		Game.creeps[name].fecthCache();
+		Game.creeps[name].fetchCache();
 	}
 	// for(var name in Game.powerCreeps) {
-	// 	Game.powerCreeps[name].fecthCache();
+	// 	Game.powerCreeps[name].fetchCache();
 	// }
 }
 

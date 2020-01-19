@@ -28,10 +28,10 @@ Changelog:
 
 Game.market.createOrder({
     type: ORDER_BUY,
-    resourceType: RESOURCE_UTRIUM_BAR,
-    price: 0.31,
-    totalAmount: 50000,
-    roomName: "E29N34"
+    resourceType: RESOURCE_MICROCHIP,
+    price: 4000,
+    totalAmount: 50,
+    roomName: "E33N36"
 });
 
 Object.defineProperty(global, '有啥', { get: sell })

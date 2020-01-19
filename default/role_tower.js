@@ -1,28 +1,74 @@
 var utils = require('utils');
 
-function Run(ctx, tower) {
-	// attack
-    if(ctx.room.name == 'E35N38') {
-        ctx.enemies = ctx.enemies.filter((creep) => {
-            return !creep.my && creep.owner.username != 'Divitto';
+var rampartHits = 1000000;
+
+function runDefender(ctx, towers) {
+    if(Memory.rooms[ctx.room.name].ctx.defendTime == undefined) {
+        Memory.rooms[ctx.room.name].ctx.defendTime = 0;
+    }
+    Memory.rooms[ctx.room.name].ctx.defendTime += 1; 
+
+    if(Memory.rooms[ctx.room.name].ctx.defendTime > 100 && Game.time % 300 > 25) {
+        if(!Memory.rooms[ctx.room.name].ctx.defendFlag) {
+            Memory.rooms[ctx.room.name].ctx.builderNum += 1;
+            Memory.rooms[ctx.room.name].ctx.defendFlag = true;
+        }
+        // repair ramparts
+        var ramparts = ctx.room.find(FIND_STRUCTURES, {
+            filter: (s) => {
+                return s.structureType == 'rampart';
+            }
         });
+        if(ramparts.length > 0) {
+            var target = ramparts.sort((a, b) => {
+                return a.hits - b.hits;
+            })[0];
+            for(var i in towers) {
+                towers[i].repair(target);
+            }
+        }
+    } else {
+        var lastTower = towers[towers.length-1];
+        var target = towers[0].pos.findClosestByRange(ctx.enemies);
+        for(var i in towers) {
+            if(i == 0 || i != towers.length-1 || ctx.enemies.length == 1) {
+                towers[i].attack(target);
+            } else {
+                var rem_enemies = ctx.enemies.filter((invader) => invader.id != target.id);
+                towers[i].attack(towers[i].pos.findClosestByRange(rem_enemies));
+            }
+        }
     }
-    if(ctx.enemies.length != 0) {
-        var target = tower.pos.findClosestByRange(ctx.enemies);
-        tower.attack(target);
-        return;
+}
+
+function Run(ctx) {
+    var towers = ctx.towers;
+    if(!ctx.towers || ctx.towers.length == 0) return;
+
+    // defend
+    if(ctx.enemies.length > 0) {
+        return runDefender(ctx, towers);
+    } else {
+        // record how long the defend lasted
+        if(Memory.rooms[ctx.room.name].ctx.defendFlag) {
+            Memory.rooms[ctx.room.name].ctx.builderNum -= 1;
+            delete Memory.rooms[ctx.room.name].ctx.defendFlag;
+        }  
+        delete Memory.rooms[ctx.room.name].ctx.defendTime;
     }
-    if(tower.id != ctx.towers[0].id) return;
-    // repair
+
+    // repair roads
     var roads = ctx.room.find(FIND_STRUCTURES, {
-    	filter: (structure) => {
-    		return structure.structureType == STRUCTURE_ROAD && structure.hits + 800 <= structure.hitsMax;
-    	}
+        filter: (structure) => {
+            return structure.structureType == STRUCTURE_ROAD && structure.hits + 800 <= structure.hitsMax;
+        }
     });
     if(roads.length != 0) {
-    	tower.repair(roads[0]);
-    	return;
+        towers[0].repair(roads[0]);
+        return;
     }
+
+    // repair containers
     if(ctx.room.memory.ctx.repairerNum && ctx.room.memory.ctx.repairerNum == 0) {
         var containers = ctx.room.find(FIND_STRUCTURES, {
             filter: (s) => {
@@ -30,26 +76,30 @@ function Run(ctx, tower) {
             }
         });
         if(containers.length != 0) {
-            tower.repair(containers[0]);
+            towers[0].repair(containers[0]);
             return;
         }
     }
-    // repair rampart
+
+    // normal repair ramparts
     var ramparts = ctx.room.find(FIND_STRUCTURES, {
         filter: (s) => {
-            return s.structureType == 'rampart' && s.hits < 1000;
+            return s.structureType == 'rampart' && s.hits < rampartHits;
         }
+    }).sort((a, b) => {
+        return a.hits - b.hits;
     });
     if(ramparts.length != 0) {
-        tower.repair(ramparts[0]);
+        towers[0].repair(ramparts[0]);
         return;
     }
-    // heal
-    var needHeal = ctx.creeps.filter((creep) => creep.hitsMax > creep.hits);
+
+    // heal creeps
+    var needHeal = ctx.creeps.filter((creep) => creep.hits < creep.hitsMax);
     if(needHeal.length != 0) {
-    	var target = tower.pos.findClosestByRange(needHeal);
-    	tower.heal(target);
-    	return;
+        var target = towers[0].pos.findClosestByRange(needHeal);
+        towers[0].heal(target);
+        return;
     }
 }
 

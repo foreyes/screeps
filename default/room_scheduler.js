@@ -138,9 +138,7 @@ function Run(gCtx, room) {
 
     // run tower logic.
     try {
-        for(var i in ctx.towers) {
-            roleMap['tower'].Run(ctx, ctx.towers[i]);
-        }
+        roleMap['tower'].Run(ctx);
     } catch(err) {
         var errMsg = 'Tower in ' + room.name + ": ";
         utils.TraceError(err, errMsg);
@@ -302,7 +300,7 @@ function Run(gCtx, room) {
             });
             if(buyx.length > 0) {
                 buyx = buyx.sort((a, b) => {
-                    return a.price > b.price;
+                    return a.price - b.price;
                 });
                 var order = buyx[0];
                 Game.market.deal(order.id, Math.min(8000, order.amount), 'E35N38');
@@ -333,7 +331,7 @@ function Run(gCtx, room) {
                 return order.resourceType == RESOURCE_PURIFIER && order.type == ORDER_BUY && order.price >= 0.96 && order.amount > 0;
             });            if(sells.length > 0) {
                 sells = sells.sort((a, b) => {
-                    return a.price < b.price;
+                    return b.price - a.price;
                 });
                 var order = sells[0];
                 Game.market.deal(order.id, Math.min(8000, xbars, order.amount), 'E35N38');
