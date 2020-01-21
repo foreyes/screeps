@@ -2,6 +2,22 @@
 // get position by dist, wall and rampart
 var utils = require('utils');
 
+// if(!Creep.prototype._move) {
+//     Creep.prototype._move = Creep.prototype.move;
+//     Creep.prototype.move = function(direction) {
+//         this.say(direction);
+//         return this._move(direction);
+//     };
+// }
+// if(!PowerCreep.prototype._move) {
+//         PowerCreep.prototype._move = function(direction) {
+//             if (!this.room) {
+//                 return ERR_BUSY;
+//             }
+//             return Creep.prototype._move.call(this, direction);
+//         }
+//     }
+
 function fetchGlobalCtx() {
     return {cpu: Game.cpu.getUsed(), normalCreepCpu: 0, outCreepCpu: 0};
 }

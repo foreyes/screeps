@@ -73,10 +73,10 @@ var newStages = {
 					if(!worker) {
 						require('role_spawn').spawnCreep(spawn.room.ctx, spawn, '', {
 							givenName: workerName,
-							parts: utils.GetPartsByArray([[TOUGH, 5], [ATTACK, 35], [MOVE, 10]]),
+							parts: utils.GetPartsByArray([[TOUGH, 10], [ATTACK, 10], [MOVE, 5]]),
 							memory: {
 								needBoost: true,
-								boostCnt: 2,
+								boostCnt: 3,
 							},
 						});
 						return true;
@@ -84,10 +84,10 @@ var newStages = {
 					if(!healer) {
 						require('role_spawn').spawnCreep(spawn.room.ctx, spawn, '', {
 							givenName: healerName,
-							parts: utils.GetPartsByArray([[TOUGH, 4], [MOVE, 4], [HEAL, 12]]),
+							parts: utils.GetPartsByArray([[HEAL, 20], [MOVE, 5]]),
 							memory: {
 								needBoost: true,
-								boostCnt: 3,
+								boostCnt: 2,
 							},
 						});
 						return true;
@@ -118,18 +118,11 @@ var newStages = {
 			}
 		}
 	},
+	// require('stage_scheduler').StartNewStage('getInvaderCorePicker', 'E26N31');
 	getInvaderCorePicker: function(roomName) {
 		var pickerName = roomName + '_picker_' + Game.time;
 		var targetRoomName = Memory.pickRoomName;
 		return function(ctx) {
-			if(ctx.labs.length < 4) {
-				console.log("labs are not enough!")
-				return true;
-			}
-			ctx.room.cache.needBoost = true;
-			if(!ctx.room.cache.boostPrepare) {
-				return false;
-			}
 			// spawn them
 			var picker = Game.creeps[pickerName];
 			if(ctx.extraSpawnFunction == undefined && (!picker)) {
@@ -137,25 +130,14 @@ var newStages = {
 					if(!picker) {
 						require('role_spawn').spawnCreep(spawn.room.ctx, spawn, '', {
 							givenName: pickerName,
-							parts: utils.GetPartsByArray([[TOUGH, 2], [CARRY, 19], [HEAL, 3], [MOVE, 6]]),
-							memory: {
-								needBoost: true,
-								boostCnt: 3,
-							},
+							parts: utils.GetPartsByArray([[CARRY, 23], [HEAL, 10], [MOVE, 17]]),
 						});
 						return true;
 					}
 					return false;
 				}
 			}
-			// go to boost
-			var boostPos = Game.flags['boostPos'];
-			if(picker && picker.memory.needBoost) {
-				if(picker.memory.boostCnt > 0) {
-					utils.DefaultMoveTo(picker, boostPos);
-				}
-			}
-			if(picker && picker.memory.boostCnt == 0) {
+			if(picker) {
 				require('role_invaderPicker').AddPicker(picker, targetRoomName);
 				return true;
 			}

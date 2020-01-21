@@ -28,9 +28,9 @@ Changelog:
 
 Game.market.createOrder({
     type: ORDER_BUY,
-    resourceType: RESOURCE_MICROCHIP,
-    price: 4000,
-    totalAmount: 50,
+    resourceType: RESOURCE_EMANATION,
+    price: 13000,
+    totalAmount: 30,
     roomName: "E33N36"
 });
 

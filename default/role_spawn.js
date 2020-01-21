@@ -63,7 +63,7 @@ function spawnCreep(ctx, spawn, roleName, opt = {}) {
     creepMemory.spawnTime = parts.length * 3;
     var err = -233;
     if(opt.directions == undefined) {
-        err = spawn.spawnCreep(parts, name, {memory: creepMemory, directions: [TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT]});
+        err = spawn.spawnCreep(parts, name, {memory: creepMemory, directions: [RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT]});
     } else {
         err = spawn.spawnCreep(parts, name, {memory: creepMemory, directions: opt.directions});
     }

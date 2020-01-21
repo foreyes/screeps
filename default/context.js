@@ -98,6 +98,11 @@ function FetchRoomCtx(gCtx, room) {
 			return s.structureType == STRUCTURE_WALL || s.structureType == STRUCTURE_RAMPART;
 		}
 	});
+	var ramparts = room.find(FIND_STRUCTURES, {
+		filter: (s) => {
+			return s.structureType == STRUCTURE_RAMPART;
+		}
+	});
 	// creeps by role
 	var upgraders = creeps.filter((creep) => creep.memory.role == 'upgrader');
 	var builders = creeps.filter((creep) => creep.memory.role == 'builder');
@@ -193,6 +198,7 @@ function FetchRoomCtx(gCtx, room) {
 		constructing: constructing,
 		emptyExts: emptyExts,
 		wallsAndRamparts: wallsAndRamparts,
+		ramparts: ramparts,
 		upgraders: upgraders,
 		builders: builders,
 		repairers: repairers,

@@ -140,7 +140,21 @@ function Run(ctx, creep) {
     if(try2Build(ctx, creep)) {
         return;
     }
+
     // repair walls and ramparts
+    var maxHits = Math.max(ctx.ramparts.map((r) => r.hits));
+    var attackedRamparts = ctx.ramparts.filter((r) => {
+        return maxHits - r.hits > 5000;
+    });
+    if(attackedRamparts.length > 0) {
+        var target = attackedRamparts[0];
+        if(!creep.pos.inRangeTo(target, 3)) {
+            utils.DefaultMoveTo(creep, target);
+            return
+        }
+        return creep.repair(target);
+    }
+
     var limit = ctx.wallHits;
     if(limit == undefined) limit = 10000;
     var targets = ctx.wallsAndRamparts.filter((s) => {

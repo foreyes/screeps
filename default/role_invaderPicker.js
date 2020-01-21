@@ -36,6 +36,9 @@ function runPicker(pickerInfo) {
 		}
 		var targets = picker.room.find(FIND_STRUCTURES).concat(picker.room.find(FIND_RUINS));
 		targets = targets.filter((s) => s.store && s.store.getUsedCapacity() > 0);
+		targets = targets.filter((t) => {
+			return t.pos.lookFor(LOOK_STRUCTURES).filter((s) => s.structureType == STRUCTURE_RAMPART).length == 0;
+		});
 
 		if(targets.length == 0) {
 			picker.memory.state = 'back';
@@ -66,9 +69,20 @@ function runPicker(pickerInfo) {
 				return;
 			}
 		}
-		picker.memory.state = 'goWork';
+		if(!picker.memory.timeUsed) {
+			picker.memory.timeUsed = 1500 - picker.ticksToLive;
+		}
+		if(picker.ticksToLive >= picker.memory.timeUsed + 50) {
+			picker.memory.state = 'goWork';
+		} else {
+			picker.memory.state = 'idle';
+		}
+		break;
 		//picker.say('suicide!');
 		// picker.suicide();
+	}
+	case 'idle': {
+
 	}
 	}
 }
