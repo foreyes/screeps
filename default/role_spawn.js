@@ -15,6 +15,7 @@ var roleMap = {
     defender: require('role_defender'),
     mister: require('mister'),
     manager: require('role_manager'),
+    labHelper: require('role_labHelper'),
 };
 
 // opt: parts, must, givenName, memory
@@ -249,7 +250,14 @@ function Run(ctx, spawn, isMain = true) {
         }});
     }
 
-    if(ctx.room.name == 'E29N34' && ctx.terminal) {
+    if(ctx.room.memory.labState == 'reaction') {
+        var creepName = ctx.room.name + '_labHelper';
+        if(!Game.creeps[creepName]) {
+            return spawnCreep(ctx, spawn, 'labHelper', {givenName: creepName});
+        }
+    }
+
+    if(ctx.room.name == 'E29N34' && ctx.terminal && ctx.storage && ctx.storage.store[RESOURCE_ENERGY] > 100000) {
         for(var id in Memory.deposits) {
             if(Memory.deposits[id].roomName[2] != '0') {
                 continue;
@@ -268,7 +276,7 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
 
-    if(ctx.room.name == 'E26N31' && ctx.terminal) {
+    if(ctx.room.name == 'E26N31' && ctx.terminal && ctx.storage && ctx.storage.store[RESOURCE_ENERGY] > 100000) {
         for(var id in Memory.deposits) {
             if(Memory.deposits[id].roomName[2] == '0') {
                 continue;

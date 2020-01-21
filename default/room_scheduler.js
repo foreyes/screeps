@@ -11,6 +11,7 @@ var roleMap = {
     tower: require('role_tower'),
     specialer: require('role_specialer'),
     mineraler: require('role_mineraler'),
+    labHelper: require('role_labHelper'),
 };
 
 function Run(gCtx, room) {
@@ -261,6 +262,11 @@ function Run(gCtx, room) {
     //     ctx.labs[3].runReaction(ctx.labs[0], ctx.labs[1]);
     // }
     // boost
+    if(ctx.centralLabs && ctx.centralLabs.length >= 2 && ctx.reactionLabs) {
+        for(var i in ctx.reactionLabs) {
+            ctx.reactionLabs[i].runReaction(ctx.centralLabs[0], ctx.centralLabs[1]);
+        }
+    }
     if(ctx.labs && ctx.labs.length >= 4 && room.cache.needBoost) {
         for(var i = 0; i < 4; i++) {
             var lab = ctx.labs[i];

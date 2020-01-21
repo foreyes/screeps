@@ -43,6 +43,33 @@ function operateExtension(ctx, powerCreep) {
 	return err == 0;
 }
 
+function operateLabs(ctx, powerCreep) {
+	if(!ctx.terminal || !ctx.reactionLabs) return false;
+	if(!powerCreep.powers[PWR_OPERATE_LAB] ||
+		powerCreep.powers[PWR_OPERATE_LAB].cooldown > 0) return false;
+	for(var i in ctx.reactionLabs) {
+		var lab = ctx.reactionLabs[i];
+		if(lab.effects != undefined && lab.effects.length > 0) continue;
+		if(powerCreep.store[RESOURCE_OPS] < 10) {
+			if(ctx.terminal.store[RESOURCE_OPS] == 0) return false;
+			if(!powerCreep.pos.isNearTo(ctx.terminal)) {
+				powerCreep.moveTo(ctx.terminal);
+				return true;
+			}
+			var err = powerCreep.withdraw(ctx.terminal, RESOURCE_OPS, Math.min(ctx.terminal.store[RESOURCE_OPS], 100));
+			return err == 0;
+		} else {
+			if(!powerCreep.pos.inRangeTo(lab, 3)) {
+				powerCreep.moveTo(lab);
+				return true;
+			}
+			var err = powerCreep.usePower(PWR_OPERATE_LAB, lab);
+			return err == 0;
+		}
+	}
+	return false;
+}
+
 function storeOps(ctx, powerCreep) {
 	if(!ctx.terminal) return false;
 	if(powerCreep.store[RESOURCE_OPS] < 210) return false;
@@ -95,6 +122,7 @@ function Run(powerCreep) {
 			if(enablePower(ctx, powerCreep)) break;
 			if(maintainFactory(ctx, powerCreep)) break;
 			if(operateExtension(ctx, powerCreep)) break;
+			if(operateLabs(ctx, powerCreep)) break;
 			if(storeOps(ctx, powerCreep)) break;
 			if(regenSource(ctx, powerCreep)) break;
 			// rest
@@ -124,6 +152,7 @@ function Run(powerCreep) {
 			if(enablePower(ctx, powerCreep)) break;
 			if(maintainFactory(ctx, powerCreep)) break;
 			if(operateExtension(ctx, powerCreep)) break;
+			if(operateLabs(ctx, powerCreep)) break;
 			if(storeOps(ctx, powerCreep)) break;
 			if(regenSource(ctx, powerCreep)) break;
 			// rest
@@ -153,6 +182,7 @@ function Run(powerCreep) {
 			if(enablePower(ctx, powerCreep)) break;
 			if(maintainFactory(ctx, powerCreep)) break;
 			if(operateExtension(ctx, powerCreep)) break;
+			if(operateLabs(ctx, powerCreep)) break;
 			if(storeOps(ctx, powerCreep)) break;
 			if(regenSource(ctx, powerCreep)) break;
 			// rest
