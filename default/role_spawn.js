@@ -244,7 +244,8 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
 
-    if(ctx.powerSpawn && ctx.terminal && ctx.terminal.store[RESOURCE_POWER] >= 100 && ctx.powerSpawners.length == 0) {
+    if(ctx.powerSpawn && ctx.terminal && ctx.terminal.store[RESOURCE_POWER] >= 100 &&
+        ctx.storage && ctx.storage.store[RESOURCE_ENERGY] > 300000 && ctx.powerSpawners.length == 0) {
         return spawnCreep(ctx, spawn, 'specialer', {parts: utils.GetPartsByArray([[CARRY, 30], [MOVE, 15]]), memory: {
             specialType: 'powerSpawner',
         }});

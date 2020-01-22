@@ -54,6 +54,10 @@ function runClear(ctx, creep) {
 		creep.memory.state = 'withdraw';
 		break;
 	}
+	case 'idle': {
+		creep.memory.state = 'withdraw';
+		break;
+	}
 	}
 }
 

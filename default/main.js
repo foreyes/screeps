@@ -1,22 +1,23 @@
 // TODOs: suicade logic, build err, refactor stages, extension use
 // get position by dist, wall and rampart
+require('move_through');
 var utils = require('utils');
 
-// if(!Creep.prototype._move) {
-//     Creep.prototype._move = Creep.prototype.move;
-//     Creep.prototype.move = function(direction) {
-//         this.say(direction);
-//         return this._move(direction);
-//     };
-// }
-// if(!PowerCreep.prototype._move) {
-//         PowerCreep.prototype._move = function(direction) {
-//             if (!this.room) {
-//                 return ERR_BUSY;
-//             }
-//             return Creep.prototype._move.call(this, direction);
-//         }
-//     }
+if(!Creep.prototype._move) {
+    Creep.prototype._move = Creep.prototype.move;
+    Creep.prototype.move = function(direction) {
+        this.say(direction);
+        return this._move(direction);
+    };
+}
+if(!PowerCreep.prototype._move) {
+    PowerCreep.prototype._move = function(direction) {
+        if (!this.room) {
+            return ERR_BUSY;
+        }
+        return Creep.prototype._move.call(this, direction);
+    }
+}
 
 function fetchGlobalCtx() {
     return {cpu: Game.cpu.getUsed(), normalCreepCpu: 0, outCreepCpu: 0};
@@ -86,9 +87,9 @@ var marketBuyConfig = {
     },
     [RESOURCE_GHODIUM_MELT]: {
         roomName: 'E33N36',
-        amount: 100000,
-        price: 3,
-        least: 1000,
+        amount: 20000,
+        price: 2.6,
+        least: 20000,
     },
     [RESOURCE_CRYSTAL]: {
         roomName: 'E33N36',
@@ -105,7 +106,7 @@ var marketBuyConfig = {
     [RESOURCE_CONCENTRATE]: {
         roomName: 'E33N36',
         amount: 272,
-        price: 161,
+        price: 120,
         least: 136,
     },
     [RESOURCE_EXTRACT]: {
@@ -137,7 +138,7 @@ var marketBuyConfig = {
         amount: 30,
         price: 15000,
         least: 5,
-    }
+    },
 };
 
 var marketSellConfig = {
@@ -244,6 +245,13 @@ function dealMarket(orders, myOrders) {
 // set a restPos Flag
 // require('prototype.Creep.move')
 module.exports.loop = function() {
+    var rm = Game.getObjectById('5e2566c0c155efe0d19cdf3b');
+    if(rm && rm.hits < 100000) {
+        var t = Game.rooms.E35N38.terminal;
+        t.send(RESOURCE_SPIRIT, t.store[RESOURCE_SPIRIT], 'E29N33');
+        t.send(RESOURCE_EMANATION, t.store[RESOURCE_EMANATION], 'E29N33');
+    }
+
     if(global.runExtension != undefined) {
         try {
             if(global.runExtension()) return 0;
