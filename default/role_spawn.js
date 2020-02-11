@@ -16,6 +16,7 @@ var roleMap = {
     mister: require('mister'),
     manager: require('role_manager'),
     labHelper: require('role_labHelper'),
+    nukerHelper: require('role_nukerHelper'),
 };
 
 // opt: parts, must, givenName, memory
@@ -244,7 +245,7 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
 
-    if(ctx.powerSpawn && ctx.terminal && ctx.terminal.store[RESOURCE_POWER] >= 100 &&
+    if(ctx.powerSpawn && !ctx.powerSpawn.pos.isNearTo(ctx.spawn) && ctx.terminal && ctx.terminal.store[RESOURCE_POWER] >= 100 &&
         ctx.storage && ctx.storage.store[RESOURCE_ENERGY] > 300000 && ctx.powerSpawners.length == 0) {
         return spawnCreep(ctx, spawn, 'specialer', {parts: utils.GetPartsByArray([[CARRY, 30], [MOVE, 15]]), memory: {
             specialType: 'powerSpawner',
@@ -271,6 +272,7 @@ function Run(ctx, spawn, isMain = true) {
                         workRoom: Memory.deposits[id].roomName,
                         targetId: id,
                         status: 'toWork',
+                        noThrough: true,
                     }});
                 }
             }
@@ -293,11 +295,24 @@ function Run(ctx, spawn, isMain = true) {
                         workRoom: Memory.deposits[id].roomName,
                         targetId: id,
                         status: 'toWork',
+                        noThrough: true,
                     }});
                 }
             }
         }
     }
+
+    // if(ctx.room.name == 'E33N36' && ctx.room.memory.fillNuker) {
+    //     var nuker = Game.getObjectById('5de3f84ddb9e166b8faff4f8');
+    //     if(nuker.store.getFreeCapacity(RESOURCE_ENERGY) + nuker.store.getFreeCapacity(RESOURCE_GHODIUM) > 0) {
+    //         var creepName = 'E33N36_nukerHelper';
+    //         if(!Game.creeps[creepName]) {
+    //             return spawnCreep(ctx, spawn, 'nukerHelper', {givenName: creepName, memory: {
+    //                 nukerId: '5de3f84ddb9e166b8faff4f8',
+    //             }});
+    //         }
+    //     }
+    // }
 
     return -233;
 }

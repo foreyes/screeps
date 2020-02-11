@@ -1,23 +1,7 @@
 // TODOs: suicade logic, build err, refactor stages, extension use
 // get position by dist, wall and rampart
-require('move_through');
+var moveThrough = require('move_through');
 var utils = require('utils');
-
-if(!Creep.prototype._move) {
-    Creep.prototype._move = Creep.prototype.move;
-    Creep.prototype.move = function(direction) {
-        this.say(direction);
-        return this._move(direction);
-    };
-}
-if(!PowerCreep.prototype._move) {
-    PowerCreep.prototype._move = function(direction) {
-        if (!this.room) {
-            return ERR_BUSY;
-        }
-        return Creep.prototype._move.call(this, direction);
-    }
-}
 
 function fetchGlobalCtx() {
     return {cpu: Game.cpu.getUsed(), normalCreepCpu: 0, outCreepCpu: 0};
@@ -67,22 +51,10 @@ var marketBuyConfig = {
         price: 0.61,
         least: 1000,
     },
-    [RESOURCE_MIST]: {
-        roomName: 'E29N34',
-        amount: 100000,
-        price: 1.5,
-        least: 0,
-    },
     [RESOURCE_POWER]: {
         roomName: 'E29N33',
         amount: 100000,
         price: 1.1,
-        least: 1000,
-    },
-    [RESOURCE_MIST]: {
-        roomName: 'E26N31',
-        amount: 100000,
-        price: 2,
         least: 1000,
     },
     [RESOURCE_GHODIUM_MELT]: {
@@ -96,12 +68,6 @@ var marketBuyConfig = {
         amount: 100000,
         price: 5.5,
         least: 1000,
-    },
-    [RESOURCE_CONDENSATE]: {
-        roomName: 'E26N31',
-        amount: 6000,
-        price: 6.2,
-        least: 3000,
     },
     [RESOURCE_CONCENTRATE]: {
         roomName: 'E33N36',
@@ -133,12 +99,12 @@ var marketBuyConfig = {
         price: 16000,
         least: 5,
     },
-    [RESOURCE_EMANATION]: {
-        roomName: 'E33N36',
-        amount: 30,
-        price: 15000,
-        least: 5,
-    },
+    // [RESOURCE_EMANATION]: {
+    //     roomName: 'E33N36',
+    //     amount: 30,
+    //     price: 15000,
+    //     least: 5,
+    // },
 };
 
 var marketSellConfig = {
@@ -147,11 +113,11 @@ var marketSellConfig = {
         price: 0.22,
         least: 10000,
     },
-    // [RESOURCE_SPIRIT]: {
-    //     roomName: 'E35N38',
-    //     price: 3400,
-    //     least: 0,
-    // },
+    [RESOURCE_SPIRIT]: {
+        roomName: 'E35N38',
+        price: 5601,
+        least: 0,
+    },
     // [RESOURCE_CRYSTAL]: {
     //     roomName: 'E33N36',
     //     price: 5.5,
@@ -164,7 +130,7 @@ var marketSellConfig = {
     },
     [RESOURCE_ESSENCE]: {
         roomName: 'E33N36',
-        price: 45000,
+        price: 39000,
         least: 0,
     },
     [RESOURCE_DEVICE]: {
@@ -174,9 +140,92 @@ var marketSellConfig = {
     }
 };
 
+var rushBuyConfig = {
+    [RESOURCE_MIST]: {
+        roomName: 'E26N31',
+        amount: 10000,
+        price: 2.3,
+        maxPrice: 5,
+        once: 5000,
+    },
+    // [RESOURCE_CONDENSATE]: {
+    //     roomName: 'E26N31',
+    //     amount: 20000,
+    //     price: 6.3,
+    //     maxPrice: 25,
+    //     once: 6000,
+    // },
+}
+
+function isNpcOrder(roomName) {
+    for(var i in roomName) {
+        var ch = roomName[i];
+        if(ch >= '0' && ch <= '9') {
+            if(ch == '0') return true;
+        }
+    }
+    return false;
+}
+
 function dealMarket(orders, myOrders) {
+    for(var resourceType in rushBuyConfig) {
+        var info = rushBuyConfig[resourceType];
+        var terminal = Game.rooms[info.roomName].terminal;
+        if(terminal && terminal.store[resourceType] >= info.amount) continue;
+        var curAmount = terminal.store[resourceType];
+        // create order
+        var mine = _.filter(myOrders, (order) => {
+            return order.type == ORDER_BUY && order.remainingAmount > 0 &&
+                    order.resourceType == resourceType;
+        });
+        if(mine.length == 0) {
+            Game.market.createOrder({
+                type: ORDER_BUY,
+                resourceType: resourceType,
+                price: info.price,
+                totalAmount: info.once,
+                roomName: info.roomName,
+            });
+            continue;
+        }
+        // rush buy
+        var myPrice = mine[0].price, myId = mine[0].id;
+        var higher = orders.filter((order) => {
+            return order.type == ORDER_BUY && order.id != myId &&
+                    order.resourceType == resourceType &&
+                    order.amount > 0 && !isNpcOrder(order.roomName);
+        }).sort((a, b) => {
+            return b.price - a.price;
+        });
+        if(higher.length > 0) {
+            if(higher[0].price < info.maxPrice) {
+                if(higher[0].amount > 1000) {
+                    var newPrice = Math.max(info.price, higher[0].price + 0.1);
+                    Game.market.changeOrderPrice(myId, newPrice);
+                    myPrice = newPrice;
+                } else if(higher[0].amount < 10) {
+                    Game.market.deal(higher[0].id, higher[0].amount, info.roomName);
+                }
+            }
+        } else {
+            if(myPrice > info.price * 1.5) {
+                Game.market.changeOrderPrice(myId, myPrice - 0.1);
+            }
+        }
+        // rush sell
+        var sells = orders.filter((order) => {
+            return order.type == ORDER_SELL && order.resourceType == resourceType &&
+                    order.amount > 0 && order.price < myPrice * 1.1;
+        }).sort((a, b) => {
+            return a.price - b.price;
+        });
+        if(sells.length > 0) {
+            Game.market.deal(sells[0].id, Math.min(8000, info.amount - curAmount, sells[0].amount), info.roomName);
+        }
+    }
+
     for(var resourceType in marketBuyConfig) {
-        info = marketBuyConfig[resourceType];
+        var info = marketBuyConfig[resourceType];
         if(!Game.rooms[info.roomName] || !Game.rooms[info.roomName].terminal || !Game.rooms[info.roomName].terminal.my) {
             continue;
         }
@@ -185,7 +234,7 @@ function dealMarket(orders, myOrders) {
         if(curAmount < info.least) {
             var exsitOrder = _.filter(myOrders, (order) => {
                 return order.type == ORDER_BUY &&
-                        order.resourceType == resourceType && order.amount > 0;
+                        order.resourceType == resourceType && order.remainingAmount > 0;
             });
             if(exsitOrder.length == 0) {
                 Game.market.createOrder({
@@ -215,7 +264,7 @@ function dealMarket(orders, myOrders) {
     }
 
     for(var resourceType in marketSellConfig) {
-        info = marketSellConfig[resourceType];
+        var info = marketSellConfig[resourceType];
         if(!Game.rooms[info.roomName] || !Game.rooms[info.roomName].terminal || !Game.rooms[info.roomName].terminal.my) {
             continue;
         }
@@ -227,6 +276,10 @@ function dealMarket(orders, myOrders) {
         if(terminal.cooldown > 0) continue;
 
         var targets = orders.filter((order) => {
+            // ignore my order
+            var roomName = order.roomName;
+            if(Game.rooms[roomName] && Game.rooms[roomName].my) return false;
+
             return order.type == ORDER_BUY &&
                     order.resourceType == resourceType &&
                     order.amount > 0 && order.price >= info.price;
@@ -245,11 +298,24 @@ function dealMarket(orders, myOrders) {
 // set a restPos Flag
 // require('prototype.Creep.move')
 module.exports.loop = function() {
+    Memory.inConsole = false;
     var rm = Game.getObjectById('5e2566c0c155efe0d19cdf3b');
     if(rm && rm.hits < 100000) {
         var t = Game.rooms.E35N38.terminal;
         t.send(RESOURCE_SPIRIT, t.store[RESOURCE_SPIRIT], 'E29N33');
         t.send(RESOURCE_EMANATION, t.store[RESOURCE_EMANATION], 'E29N33');
+    }
+
+    try {
+        for(var roomName in Game.rooms) {
+            var ps = Game.getObjectById(Memory.rooms[roomName].psId);
+            if(ps) {
+                ps.processPower();
+            }
+        }
+    } catch(err) {
+        var errMsg = 'Run processPower err';
+        utils.TraceError(err, errMsg);
     }
 
     if(global.runExtension != undefined) {
@@ -283,7 +349,17 @@ module.exports.loop = function() {
         utils.TraceError(err, errMsg);
     }
 
-    if(Game.cpu.bucket < 2000) return 0;
+    if(Game.cpu.bucket < 2000) {
+        var gCtx = fetchGlobalCtx();
+        gCtx.allOrders = Game.market.getAllOrders();
+        try {
+            dealMarket(gCtx.allOrders, Game.market.orders);
+        } catch(err) {
+            var errMsg = 'Market error: ';
+            utils.TraceError(err, errMsg);
+        }
+        return 0;
+    }
 
     if(Memory.profilingflag == 1 || Memory.profileRems == 1) {
         Memory.memoryFetchTime = Game.cpu.getUsed();
@@ -421,6 +497,13 @@ module.exports.loop = function() {
         dealMarket(gCtx.allOrders, Game.market.orders);
     } catch(err) {
         var errMsg = 'Market error: ';
+        utils.TraceError(err, errMsg);
+    }
+
+    try {
+        moveThrough.Run();
+    } catch(err) {
+        var errMsg = 'Move through error: ';
         utils.TraceError(err, errMsg);
     }
 };

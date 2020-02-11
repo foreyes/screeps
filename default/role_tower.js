@@ -1,6 +1,6 @@
 var utils = require('utils');
 
-var rampartHits = 1000000;
+var rampartHits = 10000000;
 
 function runDefender(ctx, towers) {
     if(Memory.rooms[ctx.room.name].ctx.defendTime == undefined) {
@@ -81,6 +81,14 @@ function Run(ctx) {
         }
     }
 
+    // heal creeps
+    var needHeal = ctx.creeps.filter((creep) => creep.hits < creep.hitsMax);
+    if(needHeal.length != 0) {
+        var target = towers[0].pos.findClosestByRange(needHeal);
+        towers[0].heal(target);
+        return;
+    }
+
     // normal repair ramparts
     var ramparts = ctx.room.find(FIND_STRUCTURES, {
         filter: (s) => {
@@ -91,14 +99,6 @@ function Run(ctx) {
     });
     if(ramparts.length != 0) {
         towers[0].repair(ramparts[0]);
-        return;
-    }
-
-    // heal creeps
-    var needHeal = ctx.creeps.filter((creep) => creep.hits < creep.hitsMax);
-    if(needHeal.length != 0) {
-        var target = towers[0].pos.findClosestByRange(needHeal);
-        towers[0].heal(target);
         return;
     }
 }

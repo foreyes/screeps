@@ -29,9 +29,9 @@ Changelog:
 Game.market.createOrder({
     type: ORDER_BUY,
     resourceType: RESOURCE_EMANATION,
-    price: 13000,
-    totalAmount: 30,
-    roomName: "E33N36"
+    price: 14000,
+    totalAmount: 20,
+    roomName: "E35N38"
 });
 
 Object.defineProperty(global, '有啥', { get: sell })

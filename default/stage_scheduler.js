@@ -73,10 +73,11 @@ var newStages = {
 					if(!worker) {
 						require('role_spawn').spawnCreep(spawn.room.ctx, spawn, '', {
 							givenName: workerName,
-							parts: utils.GetPartsByArray([[TOUGH, 10], [ATTACK, 10], [MOVE, 5]]),
+							parts: utils.GetPartsByArray([[WORK, 15], [HEAL, 10], [MOVE, 25]]),
 							memory: {
 								needBoost: true,
-								boostCnt: 3,
+								boostCnt: 0,
+								noThrough: true,
 							},
 						});
 						return true;
@@ -84,10 +85,11 @@ var newStages = {
 					if(!healer) {
 						require('role_spawn').spawnCreep(spawn.room.ctx, spawn, '', {
 							givenName: healerName,
-							parts: utils.GetPartsByArray([[HEAL, 20], [MOVE, 5]]),
+							parts: utils.GetPartsByArray([[MOVE, 1]]),
 							memory: {
 								needBoost: true,
-								boostCnt: 2,
+								boostCnt: 0,
+								noThrough: true,
 							},
 						});
 						return true;
@@ -124,6 +126,11 @@ var newStages = {
 		var targetRoomName = Memory.pickRoomName;
 		return function(ctx) {
 			// spawn them
+			// ctx.room.cache.needBoost = true;
+			// if(!ctx.room.cache.boostPrepare) {
+			// 	return false;
+			// }
+
 			var picker = Game.creeps[pickerName];
 			if(ctx.extraSpawnFunction == undefined && (!picker)) {
 				ctx.extraSpawnFunction = function(spawn) {
@@ -131,15 +138,25 @@ var newStages = {
 						require('role_spawn').spawnCreep(spawn.room.ctx, spawn, '', {
 							givenName: pickerName,
 							parts: utils.GetPartsByArray([[CARRY, 23], [HEAL, 10], [MOVE, 17]]),
+							memory: {
+								needBoost: true,
+								boostCnt: 0,
+								noThrough: true,
+							},
 						});
 						return true;
 					}
 					return false;
 				}
 			}
+			var boostPos = Game.flags['boostPos'];
 			if(picker) {
-				require('role_invaderPicker').AddPicker(picker, targetRoomName);
-				return true;
+				if(picker.memory.boostCnt != 0) {
+					utils.DefaultMoveTo(picker, boostPos);
+				} else {
+					require('role_invaderPicker').AddPicker(picker, targetRoomName);
+					return true;
+				}
 			}
 			return false;
 		}

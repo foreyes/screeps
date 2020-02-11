@@ -325,11 +325,11 @@ var specialTypeList = {
 		}
 	},
 	boostHelper: function(ctx, creep) {
-		if(ctx.labs.length < 4) return false;
-		var resourceList = [RESOURCE_CATALYZED_ZYNTHIUM_ACID, RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE,
-							RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE, RESOURCE_CATALYZED_GHODIUM_ALKALIDE];
+		const labNum = 7;
+		if(ctx.labs.length < labNum) return false;
+		var resourceList = ['XGHO2', 'XLHO2', 'XKHO2', 'XZHO2', 'XUH2O', 'XZH2O', 'XKH2O'];
 		if(creep.store[RESOURCE_ENERGY] + ctx.terminal.store[RESOURCE_ENERGY] > 0) {
-			for(var i = 0; i < 4; i++) {
+			for(var i = 0; i < labNum; i++) {
 				var lab = ctx.labs[i];
 				if(lab.store[RESOURCE_ENERGY] < 1500) {
 					if(creep.store[RESOURCE_ENERGY] > 0) {
@@ -346,7 +346,7 @@ var specialTypeList = {
 				}
 			}
 		}
-		for(var i = 0; i < 4; i++) {
+		for(var i = 0; i < labNum; i++) {
 			var resourceType = resourceList[i];
 			var lab = ctx.labs[i];
 			if(lab.store[resourceType] < 2000) {
@@ -367,7 +367,7 @@ var specialTypeList = {
 			}
 		}
 		var flag = true;
-		for(var i = 0; i < 4; i++) {
+		for(var i = 0; i < labNum; i++) {
 			var resourceType = resourceList[i];
 			var lab = ctx.labs[i];
 			if(lab.store[resourceType] < 1000) {

@@ -105,6 +105,7 @@ function defaultMoveToSameRoom(creep, target) {
 
 function implementMoveTo(creep, target) {
     if(target.pos != undefined) target = target.pos;
+    if(creep.pos.isEqualTo(target)) return 0;
 
     var err = null;
     if(creep.memory.stuck < 2 && creep.cache.path != undefined && target.isEqualTo(creep.cache.dest)) {
@@ -710,6 +711,16 @@ function DistanceInRange(pos1, pos2) {
     return Math.max(pos1.x - pos2.x, pos1.y - pos2.y);
 }
 
+function Any(iterable, condition = null) {
+    for(var idx in iterable) {
+        var item = iterable[idx];
+        if(condition == null || condition(item)) {
+            return item;
+        }
+    }
+    return null;
+}
+
 module.exports = {
     get_positions_by_dist,
     GetDirectDistance,
@@ -740,4 +751,5 @@ module.exports = {
     GetObjByArray,
     GetResourcesStats,
     DistanceInRange,
+    Any,
 };

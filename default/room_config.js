@@ -2,14 +2,14 @@
 var RoomConfig = {
 	'E29N34': {
 		outSources: {
-			'E29N35': {
-				needReserve: true,
-				needClearInvader: false,
-				controller: '5bbcaea19099fc012e639585',
-				reservePos: {x: 38, y: 45, roomName: 'E29N35'},
-				sources: ['5bbcaea19099fc012e639584'],
-				workPos: [{x: 6, y: 4, roomName: 'E29N35'}],
-			},
+			// 'E29N35': {
+			// 	needReserve: true,
+			// 	needClearInvader: false,
+			// 	controller: '5bbcaea19099fc012e639585',
+			// 	reservePos: {x: 38, y: 45, roomName: 'E29N35'},
+			// 	sources: ['5bbcaea19099fc012e639584'],
+			// 	workPos: [{x: 6, y: 4, roomName: 'E29N35'}],
+			// },
 		},
 	},
 	'E33N36': {
@@ -22,14 +22,14 @@ var RoomConfig = {
 				sources: ['5bbcaedb9099fc012e639a83', '5bbcaedb9099fc012e639a81'],
 				workPos: [{x: 4, y: 39, roomName: 'E33N37'}, {x: 37, y: 5, roomName: 'E33N37'}],
 			},
-			'E33N35': {
-				needReserve: true,
-				needClearInvader: false,
-				controller: '5bbcaedb9099fc012e639a8a',
-				reservePos: {x: 34, y: 17, roomName: 'E33N35'},
-				sources: ['5bbcaedb9099fc012e639a89'],
-				workPos: [{x: 15, y: 10, roomName: 'E33N35'}],
-			},
+			// 'E33N35': {
+			// 	needReserve: true,
+			// 	needClearInvader: false,
+			// 	controller: '5bbcaedb9099fc012e639a8a',
+			// 	reservePos: {x: 34, y: 17, roomName: 'E33N35'},
+			// 	sources: ['5bbcaedb9099fc012e639a89'],
+			// 	workPos: [{x: 15, y: 10, roomName: 'E33N35'}],
+			// },
 		},
 	},
 	'E35N38': {
@@ -62,14 +62,14 @@ var RoomConfig = {
 				sources: ['5bbcaea29099fc012e639590', '5bbcaea29099fc012e639591'],
 				workPos: [{x: 36, y: 37, roomName: 'E29N32'}, {x: 39, y: 42, roomName: 'E29N32'}],
 			},
-			'E28N33': {
-				needReserve: true,
-				needClearInvader: false,
-				controller: '5bbcae939099fc012e639400',
-				reservePos: {x: 24, y: 10, roomName: 'E28N33'},
-				sources: ['5bbcae939099fc012e639401'],
-				workPos: [{x: 33, y: 23, roomName: 'E28N33'}],
-			},
+			// 'E28N33': {
+			// 	needReserve: true,
+			// 	needClearInvader: false,
+			// 	controller: '5bbcae939099fc012e639400',
+			// 	reservePos: {x: 24, y: 10, roomName: 'E28N33'},
+			// 	sources: ['5bbcae939099fc012e639401'],
+			// 	workPos: [{x: 33, y: 23, roomName: 'E28N33'}],
+			// },
 		},
 	},
 	'E26N31': {

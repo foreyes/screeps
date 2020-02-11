@@ -12,6 +12,7 @@ var roleMap = {
     specialer: require('role_specialer'),
     mineraler: require('role_mineraler'),
     labHelper: require('role_labHelper'),
+    nukerHelper: require('role_nukerHelper'),
 };
 
 function Run(gCtx, room) {
@@ -79,24 +80,6 @@ function Run(gCtx, room) {
         }
     } catch(err) {
         var errMsg = 'Observer in Room ' + room.name + ": ";
-        utils.TraceError(err, errMsg);
-    }
-
-    try {
-        if(ctx.storage) {
-            if(ctx.room.memory.storageStat == undefined) {
-                ctx.room.memory.storageStat = ctx.storage.store[RESOURCE_ENERGY];
-            }
-            if(ctx.room.memory.storageHis == undefined) {
-                ctx.room.memory.storageHis = [];
-            }
-            if(Game.time % 1000 == 0) {
-                ctx.room.memory.storageHis.push(ctx.storage.store[RESOURCE_ENERGY] - ctx.room.memory.storageStat);
-                ctx.room.memory.storageStat = ctx.storage.store[RESOURCE_ENERGY];
-            }
-        }
-    } catch(err) {
-        var errMsg = 'Storage stats in Room ' + room.name + ": ";
         utils.TraceError(err, errMsg);
     }
 
@@ -226,7 +209,7 @@ function Run(gCtx, room) {
             }
         } catch(err) {
             console.log(creep.memory.role);
-            var errMsg = 'Creep ' + name + ' in ' + room.name + ": ";
+            var errMsg = 'Creep ' + ctx.creeps[name].name + ' in ' + room.name + ": ";
             utils.TraceError(err, errMsg);
         }
     }
@@ -251,8 +234,32 @@ function Run(gCtx, room) {
         utils.TraceError(err, errMsg);
     }
 
-    if(ctx.powerSpawn && ctx.storage && ctx.storage.store[RESOURCE_ENERGY] > 350000) {
-        ctx.powerSpawn.processPower();
+    if(ctx.powerSpawn) {
+        // central schedule
+        if(ctx.terminal && ctx.spawn && ctx.centralLink &&
+             ctx.spawn.pos.isNearTo(ctx.powerSpawn) && ctx.centralLink.pos.isNearTo(ctx.powerSpawn)) {
+            var order = utils.Any(Game.market.orders, (o) => {
+                return o.roomName == room.name && o.type == ORDER_BUY &&
+                        o.resourceType == RESOURCE_ENERGY && o.remainingAmount > 0;
+            });
+            if(!order && ctx.terminal.store[RESOURCE_ENERGY] < 20000) {
+                Game.market.createOrder({
+                    type: ORDER_BUY,
+                    resourceType: RESOURCE_ENERGY,
+                    price: 0.04,
+                    totalAmount: 40000,
+                    roomName: room.name,
+                });
+            }
+            if((ctx.storage && ctx.storage[RESOURCE_ENERGY] >= 300000) ||
+                ctx.terminal.store[RESOURCE_ENERGY] >= 20000) {
+                ctx.powerSpawn.processPower();
+            }
+        } else {
+            if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] >= 300000) {
+                ctx.powerSpawn.processPower();
+            }
+        }
     }
     // if(ctx.labs) {
     //     if(ctx.labers.length == 0) {
@@ -267,8 +274,8 @@ function Run(gCtx, room) {
             ctx.reactionLabs[i].runReaction(ctx.centralLabs[0], ctx.centralLabs[1]);
         }
     }
-    if(ctx.labs && ctx.labs.length >= 4 && room.cache.needBoost) {
-        for(var i = 0; i < 4; i++) {
+    if(ctx.labs && ctx.labs.length >= 6 && room.cache.needBoost) {
+        for(var i = 0; i < 6; i++) {
             var lab = ctx.labs[i];
             var creeps4Boost = lab.pos.findInRange(FIND_MY_CREEPS, 1, {
                 filter: (creep) => {

@@ -34,11 +34,11 @@ function runPicker(pickerInfo) {
 			picker.memory.state = 'back';
 			break;
 		}
-		var targets = picker.room.find(FIND_STRUCTURES).concat(picker.room.find(FIND_RUINS));
-		targets = targets.filter((s) => s.store && s.store.getUsedCapacity() > 0);
-		targets = targets.filter((t) => {
-			return t.pos.lookFor(LOOK_STRUCTURES).filter((s) => s.structureType == STRUCTURE_RAMPART).length == 0;
-		});
+		var targets = picker.room.find(FIND_RUINS);
+		targets = targets.filter((s) => {
+			return s.structure.structureType == STRUCTURE_INVADER_CORE &&
+					s.store && s.store.getUsedCapacity() > 0;
+		})
 
 		if(targets.length == 0) {
 			picker.memory.state = 'back';

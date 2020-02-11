@@ -29,6 +29,7 @@ function getNewWork(ctx, creep) {
     // tansfer energy for link
     if(!ctx.storage) return;
     if(ctx.centralLink && ctx.centralLink.store[RESOURCE_ENERGY] > 0) {
+        creep.say('0');
         return creep.memory.work = {
             srcId: ctx.centralLink.id,
             destId: ctx.storage.id,
@@ -37,6 +38,7 @@ function getNewWork(ctx, creep) {
     }
     if(!ctx.terminal) return;
     if(ctx.storage.store[RESOURCE_ENERGY] > 50000 && ctx.terminal.store[RESOURCE_ENERGY] < 10000) {
+        creep.say('1');
         return creep.memory.work = {
             srcId: ctx.storage.id,
             destId: ctx.terminal.id,
@@ -44,10 +46,42 @@ function getNewWork(ctx, creep) {
         }
     }
     if(ctx.terminal.store[RESOURCE_ENERGY] > 5000 && ctx.storage.store[RESOURCE_ENERGY] < 10000) {
+        creep.say('2');
         return creep.memory.work = {
             srcId: ctx.terminal.id,
             destId: ctx.storage.id,
             resourceType: RESOURCE_ENERGY,
+        }
+    }
+
+    // supply power spawn
+    if(ctx.powerSpawn && creep.pos.isNearTo(ctx.powerSpawn)) {
+        if(ctx.powerSpawn.store[RESOURCE_POWER] == 0 && ctx.terminal.store[RESOURCE_POWER] > 0) {
+            creep.say('3');
+            return creep.memory.work = {
+                srcId: ctx.terminal.id,
+                destId: ctx.powerSpawn.id,
+                resourceType: RESOURCE_POWER,
+                amount: 100,
+            }
+        }
+        if(ctx.powerSpawn.store[RESOURCE_ENERGY] < 4000 && ctx.storage.store[RESOURCE_ENERGY] >= 300000) {
+            creep.say('4');
+            return creep.memory.work = {
+                srcId: ctx.storage.id,
+                destId: ctx.powerSpawn.id,
+                resourceType: RESOURCE_ENERGY,
+                amount: 800,
+            }
+        }
+        if(ctx.powerSpawn.store[RESOURCE_ENERGY] < 4000 && ctx.terminal.store[RESOURCE_ENERGY] >= 20000) {
+            creep.say('4');
+            return creep.memory.work = {
+                srcId: ctx.terminal.id,
+                destId: ctx.powerSpawn.id,
+                resourceType: RESOURCE_ENERGY,
+                amount: 800,
+            }
         }
     }
 
@@ -56,6 +90,7 @@ function getNewWork(ctx, creep) {
         for(var resourceType in ctx.factory.need) {
             if(ctx.factory.store[resourceType] < ctx.factory.need[resourceType] &&
                 ctx.terminal.store[resourceType] > 0) {
+                creep.say('5');
                 return creep.memory.work = {
                     srcId: ctx.terminal.id,
                     destId: ctx.factory.id,
@@ -66,6 +101,7 @@ function getNewWork(ctx, creep) {
         // withdraw from factory
         for(var resourceType in ctx.factory.store) {
             if(!ctx.factory.need[resourceType]) {
+                creep.say('6');
                 return creep.memory.work = {
                     srcId: ctx.factory.id,
                     destId: ctx.terminal.id,
@@ -74,6 +110,7 @@ function getNewWork(ctx, creep) {
             }
             var limitAmount = Math.max(ctx.factory.need[resourceType] * 2, 2000);
             if(ctx.factory.store[resourceType] > limitAmount) {
+                creep.say('7');
                 return creep.memory.work = {
                     srcId: ctx.factory.id,
                     destId: ctx.terminal.id,
@@ -91,6 +128,7 @@ function getNewWork(ctx, creep) {
     var terminalNeedEnergy = ctx.terminal.store[RESOURCE_ENERGY] < 10000;
     if((storageEmpty && ctx.terminal.store[RESOURCE_ENERGY] >= 30000) ||
         (roomNeedEnergy && ctx.terminal.store[RESOURCE_ENERGY] >= 50000)) {
+        creep.say('8');
         return creep.memory.work = {
             srcId: ctx.terminal.id,
             destId: ctx.storage.id,
@@ -98,6 +136,7 @@ function getNewWork(ctx, creep) {
         };
     }
     if(terminalNeedEnergy || (!roomNeedEnergy && ctx.storage.store[RESOURCE_ENERGY] > 500000 && ctx.terminal.store.getFreeCapacity() > 50000)) {
+        creep.say('9');
         return creep.memory.work = {
             srcId: ctx.storage.id,
             destId: ctx.terminal.id,
@@ -106,18 +145,33 @@ function getNewWork(ctx, creep) {
     }
 }
 
-function doWork(ctx, creep, src, dest, resourceType) {
+function doWork(ctx, creep, src, dest, resourceType, amount) {
     if(creep.store[resourceType] == 0) {
         if(src.store[resourceType] > 0) {
-            creep.withdraw(src, resourceType);
+            if(amount) {
+                creep.withdraw(src, resourceType, Math.min(amount, src.store[resourceType]));
+            } else {
+                creep.withdraw(src, resourceType);
+            }
             return -1;
         } else {
             // end work
             return 0;
         }
     } else {
-        if(dest.store.getFreeCapacity() >= creep.store[resourceType]) {
-            return creep.transfer(dest, resourceType);
+        var condition = false;
+        // check special storage
+        if(dest.store.getUsedCapacity() == null) {
+            condition = dest.store.getFreeCapacity(resourceType) > 0;
+        } else {
+            condition = dest.store.getFreeCapacity() > 0;
+        }
+        if(condition) {
+            if(amount) {
+                return creep.transfer(dest, resourceType, Math.min(amount, creep.store[resourceType]));
+            } else {
+                return creep.transfer(dest, resourceType);
+            }
         } else {
             return 0;
         }
@@ -160,7 +214,7 @@ function Run(ctx, creep) {
 
     var src = Game.getObjectById(creep.memory.work.srcId);
     var dest = Game.getObjectById(creep.memory.work.destId);
-    var err = doWork(ctx, creep, src, dest, creep.memory.work.resourceType);
+    var err = doWork(ctx, creep, src, dest, creep.memory.work.resourceType, creep.memory.work.amount);
     if(err == 0) {
         delete creep.memory.work;
     }

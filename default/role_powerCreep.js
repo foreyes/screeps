@@ -11,6 +11,7 @@ function enablePower(ctx, powerCreep) {
 function maintainFactory(ctx, powerCreep) {
 	if(!ctx.factory || !powerCreep.powers[PWR_OPERATE_FACTORY]) return false;
 	if(ctx.factory.effects != undefined && ctx.factory.effects.length > 0) return false;
+	if(ctx.factory.level && ctx.factory.level != powerCreep.powers[PWR_OPERATE_FACTORY].level) return false;
 	if(powerCreep.store[RESOURCE_OPS] >= 100) {
 		if(!powerCreep.pos.inRangeTo(ctx.factory, 3)) {
 			powerCreep.moveTo(ctx.factory);
@@ -32,12 +33,20 @@ function operateExtension(ctx, powerCreep) {
 	if(!ctx.terminal) return false;
 	if(!powerCreep.powers[PWR_OPERATE_EXTENSION] ||
 		powerCreep.powers[PWR_OPERATE_EXTENSION].cooldown > 0) return false;
-	if(powerCreep.store[RESOURCE_OPS] < 2) return false;
 	// about 3000 energy
 	if(ctx.emptyExts.length < 12) return false;
 	if(!powerCreep.pos.inRangeTo(ctx.terminal, 3)) {
 		powerCreep.moveTo(ctx.terminal);
 		return true;
+	}
+	if(powerCreep.store[RESOURCE_OPS] < 2 && ctx.terminal.store[RESOURCE_OPS] >= 20) {
+		if(!powerCreep.pos.isNearTo(ctx.terminal)) {
+			powerCreep.moveTo(ctx.terminal);
+			return true;
+		} else {
+			powerCreep.withdraw(ctx.terminal, RESOURCE_OPS, 20);
+			return true;
+		}
 	}
 	var err = powerCreep.usePower(PWR_OPERATE_EXTENSION, ctx.terminal);
 	return err == 0;
@@ -212,6 +221,7 @@ function Run(powerCreep) {
 			if(enablePower(ctx, powerCreep)) break;
 			if(maintainFactory(ctx, powerCreep)) break;
 			if(operateExtension(ctx, powerCreep)) break;
+			if(operateLabs(ctx, powerCreep)) break;
 			if(storeOps(ctx, powerCreep)) break;
 			if(regenSource(ctx, powerCreep)) break;
 			// rest

@@ -12,17 +12,24 @@ function isExit(pos) {
     return pos.x == 0 || pos.y == 0 || pos.x == 49 || pos.y == 49;
 }
 
+function needMove(worker, workFlag) {
+    if(worker.room.name != workFlag.pos.roomName) return true;
+    var ra = worker.getActiveBodyparts(RANGED_ATTACK) > 0;
+    return (ra && !worker.pos.inRangeTo(workFlag, 3)) ||
+            (!ra && !worker.pos.isNearTo(workFlag));
+}
+
 function moveWorker(worker, healer, workFlag) {
     // diff room
     if(worker.room.name != healer.room.name) {
-        if(worker.room.name != workFlag.pos.roomName || !worker.pos.isNearTo(workFlag)) {
+        if(worker.room.name != workFlag.pos.roomName || needMove(worker, workFlag)) {
             return utils.DefaultMoveTo(worker, workFlag);
         }
     } else {
         // wait for healer
         if(!worker.pos.isNearTo(healer.pos)) return;
         // console.log(worker, workFlag);
-        if(worker.room.name != workFlag.pos.roomName || !worker.pos.isNearTo(workFlag)) {
+        if(worker.room.name != workFlag.pos.roomName || needMove(worker, workFlag)) {
             return utils.DefaultMoveTo(worker, workFlag);
         }
     }
@@ -49,7 +56,7 @@ function runPair(pair) {
         healer.heal(healer);
     } else {
         // heal self
-        if(healerDamage > workerDamage) {
+        if(healerDamage > workerDamage && worker.getActiveBodyparts(HEAL) == 0) {
             healer.heal(healer);
         } else {
             if(healer.pos.isNearTo(worker)) {
@@ -59,25 +66,29 @@ function runPair(pair) {
             }
         }
     }
+    if(worker.getActiveBodyparts(HEAL) > 0) {
+        if(healerDamage > 0 || worker.getActiveBodyparts(RANGED_ATTACK) > 0) {
+            worker.heal(healer);
+        }
+    }
     // move
     utils.DefaultMoveTo(healer, worker);
     if(!workFlag) return;
     moveWorker(worker, healer, workFlag);
     // moveHealer(worker, healer, workFlag);
 
-    if(worker.pos.isNearTo(workFlag)) {
-        var structs = workFlag.pos.lookFor(LOOK_STRUCTURES);
-        var rams = structs.filter((s) => s.structureType == STRUCTURE_RAMPART);
-        if(rams.length > 0) {
-            if(worker.dismantle(rams[0]) != 0) {
-                worker.attack(rams[0]);
-            }
-        } else if(structs.length > 0) {
-            if(worker.dismantle(structs[0]) != 0) {
-                worker.attack(structs[0]);
-            }
-            // range attack
-        }
+    if(needMove(worker, workFlag)) return;
+
+    var structs = workFlag.pos.lookFor(LOOK_STRUCTURES);
+    var rams = structs.filter((s) => s.structureType == STRUCTURE_RAMPART);
+    if(rams.length > 0) {
+        worker.dismantle(rams[0]);
+        worker.attack(rams[0]);
+        worker.rangedAttack(rams[0]);
+    } else if(structs.length > 0) {
+        worker.dismantle(structs[0]);
+        worker.attack(structs[0]);
+        worker.rangedAttack(structs[0]);
     }
 }
 
