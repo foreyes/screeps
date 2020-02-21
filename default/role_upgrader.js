@@ -80,9 +80,29 @@ function Run(ctx, creep) {
         if(!ctx.creepOnContainer) {
             return utils.DefaultMoveTo(creep, ctx.controllerContainer);
         }
-        var structures = creep.pos.lookFor(LOOK_STRUCTURES);
-        if(structures.filter((s) => s.structureType == STRUCTURE_ROAD).length > 0) {
-            return utils.DefaultMoveTo(creep, ctx.room.controller);
+        if(creep.pos.isEqualTo(ctx.controllerContainer)) {
+            if(ctx.upgraders.length > 1) {
+                var flag = false;
+                for(var friend of ctx.upgraders) {
+                    if(friend.id == creep.id) continue;
+                    if(friend.pos.isNearTo(creep.pos)) {
+                        utils.DefaultMoveTo(friend, creep);
+                        friend.cache.special = true;
+                        flag = true;
+                        break;
+                    }
+                }
+                if(flag) {
+                    return utils.DefaultMoveTo(creep, ctx.room.controller);
+                }
+            }
+        }
+        if(!creep.cache.special) {
+            creep.cache.special = false;
+            var structures = creep.pos.lookFor(LOOK_STRUCTURES);
+            if(structures.filter((s) => s.structureType == STRUCTURE_ROAD).length > 0) {
+                return utils.DefaultMoveTo(creep, ctx.room.controller);
+            }
         }
         return;
     }

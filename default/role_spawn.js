@@ -114,6 +114,34 @@ function Run(ctx, spawn, isMain = true) {
     ctx.MaxEnergy = ctx.room.energyCapacityAvailable;
     ctx.CurEnergy = ctx.room.energyAvailable;
 
+    // if(ctx.room.name == 'E26N31' && Game.rooms['E21N32'] && Game.rooms['E21N32'].ctx.upgraders && Game.rooms['E21N32'].ctx.upgraders.length < 6) {
+    //     return spawnCreep(ctx, spawn, 'upgrader', {
+    //         parts: utils.GetPartsByArray([[WORK, 15], [CARRY, 10], [MOVE, 25]]),
+    //         memory: {
+    //             ownRoom: 'E21N32',
+    //             ctrlRoom: 'E21N32',
+    //             movePath: {
+    //                 path: Memory.___myPath,
+    //                 state: 'toStart',
+    //             },
+    //             noThrough: true,
+    //         },
+    //     });
+    // }
+    // if(ctx.room.name == 'E26N31' && Game.rooms['E21N32'] && Game.rooms['E21N32'].ctx.builders && Game.rooms['E21N32'].ctx.builders.length < 2) {
+    //     return spawnCreep(ctx, spawn, 'builder', {
+    //         parts: utils.GetPartsByArray([[WORK, 15], [CARRY, 10], [MOVE, 25]]),
+    //         memory: {
+    //             ownRoom: 'E21N32',
+    //             ctrlRoom: 'E21N32',
+    //             movePath: {
+    //                 path: Memory.___myPath,
+    //                 state: 'toStart',
+    //             },
+    //         },
+    //     });
+    // }
+
     // in stage 1
     if(ctx.MaxEnergy < 350) {
         return runStart(ctx, spawn);
@@ -317,6 +345,7 @@ function Run(ctx, spawn, isMain = true) {
     return -233;
 }
 
+// require('role_spawn').SpawnCreep('5e232fd905c1a5e4f09d0631', '', {memory: {flag: true}, givenName: '开拓者', parts: [CLAIM, MOVE]});
 // require('role_spawn').SpawnCreep('5dc6e9c47f70d61ce9453a80', 'builder', {memory: {ctrlRoom: 'E29N33', ownRoom: 'E29N33'}});
 // require('role_spawn').SpawnCreep('5dc6e9c47f70d61ce9453a80', 'miner', {givenName: 'miner5bbcaea19099fc012e63958c',parts: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE],memory: {ctrlRoom: 'E29N33', ownRoom: 'E29N33', sourceIdx: 0}});
 // require('role_spawn').SpawnCreep('5dc6e9c47f70d61ce9453a80', 'miner', {givenName: 'miner5bbcaea19099fc012e63958d',parts: [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE],memory: {ctrlRoom: 'E29N33', ownRoom: 'E29N33', sourceIdx: 1}});

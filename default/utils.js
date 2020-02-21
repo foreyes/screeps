@@ -63,6 +63,12 @@ function findNewPath2Target(creep, target, ignoreCreeps, otherRoom) {
             path = FindPath(creep.pos, target, {ignoreCreeps: ignoreCreeps}).path;
         }
     }
+    if(path.length != 0) {
+        var lastPos = path[path.length-1];
+        if(!lastPos.roomName && (lastPos.x != target.x || lastPos.y != target.y)) {
+            path = [];
+        }
+    }
     creep.cache.path = path;
     creep.cache.dest = target;
     return path;
@@ -99,6 +105,15 @@ function defaultMoveToSameRoom(creep, target) {
     } else {
         delete creep.cache.path;
         var path = getPath2Target(creep, target, false);
+        if(!path || path.length == 0) {
+            return creep.memory.moveSleep = 20;
+        }
+        if(path.length > 0) {
+            var nxtPos = path[path.length-1];
+            if(nxtPos.x != target.x || nxtPos.y != target.y) {
+                return creep.memory.moveSleep = 20;
+            }
+        }
         return creep.moveByPath(path);
     }
 }
@@ -106,6 +121,12 @@ function defaultMoveToSameRoom(creep, target) {
 function implementMoveTo(creep, target) {
     if(target.pos != undefined) target = target.pos;
     if(creep.pos.isEqualTo(target)) return 0;
+
+    if(creep.memory.moveSleep > 0) {
+        creep.say('💤');
+        creep.memory.moveSleep -= 1;
+        return -233;
+    }
 
     var err = null;
     if(creep.memory.stuck < 2 && creep.cache.path != undefined && target.isEqualTo(creep.cache.dest)) {
@@ -209,6 +230,15 @@ function findNewEnergyTarget4Worker(ctx, creep) {
     if(usefulHostileStructures.length != 0) {
         return creep.pos.findClosestByRange(usefulHostileStructures);
     }
+    // get from ruins
+    var usefulRuins = creep.room.find(FIND_RUINS, {
+        filter: (r) => {
+            return r.store[RESOURCE_ENERGY] > 0;
+        }
+    });
+    if(usefulRuins.length != 0) {
+        return creep.pos.findClosestByRange(usefulRuins);
+    }
     // TODO: get from tomestone
     return null;
 }
@@ -310,23 +340,7 @@ function getValidEnergyTarget4Filler(ctx, creep, fillTargetId) {
 
 function GetEnergy4Filler(ctx, creep, fillTargetId) {
     var target = getValidEnergyTarget4Filler(ctx, creep, fillTargetId);
-    if(target == null) return false;
-
-    // get energy
-    var err = -1;
-    if(target.resourceType != undefined) {
-        err = creep.pickup(target);
-        if(err == ERR_NOT_IN_RANGE) {
-            DefaultMoveTo(creep, target);
-        }
-    } else {
-        err = creep.withdraw(target, RESOURCE_ENERGY);
-        if(err == ERR_NOT_IN_RANGE) {
-            DefaultMoveTo(creep, target);
-        }
-    }
-
-    return err == 0;
+    return target;
 }
 
 function findNewEnergyTarget4ImportantTarget(ctx, creep) {
@@ -376,14 +390,7 @@ function getValidEnergyTarget4ImportantTarget(ctx, creep) {
 
 function GetEnergy4ImportantTarget(ctx, creep) {
     var target = getValidEnergyTarget4ImportantTarget(ctx, creep);
-    if(target == null) return false;
-
-    var err = creep.withdraw(target, RESOURCE_ENERGY);
-    if(err == ERR_NOT_IN_RANGE) {
-        DefaultMoveTo(creep, target);
-        return true;
-    }
-    return err == 0;
+    return target;
 }
 
 function GetEnergyFromStore(ctx, creep) {
@@ -626,6 +633,19 @@ function FindPath(origin, goal, opt = {}) {
     });
 }
 
+function FindLongPath(origin, goalList, opt = {}) {
+    var path = [], cur = origin;
+    for(var goal of goalList) {
+        path = path.concat(FindPath(cur, goal, opt).path);
+        cur = goal;
+    }
+    return path;
+}
+
+function ParsePathFromMemoryObject(memPath) {
+    return memPath.map((pos) => new RoomPosition(pos.x, pos.y, pos.roomName));
+}
+
 function listSum(lst) {
     var sum = 0;
     for(var x of lst) {
@@ -752,4 +772,6 @@ module.exports = {
     GetResourcesStats,
     DistanceInRange,
     Any,
+    FindLongPath,
+    ParsePathFromMemoryObject,
 };

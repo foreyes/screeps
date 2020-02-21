@@ -23,6 +23,42 @@ function InitRoomCtx(gCtx, room) {
 
 roomCache = {};
 
+function UpdateContext() {
+	// stats creeps
+	for(var creepName in Game.creeps) {
+		var creep = Game.creeps[creepName];
+		var room = creep.room;
+		if(creep.memory.ctrlRoom) {
+			room = Game.rooms[creep.memory.ctrlRoom];
+		}
+		if(!room.ctx.creeps) continue;
+
+		room.ctx.creeps.push(creep);
+		if(room.ctx[creep.memory.role + 's']) {
+			room.ctx[creep.memory.role + 's'].push(creep);
+		}
+		if(creep.memory.role == 'specialer') {
+			if(creep.memory.specialType == 'laber') {
+				room.ctx.labers.push(creep);
+			}
+			if(creep.memory.specialType == 'powerSpawner') {
+				room.ctx.powerSpawners.push(creep);
+			}
+		}
+	}
+	// sort fillers
+	for(var roomName in Game.rooms) {
+		var room = Game.rooms[roomName];
+		if(room.ctx.fillers != undefined) {
+			room.ctx.fillers = room.ctx.fillers.sort((a, b) => {
+				if(a.spawning) return 1;
+				if(b.spawning) return -1;
+				return a.id - b.id;
+			});
+		}
+	}
+}
+
 function FetchRoomCtx(gCtx, room) {
 	// fetch room cache
 	if(roomCache[room.name] == undefined) {
@@ -55,65 +91,32 @@ function FetchRoomCtx(gCtx, room) {
 	});
 	// sources
 	var sources =  _.map(room.memory.ctx.sourceIds, Game.getObjectById);
-	// creeps
-	var creeps = _.filter(Game.creeps, (creep) => {
-		return (!creep.memory.ctrlRoom && creep.room.name == room.name) || creep.memory.ctrlRoom == room.name;
-	});
-	// towers
-	var towers = room.find(FIND_STRUCTURES, {
-		filter: (structure) => {
-			return structure.structureType == STRUCTURE_TOWER;
-		}
-	});
+	// improved
+	// ---------------
+	var storage = room.storage, terminal = room.terminal, factory = room.factory, powerSpawn = room.powerSpawn;
+	var towers = room.towers;
+	var emptyExts = [];
+	if(room.energyAvailable != room.energyCapacityAvailable) {
+		emptyExts = room.extensions.filter((e) => e.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+	}
+	var ramparts = room.ramparts, walls = room.walls, labs = room.labs;
+	var wallsAndRamparts = [];
+	if(walls != undefined) wallsAndRamparts = walls;
+	if(ramparts != undefined) wallsAndRamparts = wallsAndRamparts.concat(ramparts);
+
+	var creeps = [], upgraders = [], builders = [], repairers = [], miners = [], fillers = [];
+	var managers = [], labers = [], powerSpawners = [];
+	// ---------------
 	// enemies
-	var enemies = room.find(FIND_CREEPS, {
-        filter: (creep) => {
-            return !creep.my && creep.owner != 'zkl2333';
-        }
-    });
+	var enemies = room.find(FIND_HOSTILE_CREEPS);
     // droped energy > 300
     var dropedEnergy = room.find(FIND_DROPPED_RESOURCES, {
 		filter: (resource) => {
 			return resource.amount >= 50 && resource.resourceType == RESOURCE_ENERGY;
 		}
 	});
-	// storage
-	var storage = room.storage;
 	// constructing
-	var constructing = room.find(FIND_CONSTRUCTION_SITES, {
-		filter: (site) => {
-			return site.my;
-		}
-	});
-	// empty extension
-	var emptyExts = room.find(FIND_STRUCTURES, {
-		filter: (struct) => {
-			var res = struct.structureType == STRUCTURE_EXTENSION || struct.structureType == STRUCTURE_SPAWN;
-			return res && struct.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-		}
-	});
-	// walls and ramparts
-	var wallsAndRamparts = room.find(FIND_STRUCTURES, {
-		filter: (s) => {
-			return s.structureType == STRUCTURE_WALL || s.structureType == STRUCTURE_RAMPART;
-		}
-	});
-	var ramparts = room.find(FIND_STRUCTURES, {
-		filter: (s) => {
-			return s.structureType == STRUCTURE_RAMPART;
-		}
-	});
-	// creeps by role
-	var upgraders = creeps.filter((creep) => creep.memory.role == 'upgrader');
-	var builders = creeps.filter((creep) => creep.memory.role == 'builder');
-	var repairers = creeps.filter((creep) => creep.memory.role == 'repairer');
-	var miners = creeps.filter((creep) => creep.memory.role == 'miner');
-	var fillers = creeps.filter((creep) => creep.memory.role == 'filler');
-	fillers = fillers.sort((a, b) => {
-		if(a.spawning) return 1;
-		if(b.spawning) return -1;
-		return a.id - b.id;
-	});
+	var constructing = room.find(FIND_MY_CONSTRUCTION_SITES);
 	// setup restPos
 	var restPos = spawn;
 	if(room.memory.ctx.restPos != undefined) {
@@ -127,67 +130,17 @@ function FetchRoomCtx(gCtx, room) {
 		mineral = minerals[0];
 	}
 	var mineralCanHarvest = undefined;
-	if(mineral != undefined) {
-		var extractor = room.lookAt(mineral.pos).filter((item) => {
-			return item.type == 'structure' && item.structure.structureType == STRUCTURE_EXTRACTOR && item.structure.my;
-		});
-		if(extractor.length > 0) {
-			mineralCanHarvest = mineral;
-		}
+	if(mineral != undefined && room.extractor) {
+		mineralCanHarvest = mineral
 	}
-	// factory
-	var factory = undefined;
-	var factories = room.find(FIND_STRUCTURES, {
-		filter: (s) => {
-			return s.structureType == STRUCTURE_FACTORY;
-		}
-	});
-	if(factories.length > 0) {
-		factory = factories[0];
-	}
-	// factorier
-	var factoriers = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'factorier');
-	var managers = creeps.filter((creep) => creep.memory.role == 'manager');
-	// labs
-	var labs = room.find(FIND_STRUCTURES, {
-		filter: (s) => {
-			return s.my && s.structureType == STRUCTURE_LAB;
-		}
-	});
-	// if(room.memory.ctx.labIds) {
-	// 	labs = room.memory.ctx.labIds.map(Game.getObjectById);
-	// }
-	// labers
-	var labers = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'laber');
-	// stealers
-	// var stealers = room.find(FIND_CREEPS, {
- //    	filter: (creep) => {
- //        	return creep.my && creep.memory.role == 'specialer' && creep.memory.specialType == 'stealer';
- //    	}
- //   	});
- 	// power spawn
- 	var powerSpawn = undefined;
- 	var powerSpawns = room.find(FIND_STRUCTURES, {
- 		filter: (s) => {
- 			return s.structureType == STRUCTURE_POWER_SPAWN;
- 		}
- 	});
- 	if(powerSpawns.length > 0) {
- 		powerSpawn = powerSpawns[0];
- 	}
- 	var powerSpawners = creeps.filter((creep) => creep.memory.role == 'specialer' && creep.memory.specialType == 'powerSpawner');
 
 	var ctx = {
 		room: room,
 		my: true,
 		reservedByOthers: room.controller && room.controller.reservation && room.controller.reservation.username != 'foreyes1001',
-		// neutral: neutral,
-		// hostile: hostile,
 		spawns: spawns,
 		spawn: spawn,
 		sources: sources,
-		// outCreeps: outCreeps,
-		// ownCreeps: ownCreeps,
 		creeps: creeps,
 		towers: towers,
 		enemies: enemies,
@@ -209,7 +162,6 @@ function FetchRoomCtx(gCtx, room) {
 		mineral: mineral,
 		mineralCanHarvest: mineralCanHarvest,
 		factory: factory,
-		factoriers: factoriers,
 		managers: managers,
 		labs: labs,
 		labers: labers,
@@ -305,4 +257,5 @@ function FetchRoomCtx(gCtx, room) {
 module.exports = {
 	InitRoomCtx,
 	FetchRoomCtx,
+	UpdateContext,
 };

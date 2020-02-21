@@ -84,6 +84,18 @@ var RoomConfig = {
 			},
 		},
 	},
+	'E21N32': {
+		outSources: {
+			'E21N33': {
+				needReserve: true,
+				needClearInvader: false,
+				controller: '5bbcae239099fc012e638735',
+				reservePos: {x: 25, y: 31, roomName: 'E21N33'},
+				sources: ['5bbcae239099fc012e638736'],
+				workPos: [{x: 35, y: 40, roomName: 'E21N33'}],
+			},
+		},
+	},
 };
 
 module.exports = RoomConfig;

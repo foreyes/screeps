@@ -135,8 +135,27 @@ function Run(gCtx, room) {
         try {
             var creep = ctx.creeps[name];
             if(creep.spawning) continue;
-            if(creep.memory.flag) {
-                utils.DefaultMoveTo(creep, Game.flags['move']);
+            if(creep.memory.movePath) {
+                var path = utils.ParsePathFromMemoryObject(creep.memory.movePath.path);
+                switch(creep.memory.movePath.state) {
+                case 'toStart': {
+                    if(!creep.pos.isEqualTo(path[0])) {
+                        utils.DefaultMoveTo(creep, path[0]);
+                        break;
+                    }
+                }
+                case 'move': {
+                    creep.memory.movePath.state = 'move';
+                    if(!creep.pos.isEqualTo(path[path.length-1])) {
+                        creep.moveByPath(path);
+                        break;
+                    }
+                }
+                case 'end': {
+                    delete creep.memory.movePath;
+                    break;
+                }
+                }
                 continue;
             }
             var start = Game.cpu.getUsed();
@@ -237,16 +256,17 @@ function Run(gCtx, room) {
     if(ctx.powerSpawn) {
         // central schedule
         if(ctx.terminal && ctx.spawn && ctx.centralLink &&
-             ctx.spawn.pos.isNearTo(ctx.powerSpawn) && ctx.centralLink.pos.isNearTo(ctx.powerSpawn)) {
+             ctx.spawn.pos.isNearTo(ctx.powerSpawn) && ctx.centralLink.pos.isNearTo(ctx.powerSpawn) &&
+             ctx.terminal.store[RESOURCE_POWER] + ctx.powerSpawn.store[RESOURCE_POWER] > 0) {
             var order = utils.Any(Game.market.orders, (o) => {
                 return o.roomName == room.name && o.type == ORDER_BUY &&
                         o.resourceType == RESOURCE_ENERGY && o.remainingAmount > 0;
             });
-            if(!order && ctx.terminal.store[RESOURCE_ENERGY] < 20000) {
+            if(!order && ctx.terminal.store[RESOURCE_ENERGY] < 20000 && ctx.storage.store[RESOURCE_ENERGY] < 300000) {
                 Game.market.createOrder({
                     type: ORDER_BUY,
                     resourceType: RESOURCE_ENERGY,
-                    price: 0.04,
+                    price: 0.045,
                     totalAmount: 40000,
                     roomName: room.name,
                 });

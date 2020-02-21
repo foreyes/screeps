@@ -54,7 +54,7 @@ var marketBuyConfig = {
     [RESOURCE_POWER]: {
         roomName: 'E29N33',
         amount: 100000,
-        price: 1.1,
+        price: 1.7,
         least: 1000,
     },
     [RESOURCE_GHODIUM_MELT]: {
@@ -83,9 +83,9 @@ var marketBuyConfig = {
     },
     [RESOURCE_MICROCHIP]: {
         roomName: 'E33N36',
-        amount: 90,
-        price: 3500,
-        least: 15,
+        amount: 60,
+        price: 8000,
+        least: 20,
     },
     [RESOURCE_SPIRIT]: {
         roomName: 'E33N36',
@@ -95,9 +95,9 @@ var marketBuyConfig = {
     },
     [RESOURCE_CIRCUIT]: {
         roomName: 'E33N36',
-        amount: 30,
-        price: 16000,
-        least: 5,
+        amount: 20,
+        price: 26000,
+        least: 10,
     },
     // [RESOURCE_EMANATION]: {
     //     roomName: 'E33N36',
@@ -118,11 +118,11 @@ var marketSellConfig = {
         price: 5601,
         least: 0,
     },
-    // [RESOURCE_CRYSTAL]: {
-    //     roomName: 'E33N36',
-    //     price: 5.5,
-    //     least: 0,
-    // },
+    [RESOURCE_CRYSTAL]: {
+        roomName: 'E33N36',
+        price: 6,
+        least: 30000,
+    },
     [RESOURCE_COMPOSITE]: {
         roomName: 'E29N34',
         price: 2.4,
@@ -130,22 +130,22 @@ var marketSellConfig = {
     },
     [RESOURCE_ESSENCE]: {
         roomName: 'E33N36',
-        price: 39000,
+        price: 42000,
         least: 0,
     },
     [RESOURCE_DEVICE]: {
         roomName: 'E33N36',
-        price: 48000,
+        price: 69000,
         least: 0,
     }
 };
 
 var rushBuyConfig = {
     [RESOURCE_MIST]: {
-        roomName: 'E26N31',
-        amount: 10000,
+        roomName: 'E29N33',
+        amount: 20000,
         price: 2.3,
-        maxPrice: 5,
+        maxPrice: 3.39,
         once: 5000,
     },
     // [RESOURCE_CONDENSATE]: {
@@ -200,7 +200,7 @@ function dealMarket(orders, myOrders) {
         if(higher.length > 0) {
             if(higher[0].price < info.maxPrice) {
                 if(higher[0].amount > 1000) {
-                    var newPrice = Math.max(info.price, higher[0].price + 0.1);
+                    var newPrice = Math.max(info.price, higher[0].price + 0.01);
                     Game.market.changeOrderPrice(myId, newPrice);
                     myPrice = newPrice;
                 } else if(higher[0].amount < 10) {
@@ -209,7 +209,7 @@ function dealMarket(orders, myOrders) {
             }
         } else {
             if(myPrice > info.price * 1.5) {
-                Game.market.changeOrderPrice(myId, myPrice - 0.1);
+                Game.market.changeOrderPrice(myId, myPrice - 0.01);
             }
         }
         // rush sell
@@ -361,6 +361,8 @@ module.exports.loop = function() {
         return 0;
     }
 
+    require('room_structure_cache');
+
     if(Memory.profilingflag == 1 || Memory.profileRems == 1) {
         Memory.memoryFetchTime = Game.cpu.getUsed();
         console.log('Parse memory: ' + Memory.memoryFetchTime);
@@ -370,15 +372,6 @@ module.exports.loop = function() {
     utils.ProfileUpdate();
     // statOutMiner
     Memory.outSpeed = Memory.statOutMiner / (Game.time - Memory.statStart);
-    // statCredit
-    if(Memory.creditHis == undefined) {
-        Memory.creditHis = [Game.market.credits];
-    }
-    if(Game.time % 1000 == 23) {
-        var curCredit = Game.market.credits;
-        Memory.creditHis.push(curCredit - Memory.creditHis[0]);
-        Memory.creditHis[0] = curCredit;
-    }
     // clear memory
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
@@ -424,6 +417,13 @@ module.exports.loop = function() {
             var errMsg = 'fetch room ' + i + ' error: ';
             utils.TraceError(err, errMsg);
         }
+    }
+
+    try {
+        require('context').UpdateContext();
+    } catch(err) {
+        var errMsg = 'update room context error: ';
+        utils.TraceError(err, errMsg);
     }
     utils.ProfileStage('Fetch room ctx: ');
 
