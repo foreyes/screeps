@@ -285,7 +285,7 @@ var stages = {
 				ctx.room.memory.ctx.keepLevel = true;
 				ctx.room.memory.ctx.upgrading = false;
 			}
-			if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] >= 800000) {
+			if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] >= 400000) {
 				ctx.room.memory.ctx.fillerNum = 3;
 				ctx.room.memory.ctx.upgraderNum = 4;
 				ctx.room.memory.ctx.keepLevel = false;

@@ -85,7 +85,7 @@ function Run(ctx, creep) {
                 var flag = false;
                 for(var friend of ctx.upgraders) {
                     if(friend.id == creep.id) continue;
-                    if(friend.pos.isNearTo(creep.pos)) {
+                    if(friend.pos.isNearTo(creep)) {
                         utils.DefaultMoveTo(friend, creep);
                         friend.cache.special = true;
                         flag = true;

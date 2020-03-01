@@ -81,14 +81,19 @@ function FetchRoomCtx(gCtx, room) {
 	}
 
 	// spawns
-	var spawn = undefined;
-	var spawns = _.map(room.memory.ctx.spawnIds, Game.getObjectById);
-	if(spawns.length > 0) {
-		spawn = spawns[0];
-	}
-	spawns = room.find(FIND_MY_SPAWNS).filter((s) => {
+	var spawn = Game.getObjectById(room.memory.ctx.mainSpawnId);;
+	var spawns = room.find(FIND_MY_SPAWNS).filter((s) => {
 		return s.isActive();
 	});
+	if(!spawn) {
+		if(spawns.length == 0) {
+			spawn = undefined;
+		} else {
+			spawn = spawns[0];
+			room.memory.ctx.mainSpawnId = spawn.id;
+		}
+	}
+	
 	// sources
 	var sources =  _.map(room.memory.ctx.sourceIds, Game.getObjectById);
 	// improved

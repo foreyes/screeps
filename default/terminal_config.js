@@ -16,6 +16,7 @@ var TerminalConfig = {
 			'ZO': 10000,
 			'OH': 10000,
 			'X': 10000,
+			[RESOURCE_EMANATION]: 1,
 		},
 		priority: {
 			[RESOURCE_CONDENSATE]: 1000,
@@ -100,6 +101,11 @@ var TerminalConfig = {
 		},
 		priority: {
 			[RESOURCE_SPIRIT]: 100,
+		}
+	},
+	'E21N32': {
+		need: {
+			[RESOURCE_ENERGY]: 150000,
 		}
 	},
 };

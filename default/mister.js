@@ -32,6 +32,11 @@ function Run(ctx, creep) {
 			utils.DefaultMoveTo(creep, new RoomPosition(25, 25, creep.memory.workRoom));
 		} else {
 			var deposit = Game.getObjectById(creep.memory.targetId);
+			// no such deposit
+			if(!deposit) {
+				delete Memory.deposits[creep.memory.targetId];
+				return creep.suicide();
+			}
 			if(!creep.pos.isNearTo(deposit)) {
 				utils.DefaultMoveTo(creep, deposit);
 			} else {

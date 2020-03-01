@@ -2,10 +2,16 @@ var utils = require('utils');
 
 var roleParts = {
 	0: [],
-	1150: [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE],
+	1150: utils.GetPartsByArray([[WORK, 8], [CARRY, 2], [MOVE, 5]]),
+	1800: utils.GetPartsByArray([[WORK, 12], [CARRY, 4], [MOVE, 8]]),
+	2300: utils.GetPartsByArray([[WORK, 16], [CARRY, 4], [MOVE, 10]]),
+	3950: utils.GetPartsByArray([[WORK, 29], [CARRY, 4], [MOVE, 17]])
 };
 
 function getCost(energy) {
+	if(energy >= 3950) return 3950;
+	if(energy >= 2300) return 2300;
+	if(energy >= 1800) return 1150;
 	if(energy >= 1150) return 1150;
 	return 0;
 }
@@ -18,90 +24,141 @@ function GetPartsAndCost(energy) {
 
 var buffer = {};
 
-function Run(ctx, creep) {
-	if(Game.cpu.bucket < 2000) return -233;
-	var outSource = require('room_config')[creep.memory.ctrlRoom].outSources[creep.memory.workRoom];
-	// been attacked
-	if(creep.hits < creep.hitsMax) {
-		var defender = Game.creeps['defender' + creep.memory.workRoom];
-		if(!defender) {
-			outSource.needDefender = true;
-		}
-		creep.memory.sleep = 100;
-		var pos = new RoomPosition(25, 25, creep.memory.ctrlRoom);
-		return utils.DefaultMoveTo(creep, pos);
-	}
-	// sleep after attacked
-	if(creep.memory.sleep != undefined && creep.memory.sleep > 0) {
-		creep.memory.sleep -= 1;
-		return -555;
-	}
-	// go to work room
-	var idx = creep.memory.sourceIdx;
+const S_TO_WORK = 0, S_RUN_AWAY = 1, S_WORK = 2, S_BUILD = 3, S_REPAIR = 4;
+
+function runToWork(creep, outSource, idx) {
+	creep.memory.state = S_TO_WORK;
 	var workPos = utils.GetRoomPosition(outSource.workPos[idx]);
-	if(creep.room.name != creep.memory.workRoom) {
+	if(!creep.pos.isEqualTo(workPos)) {
 		return utils.DefaultMoveTo(creep, workPos);
 	}
-	// build road or container
-	if(creep.memory.work && creep.store[RESOURCE_ENERGY] > 0) {
-		if(Game.rooms[creep.memory.workRoom].ctx.constructing.length > 0) {
-			return require('role_builder').Try2Build(Game.rooms[creep.memory.workRoom].ctx, creep);
-		}
-	} else {
-		creep.memory.work = false;
+	return runWork(creep, outSource, idx);
+}
+
+function runRunAway(creep) {
+	creep.memory.state = S_RUN_AWAY;
+	var ctrlRoom = Game.rooms[creep.memory.ctrlRoom];
+	if(creep.room.name != ctrlRoom.name || !creep.pos.inRangeTo(ctrlRoom.storage, 10)) {
+		return utils.DefaultMoveTo(creep, ctrlRoom.storage);
 	}
-	// go to work pos
-	if(!utils.IsSamePosition(creep.pos, workPos)) {
-		return utils.DefaultMoveTo(creep, workPos);
+	if(creep.hits == creep.hitsMax) {
+		creep.memory.state = S_TO_WORK;
+		creep.memory.sleep = 100;
 	}
-	if(creep.room.ctx.reservedByOthers) {
-		return -1551;
-	}
-	// create container if not exist
-	var container = Game.rooms[creep.memory.workRoom].ctx.room.lookAt(creep.pos).filter((item) => {
-		return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER;
-	});
-	if(container.length == 0) {
-		Game.rooms[creep.memory.workRoom].ctx.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER);
-	}
-	// create road if not exist
-	var flag = false;
-	var path = buffer[creep.id];
+}
+
+function checkRoad(creep, source) {
+	creep.memory.checkTime = Game.time;
+
+	var path = buffer[source.id];
 	if(path == undefined) {
 		path = utils.FindPath(creep.pos, {pos: Game.rooms[creep.memory.ctrlRoom].storage.pos, range: 1}, {buildRoad: true}).path;
-		// path = path.filter((pos) => pos.roomName == creep.memory.workRoom);
-		buffer[creep.id] = path;
-		flag = true;
+		buffer[source.id] = path;
 	}
-	if(flag) {
-		for(var i in path) {
-			Game.rooms[path[i].roomName].createConstructionSite(path[i], STRUCTURE_ROAD);
-		}
-	}
-	// harvest
+	path.forEach((pos) => {
+		Game.rooms[pos.roomName].createConstructionSite(pos, STRUCTURE_ROAD);
+	})
+}
+
+function runWork(creep, outSource, idx) {
+	creep.memory.state = S_WORK;
 	var source = Game.getObjectById(outSource.sources[idx]);
-	if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 16 && source.energy > 0) {
-		creep.memory.work = false;
-		return creep.harvest(source);
-	} else {
-		creep.memory.work = true;
-	}
-	// build or harvest
-	if(creep.memory.work && creep.store[RESOURCE_ENERGY] > 0) {
-		var repaires = creep.room.lookAt(creep.pos).filter((item) => {
-			return item.type == 'structure' && item.structure.structureType == STRUCTURE_CONTAINER &&
-					item.structure.hits < item.structure.hitsMax;
-		});
-		if(repaires.length > 0) {
-			var target = repaires[0].structure;
-			return creep.repair(target);
+	if(creep.store.getFreeCapacity( ) > 0) {
+		if(creep.room.ctx.reservedByOthers) return -1;
+		if(source.energy == 0) {
+			creep.memory.sleep = source.ticksToRegeneration;
+			return -1;
 		}
-	} else {
-		creep.memory.work = false;
+		return creep.harvest(source);
+	}
+	// full and need repair
+	var container = _.first(creep.room.lookForAt(LOOK_STRUCTURES, creep.pos).filter((s) => {
+		return s.structureType == STRUCTURE_CONTAINER;
+	}));
+	if(container && container.hits < container.hitsMax) {
+		return runRepair(creep, container);
+	}
+	// check build
+	if(!container) {
+		creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER);
+		checkRoad(creep, source);
+	}
+	if(Game.time % 1073 < 4 && (!creep.memory.checkTime || Game.time - creep.memory.checkTime > 100)) {
+		checkRoad(creep, source);
+	}
+	// full and need build
+	if(creep.room.ctx.constructing.length > 0) {
+		return runBuild(creep);
+	}
+	// still harvest
+	return creep.harvest(source);
+}
+
+function runBuild(creep) {
+	creep.memory.state = S_BUILD;
+	if(creep.room.ctx.constructing.length == 0) {
+		return runWork(creep, creep.outSource, creep.memory.sourceIdx);
+	}
+	return require('role_builder').Try2Build(creep.room.ctx, creep);
+}
+
+function runRepair(creep, container) {
+	creep.memory.state = S_REPAIR;
+	if(!container) return runWork(creep, creep.outSource, creep.memory.sourceIdx);
+	creep.memory.containerId = container.id;
+	// check state
+	if(creep.store[RESOURCE_ENERGY] == 0 || container.hits == container.hitsMax) {
+		return runWork(creep, creep.outSource, creep.memory.sourceIdx);
+	}
+	return creep.repair(container);
+}
+
+function Run(ctx, creep) {
+	// handle 'noThrough' and sleep
+	creep.memory.noThrough = creep.memory.state != S_WORK;
+	if(creep.memory.sleep > 1) {
+		creep.memory.sleep -= 1;
+		creep.say('💤');
+		return 0;
 	}
 
-	if(source.energy == 0) return -233;
-	return creep.harvest(source);
+	// check escape
+	var outSource = require('room_config')[creep.memory.ctrlRoom].outSources[creep.memory.workRoom];
+	creep.outSource = outSource;
+	if(creep.hits < creep.hitsMax) {
+		if(!outSource.needDefender && !Game.creeps['defender' + creep.memory.workRoom]) {
+			outSource.needDefender = true;
+		}
+		creep.memory.state = S_RUN_AWAY;
+	}
+
+	// default state
+	if(creep.memory.state == undefined) {
+		creep.memory.state = S_TO_WORK;
+	}
+
+	// handle states
+	switch(creep.memory.state) {
+	case S_TO_WORK: {
+		runToWork(creep, outSource, creep.memory.sourceIdx);
+		break;
+	}
+	case S_RUN_AWAY: {
+		runRunAway(creep);
+		break;
+	}
+	case S_WORK: {
+		runWork(creep, outSource, creep.memory.sourceIdx);
+		break;
+	}
+	case S_BUILD: {
+		runBuild(creep);
+		break;
+	}
+	case S_REPAIR: {
+		runRepair(creep, Game.getObjectById(creep.memory.containerId));
+	}
+	}
 }
 
 module.exports = {

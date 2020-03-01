@@ -27,12 +27,23 @@ Changelog:
 */
 
 Game.market.createOrder({
-    type: ORDER_BUY,
-    resourceType: RESOURCE_EMANATION,
-    price: 14000,
-    totalAmount: 20,
-    roomName: "E35N38"
+    type: ORDER_SELL,
+    resourceType: 'spirit',
+    price: 6600,
+    totalAmount: 2,
+    roomName: "E35N38",
 });
+Game.market.createOrder({
+    type: ORDER_BUY,
+    resourceType: 'ops',
+    price: 0.3,
+    totalAmount: 40000,
+    roomName: "E33N36",
+});
+
+
+
+Game.market.deal('单子ID', 1000, 'E33N36');
 
 Object.defineProperty(global, '有啥', { get: sell })
 

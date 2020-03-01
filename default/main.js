@@ -18,31 +18,31 @@ var marketBuyConfig = {
     [RESOURCE_ZYNTHIUM_BAR]: {
         roomName: 'E33N36',
         amount: 10000,
-        price: 0.31,
+        price: 0.4,
         least: 2000,
     },
     [RESOURCE_KEANIUM_BAR]: {
         roomName: 'E29N33',
         amount: 30000,
-        price: 0.31,
+        price: 0.4,
         least: 3000,
     },
     [RESOURCE_UTRIUM_BAR]: {
         roomName: 'E29N34',
         amount: 10000,
-        price: 0.31,
+        price: 0.4,
         least: 1000,
     },
     [RESOURCE_LEMERGIUM_BAR]: {
         roomName: 'E33N36',
         amount: 10000,
-        price: 0.61,
+        price: 0.7,
         least: 2000,
     },
     [RESOURCE_REDUCTANT]: {
         roomName: 'E26N31',
         amount: 30000,
-        price: 0.31,
+        price: 0.4,
         least: 3000,
     },
     [RESOURCE_OPS]: {
@@ -54,13 +54,13 @@ var marketBuyConfig = {
     [RESOURCE_POWER]: {
         roomName: 'E29N33',
         amount: 100000,
-        price: 1.7,
+        price: 2.3,
         least: 1000,
     },
     [RESOURCE_GHODIUM_MELT]: {
         roomName: 'E33N36',
         amount: 20000,
-        price: 2.6,
+        price: 3.6,
         least: 20000,
     },
     [RESOURCE_CRYSTAL]: {
@@ -84,27 +84,27 @@ var marketBuyConfig = {
     [RESOURCE_MICROCHIP]: {
         roomName: 'E33N36',
         amount: 60,
-        price: 8000,
-        least: 20,
+        price: 10000,
+        least: 30,
     },
     [RESOURCE_SPIRIT]: {
         roomName: 'E33N36',
         amount: 90,
-        price: 4400,
+        price: 5000,
         least: 15,
     },
     [RESOURCE_CIRCUIT]: {
         roomName: 'E33N36',
         amount: 20,
-        price: 26000,
+        price: 33000,
         least: 10,
     },
-    // [RESOURCE_EMANATION]: {
-    //     roomName: 'E33N36',
-    //     amount: 30,
-    //     price: 15000,
-    //     least: 5,
-    // },
+    [RESOURCE_EMANATION]: {
+        roomName: 'E33N36',
+        amount: 30,
+        price: 15000,
+        least: 5,
+    },
 };
 
 var marketSellConfig = {
@@ -115,27 +115,27 @@ var marketSellConfig = {
     },
     [RESOURCE_SPIRIT]: {
         roomName: 'E35N38',
-        price: 5601,
+        price: 6500,
         least: 0,
     },
     [RESOURCE_CRYSTAL]: {
         roomName: 'E33N36',
-        price: 6,
+        price: 6.5,
         least: 30000,
     },
     [RESOURCE_COMPOSITE]: {
         roomName: 'E29N34',
-        price: 2.4,
+        price: 3.5,
         least: 0,
     },
     [RESOURCE_ESSENCE]: {
         roomName: 'E33N36',
-        price: 42000,
+        price: 50000,
         least: 0,
     },
     [RESOURCE_DEVICE]: {
         roomName: 'E33N36',
-        price: 69000,
+        price: 75000,
         least: 0,
     }
 };
@@ -299,6 +299,12 @@ function dealMarket(orders, myOrders) {
 // require('prototype.Creep.move')
 module.exports.loop = function() {
     Memory.inConsole = false;
+    Memory.processPower = true;
+    var targetStorage = Game.getObjectById('5e4d1528513adebfae6760e3');
+    if(targetStorage && targetStorage.store[RESOURCE_ENERGY] < 800000 && targetStorage.room.controller.level < 8) {
+        Memory.processPower = false;
+    }
+    // require('fake_him').handleFake();
     var rm = Game.getObjectById('5e2566c0c155efe0d19cdf3b');
     if(rm && rm.hits < 100000) {
         var t = Game.rooms.E35N38.terminal;
@@ -306,17 +312,19 @@ module.exports.loop = function() {
         t.send(RESOURCE_EMANATION, t.store[RESOURCE_EMANATION], 'E29N33');
     }
 
-    try {
-        for(var roomName in Game.rooms) {
-            var ps = Game.getObjectById(Memory.rooms[roomName].psId);
-            if(ps) {
-                ps.processPower();
+    if(Memory.processPower) {
+        try {
+            for(var roomName in Game.rooms) {
+                var ps = Game.getObjectById(Memory.rooms[roomName].psId);
+                if(ps) {
+                    ps.processPower();
+                }
             }
+        } catch(err) {
+            var errMsg = 'Run processPower err';
+            utils.TraceError(err, errMsg);
         }
-    } catch(err) {
-        var errMsg = 'Run processPower err';
-        utils.TraceError(err, errMsg);
-    }
+    }   
 
     if(global.runExtension != undefined) {
         try {

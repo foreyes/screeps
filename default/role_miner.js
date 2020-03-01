@@ -16,7 +16,7 @@ var roleParts = {
 
 function getCost(energy) {
 	if(energy >= 2900) return 2900;
-	if(energy >= 1400) return 1400;
+	if(energy >= 1450) return 1450;
 	if(energy >= 1300) return 1300;
 	if(energy >= 750) return 750;
 	if(energy >= 650) return 650;

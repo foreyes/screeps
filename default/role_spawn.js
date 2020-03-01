@@ -114,37 +114,33 @@ function Run(ctx, spawn, isMain = true) {
     ctx.MaxEnergy = ctx.room.energyCapacityAvailable;
     ctx.CurEnergy = ctx.room.energyAvailable;
 
-    // if(ctx.room.name == 'E26N31' && Game.rooms['E21N32'] && Game.rooms['E21N32'].ctx.upgraders && Game.rooms['E21N32'].ctx.upgraders.length < 6) {
-    //     return spawnCreep(ctx, spawn, 'upgrader', {
-    //         parts: utils.GetPartsByArray([[WORK, 15], [CARRY, 10], [MOVE, 25]]),
-    //         memory: {
-    //             ownRoom: 'E21N32',
-    //             ctrlRoom: 'E21N32',
-    //             movePath: {
-    //                 path: Memory.___myPath,
-    //                 state: 'toStart',
-    //             },
-    //             noThrough: true,
-    //         },
-    //     });
-    // }
-    // if(ctx.room.name == 'E26N31' && Game.rooms['E21N32'] && Game.rooms['E21N32'].ctx.builders && Game.rooms['E21N32'].ctx.builders.length < 2) {
-    //     return spawnCreep(ctx, spawn, 'builder', {
-    //         parts: utils.GetPartsByArray([[WORK, 15], [CARRY, 10], [MOVE, 25]]),
-    //         memory: {
-    //             ownRoom: 'E21N32',
-    //             ctrlRoom: 'E21N32',
-    //             movePath: {
-    //                 path: Memory.___myPath,
-    //                 state: 'toStart',
-    //             },
-    //         },
-    //     });
-    // }
-
     // in stage 1
     if(ctx.MaxEnergy < 350) {
         return runStart(ctx, spawn);
+    }
+
+    if(ctx.room.name == 'E35N38') {
+        if(Game.rooms['E35N39'] && Game.rooms['E35N39'].controller.level < 4) {
+            var ctx2 = Game.rooms['E35N39'].ctx;
+            if(ctx2.upgraders.length < 4) {
+                return spawnCreep(ctx, spawn, 'upgrader', {
+                    parts: utils.GetPartsByArray([[WORK, 24], [CARRY, 8], [MOVE, 16]]),
+                    memory: {
+                        ctrlRoom: 'E35N39',
+                        ownRoom: 'E35N39',
+                    },
+                });
+            }
+            if(ctx2.builders.length < 1) {
+                return spawnCreep(ctx, spawn, 'builder', {
+                    parts: utils.GetPartsByArray([[WORK, 24], [CARRY, 8], [MOVE, 16]]),
+                    memory: {
+                        ctrlRoom: 'E35N39',
+                        ownRoom: 'E35N39',
+                    },
+                });
+            }
+        }
     }
 
     if(ctx.room.cache.needBoost && !ctx.room.cache.boostPrepare) {
@@ -162,11 +158,6 @@ function Run(ctx, spawn, isMain = true) {
         }
     }
 
-    if(ctx.room.name == 'E29N33' && Game.rooms['E26N31'] != undefined) {
-        if(!Game.rooms['E26N31'].ctx.spawn && Game.rooms['E26N31'].ctx.builders.filter(hasLongLife).length < 2) {
-            return spawnCreep(ctx, spawn, 'builder', {memory: {ctrlRoom: 'E26N31', ownRoom: 'E26N31'}});
-        }
-    }
     // TODO: check if need emergency miner
     var needEmergencyMiner = false;
     // spawn the first filler
@@ -199,19 +190,12 @@ function Run(ctx, spawn, isMain = true) {
             return spawnCreep(ctx, spawn, 'mineraler', {givenName: name});
         }
     }
-    // spawn factorier
+    // spawn manager
     if((ctx.centralLink || ctx.terminal) && ctx.managers.filter(hasLongLife).length == 0 && isMain) {
         return spawnCreep(ctx, spawn, 'manager', {
             directions: [TOP],
         });
     }
-    // if(ctx.terminal && ctx.factoriers.filter(hasLongLife).length == 0 && isMain) {
-    //     return spawnCreep(ctx, spawn, 'specialer', {
-    //         directions: [TOP],
-    //         parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY],
-    //         memory: {specialType: 'factorier'}
-    //     });
-    // }
     // spawn upgrader
     if(ctx.upgraders.filter(hasLongLife).length < ctx.room.memory.ctx.upgraderNum) {
         return spawnCreep(ctx, spawn, 'upgrader');

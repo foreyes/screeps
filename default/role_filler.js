@@ -120,8 +120,10 @@ function findEnergy(ctx, creep) {
 	if(isImportantTarget(ctx, target)) {
 		priorityResource = utils.GetEnergy4ImportantTarget(ctx, creep);
 	}
-	normalResource = utils.GetEnergy4Filler(ctx, creep, target.id);
-
+	if(ctx.room.controller.level < 6) {
+		normalResource = utils.GetEnergy4Filler(ctx, creep, target.id);
+	}
+	
 	var resources = [priorityResource, normalResource].filter((r) => r != null);
 	if(resources.length > 0) {
 		var target = creep.pos.findClosestByPath(resources);

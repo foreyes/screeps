@@ -273,11 +273,15 @@ function Run(gCtx, room) {
             }
             if((ctx.storage && ctx.storage[RESOURCE_ENERGY] >= 300000) ||
                 ctx.terminal.store[RESOURCE_ENERGY] >= 20000) {
-                ctx.powerSpawn.processPower();
+                if(Memory.processPower){
+                    ctx.powerSpawn.processPower();
+                }
             }
         } else {
             if(ctx.storage && ctx.storage.store[RESOURCE_ENERGY] >= 300000) {
-                ctx.powerSpawn.processPower();
+                if(Memory.processPower) {
+                    ctx.powerSpawn.processPower();
+                }
             }
         }
     }
