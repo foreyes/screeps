@@ -1,5 +1,7 @@
+const C = require('const');
+
 require('fake_him').fakeHim('spirit', 200000, 200020, 15, "E35N38", "E35N38");
-function fakeHim(resourceType, priceLow, priceHigh, timeOut = 5, roomName = "E33N36", buyRoom = "E33N36") {
+function fakeHim(resourceType, priceLow, priceHigh, timeOut = 5, roomName = C.MainRoomName, buyRoom = C.MainRoomName) {
     if(!Memory.temp) Memory.temp = {};
     if(!Memory.temp.fakeList) Memory.temp.fakeList = [];
     Memory.temp.fakeList.push({

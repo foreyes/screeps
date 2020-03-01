@@ -1,4 +1,5 @@
 var utils = require('utils');
+const C = require('const');
 
 var roleMap = {
     filler: require('role_filler'),
@@ -204,7 +205,7 @@ function Run(ctx, spawn, isMain = true) {
                 }
             }
             // outReserver
-            if(Game.rooms[roomName] && (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.username != 'foreyes1001' || Game.rooms[roomName].controller.reservation.ticksToEnd < 2000)) {
+            if(Game.rooms[roomName] && (!Game.rooms[roomName].controller.reservation || Game.rooms[roomName].controller.reservation.username != C.MyName || Game.rooms[roomName].controller.reservation.ticksToEnd < 2000)) {
                 var creepName = 'outReserver' + outSource.controller;
                 if(!Game.creeps[creepName]) {
                     return spawnCreep(ctx, spawn, 'outReserver', {givenName: creepName, memory: {

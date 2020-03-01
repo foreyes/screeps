@@ -35,10 +35,6 @@ function try2SendResource(gCtx, terminal, resourceType, amount) {
 		var sendAmount = Math.min(freeCapacity, gCtx.needList[targetIdx].needAmount, amount);
 		var err = terminal.send(resourceType, sendAmount, targetRoomName);
 		if(err == 0) {
-			if(resourceType == RESOURCE_ENERGY && targetRoomName == 'E35N38') {
-				if(Memory.sendEnergy == undefined) Memory.sendEnergy = 0;
-				Memory.sendEnergy += sendAmount;
-			}
 			console.log('room ' + terminal.room.name + ' send ' + sendAmount + ' ' + resourceType + ' to room ' + targetRoomName);
 			gCtx.needList[targetIdx].sendFlag = true;
 			return 0;

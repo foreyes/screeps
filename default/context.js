@@ -1,4 +1,5 @@
 var utils = require('utils');
+const C = require('const');
 
 function InitRoomCtx(gCtx, room) {
 	var roomName = room.name;
@@ -69,7 +70,7 @@ function FetchRoomCtx(gCtx, room) {
 	if(room.controller == undefined || !room.controller.my) {
 		return {
 			my: false,
-			reservedByOthers: room.controller && room.controller.reservation && room.controller.reservation.username != 'foreyes1001',
+			reservedByOthers: room.controller && room.controller.reservation && room.controller.reservation.username != C.MyName,
 			room: room,
 			enemies: room.find(FIND_HOSTILE_CREEPS),
 			constructing: room.find(FIND_MY_CONSTRUCTION_SITES),
@@ -138,7 +139,7 @@ function FetchRoomCtx(gCtx, room) {
 	var ctx = {
 		room: room,
 		my: true,
-		reservedByOthers: room.controller && room.controller.reservation && room.controller.reservation.username != 'foreyes1001',
+		reservedByOthers: room.controller && room.controller.reservation && room.controller.reservation.username != C.MyName,
 		spawns: spawns,
 		spawn: spawn,
 		sources: sources,
