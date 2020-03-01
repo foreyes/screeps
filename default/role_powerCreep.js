@@ -1,3 +1,11 @@
+const PowerCreepConfig = {
+	'The Jack': 'E29N34',
+	'The Queen': 'E33N36',
+	'The King': 'E35N38',
+	'The Joker': 'E26N31',
+	'The World': 'E29N33',
+};
+
 function enablePower(ctx, powerCreep) {
 	if(ctx.room.controller.isPowerEnabled) return false;
 	if(!powerCreep.pos.isNearTo(ctx.room.controller)) {
@@ -110,167 +118,35 @@ function regenSource(ctx, powerCreep) {
 }
 
 function Run(powerCreep) {
-	switch(powerCreep.name) {
-	case 'The Jack': {
-		var ctx = Game.rooms['E29N34'].ctx;
-		if(powerCreep.hits != undefined) {
-			if(powerCreep.powers[PWR_GENERATE_OPS] &&
-				powerCreep.powers[PWR_GENERATE_OPS].cooldown == 0) {
-				powerCreep.usePower(PWR_GENERATE_OPS);
-			}
+	var roomName = PowerCreepConfig[powerCreep.name];
+	var ctx = Game.rooms[roomName].ctx;
+	if(powerCreep.hits != undefined) {
+		if(powerCreep.powers[PWR_GENERATE_OPS] &&
+			powerCreep.powers[PWR_GENERATE_OPS].cooldown == 0) {
+			powerCreep.usePower(PWR_GENERATE_OPS);
+		}
 
-			if(powerCreep.ticksToLive < 1000) {
-				if(!powerCreep.pos.isNearTo(ctx.powerSpawn)) {
-					powerCreep.moveTo(ctx.powerSpawn);
-					break;
-				}
-				powerCreep.renew(ctx.powerSpawn);
+		if(powerCreep.ticksToLive < 1000) {
+			if(!powerCreep.pos.isNearTo(ctx.powerSpawn)) {
+				powerCreep.moveTo(ctx.powerSpawn);
 				break;
 			}
-
-			if(enablePower(ctx, powerCreep)) break;
-			if(maintainFactory(ctx, powerCreep)) break;
-			if(operateExtension(ctx, powerCreep)) break;
-			if(operateLabs(ctx, powerCreep)) break;
-			if(storeOps(ctx, powerCreep)) break;
-			if(regenSource(ctx, powerCreep)) break;
-			// rest
-			if(!powerCreep.pos.isNearTo(ctx.powerSpawn)){
-				powerCreep.moveTo(ctx.powerSpawn);
-			}
-		} else if(powerCreep.spawnCooldownTime == undefined) {
-			powerCreep.spawn(ctx.powerSpawn);
+			powerCreep.renew(ctx.powerSpawn);
+			break;
 		}
-		break;
-	}
-	case 'The Queen':{
-		var ctx = Game.rooms['E33N36'].ctx;
-		if(powerCreep.hits != undefined) {
-			if(powerCreep.powers[PWR_GENERATE_OPS] &&
-				powerCreep.powers[PWR_GENERATE_OPS].cooldown == 0) {
-				powerCreep.usePower(PWR_GENERATE_OPS);
-			}
 
-			if(powerCreep.ticksToLive < 1000) {
-				if(!powerCreep.pos.isNearTo(ctx.powerSpawn)) {
-					powerCreep.moveTo(ctx.powerSpawn);
-					break;
-				}
-				powerCreep.renew(ctx.powerSpawn);
-				break;
-			}
-
-			if(enablePower(ctx, powerCreep)) break;
-			if(maintainFactory(ctx, powerCreep)) break;
-			if(operateExtension(ctx, powerCreep)) break;
-			if(operateLabs(ctx, powerCreep)) break;
-			if(storeOps(ctx, powerCreep)) break;
-			if(regenSource(ctx, powerCreep)) break;
-			// rest
-			if(!powerCreep.pos.isNearTo(ctx.powerSpawn)){
-				powerCreep.moveTo(ctx.powerSpawn);
-			}
-		} else if(powerCreep.spawnCooldownTime == undefined) {
-			powerCreep.spawn(ctx.powerSpawn);
+		if(enablePower(ctx, powerCreep)) break;
+		if(maintainFactory(ctx, powerCreep)) break;
+		if(operateExtension(ctx, powerCreep)) break;
+		if(operateLabs(ctx, powerCreep)) break;
+		if(storeOps(ctx, powerCreep)) break;
+		if(regenSource(ctx, powerCreep)) break;
+		// rest
+		if(!powerCreep.pos.isNearTo(ctx.powerSpawn)){
+			powerCreep.moveTo(ctx.powerSpawn);
 		}
-		break;
-	}
-	case 'The King': {
-		var ctx = Game.rooms['E35N38'].ctx;
-		if(powerCreep.hits != undefined) {
-			if(powerCreep.powers[PWR_GENERATE_OPS] &&
-				powerCreep.powers[PWR_GENERATE_OPS].cooldown == 0) {
-				powerCreep.usePower(PWR_GENERATE_OPS);
-			}
-
-			if(powerCreep.ticksToLive < 1000) {
-				if(!powerCreep.pos.isNearTo(ctx.powerSpawn)) {
-					powerCreep.moveTo(ctx.powerSpawn);
-					break;
-				}
-				powerCreep.renew(ctx.powerSpawn);
-				break;
-			}
-
-			if(enablePower(ctx, powerCreep)) break;
-			if(maintainFactory(ctx, powerCreep)) break;
-			if(operateExtension(ctx, powerCreep)) break;
-			if(operateLabs(ctx, powerCreep)) break;
-			if(storeOps(ctx, powerCreep)) break;
-			if(regenSource(ctx, powerCreep)) break;
-			// rest
-			if(!powerCreep.pos.isNearTo(ctx.powerSpawn)){
-				powerCreep.moveTo(ctx.powerSpawn);
-			}
-		} else if(powerCreep.spawnCooldownTime == undefined) {
-			powerCreep.spawn(ctx.powerSpawn);
-		}
-		break;
-	}
-	case 'The World': {
-		var ctx = Game.rooms['E29N33'].ctx;
-		if(powerCreep.hits != undefined) {
-			if(powerCreep.powers[PWR_GENERATE_OPS] &&
-				powerCreep.powers[PWR_GENERATE_OPS].cooldown == 0) {
-				powerCreep.usePower(PWR_GENERATE_OPS);
-			}
-
-			if(powerCreep.ticksToLive < 1000) {
-				if(!powerCreep.pos.isNearTo(ctx.powerSpawn)) {
-					powerCreep.moveTo(ctx.powerSpawn);
-					break;
-				}
-				powerCreep.renew(ctx.powerSpawn);
-				break;
-			}
-
-			if(enablePower(ctx, powerCreep)) break;
-			if(maintainFactory(ctx, powerCreep)) break;
-			if(operateExtension(ctx, powerCreep)) break;
-			if(operateLabs(ctx, powerCreep)) break;
-			if(storeOps(ctx, powerCreep)) break;
-			if(regenSource(ctx, powerCreep)) break;
-			// rest
-			if(!powerCreep.pos.isNearTo(ctx.powerSpawn)){
-				powerCreep.moveTo(ctx.powerSpawn);
-			}
-		} else if(powerCreep.spawnCooldownTime == undefined) {
-			powerCreep.spawn(ctx.powerSpawn);
-		}
-		break;
-	}
-	case 'The Joker': {
-		var ctx = Game.rooms['E26N31'].ctx;
-		if(powerCreep.hits != undefined) {
-			if(powerCreep.powers[PWR_GENERATE_OPS] &&
-				powerCreep.powers[PWR_GENERATE_OPS].cooldown == 0) {
-				powerCreep.usePower(PWR_GENERATE_OPS);
-			}
-
-			if(powerCreep.ticksToLive < 1000) {
-				if(!powerCreep.pos.isNearTo(ctx.powerSpawn)) {
-					powerCreep.moveTo(ctx.powerSpawn);
-					break;
-				}
-				powerCreep.renew(ctx.powerSpawn);
-				break;
-			}
-
-			if(enablePower(ctx, powerCreep)) break;
-			if(maintainFactory(ctx, powerCreep)) break;
-			if(operateExtension(ctx, powerCreep)) break;
-			if(operateLabs(ctx, powerCreep)) break;
-			if(storeOps(ctx, powerCreep)) break;
-			if(regenSource(ctx, powerCreep)) break;
-			// rest
-			if(!powerCreep.pos.isNearTo(ctx.powerSpawn)){
-				powerCreep.moveTo(ctx.powerSpawn);
-			}
-		} else if(powerCreep.spawnCooldownTime == undefined) {
-			powerCreep.spawn(ctx.powerSpawn);
-		}
-		break;
-	}
+	} else if(powerCreep.spawnCooldownTime == undefined) {
+		powerCreep.spawn(ctx.powerSpawn);
 	}
 }
 
