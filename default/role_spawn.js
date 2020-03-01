@@ -120,6 +120,31 @@ function Run(ctx, spawn, isMain = true) {
         return runStart(ctx, spawn);
     }
 
+    if(ctx.room.name == 'E35N38') {
+        if(Game.rooms['E35N39'] && Game.rooms['E35N39'].controller.level < 4) {
+            var ctx2 = Game.rooms['E35N39'].ctx;
+            if(ctx2.upgraders.length < 4) {
+                return spawnCreep(ctx, spawn, 'upgrader', {
+                    parts: utils.GetPartsByArray([[WORK, 24], [CARRY, 8], [MOVE, 16]]),
+                    memory: {
+                        ctrlRoom: 'E35N39',
+                        ownRoom: 'E35N39',
+                        noThrough: true,
+                    },
+                });
+            }
+            if(ctx2.builders.length < 1) {
+                return spawnCreep(ctx, spawn, 'builder', {
+                    parts: utils.GetPartsByArray([[WORK, 24], [CARRY, 8], [MOVE, 16]]),
+                    memory: {
+                        ctrlRoom: 'E35N39',
+                        ownRoom: 'E35N39',
+                    },
+                });
+            }
+        }
+    }
+
     if(ctx.room.cache.needBoost && !ctx.room.cache.boostPrepare) {
         var creepName = 'boostHelper' + ctx.room.name;
         if(!Game.creeps[creepName]) {
@@ -247,6 +272,61 @@ function Run(ctx, spawn, isMain = true) {
             return spawnCreep(ctx, spawn, 'labHelper', {givenName: creepName});
         }
     }
+
+    if(ctx.room.name == 'E29N34' && ctx.terminal && ctx.storage && ctx.storage.store[RESOURCE_ENERGY] > 100000) {
+        for(var id in Memory.deposits) {
+            if(Memory.deposits[id].roomName[2] != '0') {
+                continue;
+            }
+            var workPosNum = Memory.deposits[id].workPosNum;
+            for(var idx = 0; idx < workPosNum; idx++) {
+                var creepName = 'mister' + id + '_' + idx;
+                if(!Game.creeps[creepName]) {
+                    return spawnCreep(ctx, spawn, 'mister', {givenName: creepName, memory: {
+                        workRoom: Memory.deposits[id].roomName,
+                        targetId: id,
+                        status: 'toWork',
+                        noThrough: true,
+                    }});
+                }
+            }
+        }
+    }
+
+    if(ctx.room.name == 'E26N31' && ctx.terminal && ctx.storage && ctx.storage.store[RESOURCE_ENERGY] > 100000) {
+        for(var id in Memory.deposits) {
+            if(Memory.deposits[id].roomName[2] == '0') {
+                continue;
+            }
+            var workPosNum = Memory.deposits[id].workPosNum;
+            if(ctx.room.controller.level < 7) {
+                workPosNum = Math.min(workPosNum, 2);
+            }
+            for(var idx = 0; idx < workPosNum; idx++) {
+                var creepName = 'mister' + id + '_' + idx;
+                if(!Game.creeps[creepName]) {
+                    return spawnCreep(ctx, spawn, 'mister', {givenName: creepName, memory: {
+                        workRoom: Memory.deposits[id].roomName,
+                        targetId: id,
+                        status: 'toWork',
+                        noThrough: true,
+                    }});
+                }
+            }
+        }
+    }
+
+    // if(ctx.room.name == 'E33N36' && ctx.room.memory.fillNuker) {
+    //     var nuker = Game.getObjectById('5de3f84ddb9e166b8faff4f8');
+    //     if(nuker.store.getFreeCapacity(RESOURCE_ENERGY) + nuker.store.getFreeCapacity(RESOURCE_GHODIUM) > 0) {
+    //         var creepName = 'E33N36_nukerHelper';
+    //         if(!Game.creeps[creepName]) {
+    //             return spawnCreep(ctx, spawn, 'nukerHelper', {givenName: creepName, memory: {
+    //                 nukerId: '5de3f84ddb9e166b8faff4f8',
+    //             }});
+    //         }
+    //     }
+    // }
 }
 
 // require('role_spawn').SpawnCreep('5e232fd905c1a5e4f09d0631', '', {memory: {flag: true}, givenName: '开拓者', parts: [CLAIM, MOVE]});
