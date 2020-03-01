@@ -1,10 +1,4 @@
-const PowerCreepConfig = {
-	'The Jack': 'E29N34',
-	'The Queen': 'E33N36',
-	'The King': 'E35N38',
-	'The Joker': 'E26N31',
-	'The World': 'E29N33',
-};
+const PowerCreepConfig = require('powerCreep_config')
 
 function enablePower(ctx, powerCreep) {
 	if(ctx.room.controller.isPowerEnabled) return false;
