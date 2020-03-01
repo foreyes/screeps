@@ -113,6 +113,7 @@ function regenSource(ctx, powerCreep) {
 
 function Run(powerCreep) {
 	var roomName = PowerCreepConfig[powerCreep.name];
+	if(!roomName) return;
 	var ctx = Game.rooms[roomName].ctx;
 	if(powerCreep.hits != undefined) {
 		if(powerCreep.powers[PWR_GENERATE_OPS] &&
