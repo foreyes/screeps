@@ -65,12 +65,8 @@ function FetchRoomCtx(gCtx, room) {
 		roomCache[room.name] = {};
 	}
 	room.cache = roomCache[room.name];
-	// // ownership
-	// var my = room.controller != undefined && room.controller.my;
-	// var neutral = room.controller == undefined || room.controller.owner == 'None';
-	// var hostile = !my && !neutral
+	// ownership
 	if(room.controller == undefined || !room.controller.my) {
-		// utils.ProfileStage('Fetch room' + room.name + ' ctx: ');
 		return {
 			my: false,
 			reservedByOthers: room.controller && room.controller.reservation && room.controller.reservation.username != 'foreyes1001',
@@ -172,7 +168,6 @@ function FetchRoomCtx(gCtx, room) {
 		labers: labers,
 		powerSpawn: powerSpawn,
 		powerSpawners: powerSpawners,
-		// stealers: stealers,
 	};
 	// set room ignore
 	if(ctx.spawn) {

@@ -1,6 +1,7 @@
 var utils = require('utils');
+const C = require('const');
 
-var rampartHits = 10000000;
+var rampartHits = C.WallAndRampartHits;
 
 function runDefender(ctx, towers) {
     if(Memory.rooms[ctx.room.name].ctx.defendTime == undefined) {

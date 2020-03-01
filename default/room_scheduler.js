@@ -36,53 +36,6 @@ function Run(gCtx, room) {
         ctx.room.memory.ctx.repairerNum = 0;
     }
 
-    var deposits = room.find(FIND_DEPOSITS);
-    var usefulDeposits = deposits.filter((d) => d.lastCooldown <= 150);
-    var uselessDeposits = deposits.filter((d) => {return d.lastCooldown > 150});
-    if(usefulDeposits.length > 0) {
-        if(Memory.deposits == undefined) Memory.deposits = {};
-        for(var deposit of usefulDeposits) {
-            if(Memory.deposits[deposit.id] == undefined || Memory.deposits[deposit.id].workPosNum == undefined) {
-                var x = deposit.pos.x, y = deposit.pos.y;
-                var workPosNum = deposit.room.lookForAtArea(LOOK_TERRAIN, y-1, x-1, y+1, x+1, true).filter(
-                    (item) => item.terrain == 'plain').length;
-                Memory.deposits[deposit.id] = {
-                    roomName: room.name,
-                    workPosNum: workPosNum,
-                }
-            }
-        }
-    }
-    if(uselessDeposits.length > 0 && Memory.deposits != undefined) {
-        for(var deposit of uselessDeposits) {
-            if(Memory.deposits[deposit.id] != undefined) {
-                delete Memory.deposits[deposit.id];
-            }
-        }
-    }
-
-    try {
-        if(room.name == 'E33N36') {
-            var mistList = ['E30N31', 'E30N32', 'E30N33', 'E30N34', 'E30N35', 'E30N36', 'E30N37', 'E30N38', 'E30N39'];
-            var mistRoom = mistList[Game.time % 9];
-            Game.getObjectById('5de40e8cd6b1ab5b428f84e7').observeRoom(mistRoom);
-        }
-    } catch(err) {
-        var errMsg = 'Observer in Room ' + room.name + ": ";
-        utils.TraceError(err, errMsg);
-    }
-
-    try {
-        if(room.name == 'E29N34') {
-            var mistList = ['E22N30', 'E23N30', 'E24N30', 'E25N30', 'E26N30', 'E27N30', 'E28N30', 'E29N30', 'E30N30'];
-            var mistRoom = mistList[Game.time % 9];
-            Game.getObjectById('5ded10a69f95c3553107363b').observeRoom(mistRoom);
-        }
-    } catch(err) {
-        var errMsg = 'Observer in Room ' + room.name + ": ";
-        utils.TraceError(err, errMsg);
-    }
-
     try {
         // run room scheduler logic
         // step1: if a task is ready, pick it into ready.
@@ -285,13 +238,6 @@ function Run(gCtx, room) {
             }
         }
     }
-    // if(ctx.labs) {
-    //     if(ctx.labers.length == 0) {
-    //         require('role_spawn').SpawnCreep('5dc6d24401ce096f94fc8ea6', 'specialer', {parts: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], memory: {specialType: 'laber'}});
-    //     }
-    //     ctx.labs[2].runReaction(ctx.labs[0], ctx.labs[1]);
-    //     ctx.labs[3].runReaction(ctx.labs[0], ctx.labs[1]);
-    // }
     // boost
     if(ctx.centralLabs && ctx.centralLabs.length >= 2 && ctx.reactionLabs) {
         for(var i in ctx.reactionLabs) {
@@ -320,58 +266,6 @@ function Run(gCtx, room) {
             var link = ctx.sourceLinks[i];
             if(link.store.getFreeCapacity(RESOURCE_ENERGY) < 100) {
                 link.transferEnergy(ctx.centralLink);
-            }
-        }
-    }
-    var allOrders = gCtx.allOrders;
-    
-    if(ctx.room.name == 'E35N38' && ctx.terminal && ctx.terminal.store[RESOURCE_ENERGY] >= 10000 && ctx.terminal.cooldown == 0) {
-        var myOrders = allOrders.filter((order) => {
-            return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST;
-        });
-        var xs = ctx.terminal.store[RESOURCE_CATALYST];
-        var xbars = ctx.terminal.store[RESOURCE_PURIFIER];
-        if(xs < 100000 && xbars < 20000) {
-            var buyx = myOrders.filter((order) => {
-                return order.resourceType == RESOURCE_CATALYST && order.type == ORDER_SELL && order.price <= 0.14 && order.amount > 0;
-            });
-            if(buyx.length > 0) {
-                buyx = buyx.sort((a, b) => {
-                    return a.price - b.price;
-                });
-                var order = buyx[0];
-                Game.market.deal(order.id, Math.min(8000, order.amount), 'E35N38');
-            }
-            if(Game.time % 20 == 1) {
-                var activeBuyX = _.filter(Game.market.orders, (order) => {
-                    return  order.type == ORDER_BUY &&
-                            order.resourceType == RESOURCE_CATALYST &&
-                            order.amount > 0;
-                });
-                if(activeBuyX.length == 0) {
-                    Game.market.createOrder({
-                        type: ORDER_BUY,
-                        resourceType: RESOURCE_CATALYST,
-                        price: 0.13,
-                        totalAmount: 10000,
-                        roomName: "E35N38"
-                    });
-                } else {
-                    if(activeBuyX[0].remainingAmount < 10000) {
-                        Game.market.extendOrder(activeBuyX[0].id, 10000 - activeBuyX[0].remainingAmount);
-                    }
-                }
-            }
-        }
-        if(xbars > 1000) {
-            var sells = myOrders.filter((order) => {
-                return order.resourceType == RESOURCE_PURIFIER && order.type == ORDER_BUY && order.price >= 0.96 && order.amount > 0;
-            });            if(sells.length > 0) {
-                sells = sells.sort((a, b) => {
-                    return b.price - a.price;
-                });
-                var order = sells[0];
-                Game.market.deal(order.id, Math.min(8000, xbars, order.amount), 'E35N38');
             }
         }
     }

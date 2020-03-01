@@ -15,17 +15,6 @@ function fetchRoomCtx(gCtx, room) {
 module.exports.loop = function() {
     Memory.inConsole = false;
     Memory.processPower = true;
-    var targetStorage = Game.getObjectById('5e4d1528513adebfae6760e3');
-    if(targetStorage && targetStorage.store[RESOURCE_ENERGY] < 800000 && targetStorage.room.controller.level < 8) {
-        Memory.processPower = false;
-    }
-    // require('fake_him').handleFake();
-    var rm = Game.getObjectById('5e2566c0c155efe0d19cdf3b');
-    if(rm && rm.hits < 100000) {
-        var t = Game.rooms.E35N38.terminal;
-        t.send(RESOURCE_SPIRIT, t.store[RESOURCE_SPIRIT], 'E29N33');
-        t.send(RESOURCE_EMANATION, t.store[RESOURCE_EMANATION], 'E29N33');
-    }
 
     if(Memory.processPower) {
         try {
@@ -118,13 +107,7 @@ module.exports.loop = function() {
 
     utils.ProfileStage('Init: ');
 
-    gCtx.allOrders = Game.market.getAllOrders((order) => {
-        return true;
-        // return order.resourceType == RESOURCE_PURIFIER || order.resourceType == RESOURCE_CATALYST ||
-        //         order.resourceType == RESOURCE_OXIDANT || order.resourceType == RESOURCE_CRYSTAL ||
-        //         order.resourceType == RESOURCE_EXTRACT || order.resourceType == RESOURCE_COMPOSITE ||
-        //         order.resourceType == RESOURCE_SPIRIT || order.resourceType == RESOURCE_POWER;
-    });
+    gCtx.allOrders = Game.market.getAllOrders();
     utils.ProfileStage('Fetch market: ');
 
     // global action begin
@@ -213,8 +196,6 @@ module.exports.loop = function() {
         Memory.moveCpuUse = Memory.moveCpuUse * 0.8 + Memory.moveCpuUseCur * 0.2;
     }
     utils.ProfileStage('Stats mean cpu used: ', false, true);
-    // console.log('normal: ' + gCtx.normalCreepCpu);
-    // console.log('out: ' + gCtx.outCreepCpu);
 
     try {
         require('market').HandleMarket(gCtx.allOrders, Game.market.orders);
