@@ -1,3 +1,15 @@
+function template() {
+
+Game.market.createOrder({
+    type: ORDER_SELL,
+    resourceType: 'spirit',
+    price: 6600,
+    totalAmount: 2,
+    roomName: "E35N38",
+});
+
+}
+
 Creep.prototype.myWithdraw = function(target, resourceType) {
     var err = this.withdraw(target, resourceType);
     if(err == ERR_NOT_IN_RANGE) {
